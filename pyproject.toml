@@ -78,4 +78,4 @@ ignore = ["E501"]  # black handles line length
 
 [tool.ruff.lint.per-file-ignores]
 # Notebooks favour compact, readable teaching code over strict style.
-"*.ipynb" = ["E401", "E402", "E701", "E702", "E741", "I001"]
+"*.ipynb" = ["B905", "E401", "E402", "E701", "E702", "E741", "I001"]

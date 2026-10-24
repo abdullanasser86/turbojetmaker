@@ -63,3 +63,45 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
 
 ### D-008 · 2026-10-24 · pre-commit with local hooks (`uv run ruff` / `uv run black`)
 - Hooks use the lock-pinned tool versions, so pre-commit and CI/IDE never disagree.
+
+### D-009 · 2026-10-24 · 0-D model uses pyCycle's NASA species data, its own equations
+- **Why:** the cross-check must compare *cycle formulations* with matched assumptions. Sharing
+  the published NASA 9-coefficient species data (read from `pycycle.thermo.cea.thermo_data.janaf`)
+  means a disagreement points at a modelling bug, not at property data. Species values are
+  independently tested against JANAF reference numbers (`tests/test_thermo.py`).
+- **Differences that remain on purpose:** complete combustion (no dissociation) vs CEA
+  equilibrium; consistent C atomic weight 12.0107 vs pyCycle's 12.017 (a typo, ≈0.05 % on
+  fuel carbon content).
+
+### D-010 · 2026-10-24 · Set pyCycle's fuel enthalpy from LHV and combustion efficiency
+- **Finding:** pyCycle's `Combustor` takes the fuel enthalpy as an input (`mix_fuel…mix:h`) that
+  defaults to 0 and is never set in the examples. With pyCycle's thermo data, h = 0 for C12H23
+  corresponds to an LHV of 44.85 MJ/kg. Checked from the `simple_turbojet` burner energy
+  balance: the implied fuel enthalpy is −0.08 MJ/kg ≈ 0. Real Jet A/A-1: ≥ 42.8 MJ/kg
+  (ASTM D1655 minimum).
+- **Decision:** `h_fuel = Σ h_f(products) / M_fuel + η_b · LHV` (see
+  `turboml.gas.thermo.fuel_enthalpy_J_per_kg`). The same expression is used in both models.
+  Combustion efficiency enters as the fraction of the LHV that is released.
+- **Effect:** using the default would bias TSFC ≈ 4.6 % low (notebook 01, section 5).
+
+### D-011 · 2026-10-24 · Altitude is geometric in TurboML; converted to geopotential for pyCycle
+- pyCycle's US-1976 table is indexed by geopotential altitude (verified: 0.08 % pressure
+  mismatch at 6 km without the conversion, < 0.01 % with it).
+
+### D-012 · 2026-10-24 · pyCycle's nozzle `choked` flag is replaced by a pressure test
+- `Mux.compute()` never assigns its `choked` output, so the flag is meaningless. A convergent
+  nozzle is choked iff exit static pressure > ambient (relative tolerance 1e-4).
+
+### D-013 · 2026-10-24 · Phase 1 pyCycle model is design-point only, with generic maps
+- At the design point the compressor and turbine maps only set their own scaling, so the generic
+  AXI5 / LPT2269 maps don't affect results. Off-design requires centrifugal-compressor and
+  turbine maps from the Phase 2 meanline models. The wrapper documents this restriction.
+
+### D-014 · 2026-10-24 · Failures are returned, not raised
+- Both cycle models return `CycleResult(converged=False, failure_reason=...)` with labels
+  `constraint_tit_below_t3`, `no_nozzle_pressure_ratio`, `no_net_thrust` and `no_convergence: …`.
+  These become feasibility-classifier training data in Phase 4/5.
+
+### D-015 · 2026-10-24 · OPEN: which cycle model generates training data (decision for user)
+- See docs/PHASE1_REPORT.md: 0-D (5 ms) vs pyCycle CEA (≈1 s) vs pyCycle TABULAR (≈0.35 s,
+  up to 3.6 % error).

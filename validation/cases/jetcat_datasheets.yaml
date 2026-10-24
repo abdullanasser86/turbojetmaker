@@ -1,0 +1,80 @@
+# JetCat micro-turbojet manufacturer data (ISA sea-level static, maximum rpm).
+#
+# PROVENANCE / STATUS: UNVERIFIED.
+# Retrieved 2026-10-24 via web-search result extracts of jetcat.de product pages. The pages
+# themselves could not be opened from the development container (network policy), so every
+# number below is second-hand and must be checked against the official datasheets before it is
+# treated as reference data. Internal consistency check that WAS done: listed fuel flow x an
+# assumed kerosene density of 0.80 kg/L reproduces the listed SFC within 0-3 %
+# (scripts/phase1/jetcat_inverse.py prints this).
+#
+# Units: thrust N, mass flow kg/s, fuel flow ml/min (full load), SFC kg/(N h), rpm 1/min,
+# EGT deg C (range as listed), mass g, dimensions mm.
+# `null` = not in the retrieved extract.
+
+engines:
+  - name: P62-RX
+    url: "https://www.jetcat.de/en/productdetails/produkte/jetcat/produkte/RC%20ENGINES/Engines/p62_rx"
+    thrust_N: 63
+    pressure_ratio: 2.5
+    mass_flow_kg_s: 0.16
+    fuel_ml_min: 240
+    sfc_kg_N_h: 0.183
+    max_rpm: 185000
+    idle_rpm: 60000
+    egt_C: [480, 730]
+    mass_g: 620
+    diameter_mm: 68
+    length_mm: 216
+  - name: P160-RXi-B
+    url: "https://www.jetcat.de/en/productdetails/produkte/jetcat/produkte/RC ENGINES/Engines/P160_rxi_b"
+    thrust_N: 158
+    pressure_ratio: 3.5
+    mass_flow_kg_s: 0.38
+    fuel_ml_min: 510
+    sfc_kg_N_h: 0.160
+    max_rpm: 122000
+    idle_rpm: null
+    egt_C: [520, 750]
+    mass_g: null
+    diameter_mm: null
+    length_mm: null
+  - name: P220-RXi
+    url: "https://www.jetcat.de/en/productdetails/produkte/jetcat/produkte/RC%20ENGINES/Engines/p220-rxi"
+    thrust_N: 220
+    pressure_ratio: 3.9
+    mass_flow_kg_s: 0.45
+    fuel_ml_min: 725
+    sfc_kg_N_h: 0.158
+    max_rpm: 117000
+    idle_rpm: null
+    egt_C: null
+    mass_g: null
+    diameter_mm: null
+    length_mm: null
+  - name: P300-PRO
+    url: "https://www.jetcat.de/en/productdetails/produkte/jetcat/produkte/Professionell/p300 pro - GH"
+    thrust_N: 300
+    pressure_ratio: 3.55
+    mass_flow_kg_s: 0.50
+    fuel_ml_min: 980
+    sfc_kg_N_h: 0.157
+    max_rpm: 105000
+    idle_rpm: 35000
+    egt_C: [480, 750]
+    mass_g: 2730
+    diameter_mm: null
+    length_mm: 377   # GH page; GL page lists 381
+  - name: P400-PRO
+    url: "https://www.jetcat.de/en/productdetails/produkte/jetcat/produkte/Professionell/p400%20pro"
+    thrust_N: 425
+    pressure_ratio: 3.8
+    mass_flow_kg_s: 0.67
+    fuel_ml_min: 1392
+    sfc_kg_N_h: 0.157
+    max_rpm: 98000
+    idle_rpm: 30000
+    egt_C: [480, 750]
+    mass_g: 4010   # Wikipedia lists 4140 g
+    diameter_mm: 148.4
+    length_mm: 390  # Wikipedia lists 376 mm

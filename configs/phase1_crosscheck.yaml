@@ -1,0 +1,24 @@
+# Phase 1 verification sweep: pyCycle vs independent 0-D model with matched assumptions.
+# These ranges define a *verification envelope* (wide enough to cover unchoked and choked
+# nozzles, ground and flight), NOT design-variable bounds.
+n_samples: 64          # Sobol points (power of 2)
+seed: 1
+thermo: [TABULAR, CEA]
+tolerance_rel: 0.01    # acceptance: |Fn| and |TSFC| relative difference < 1 % (PROJECT_BRIEF Phase 1)
+ranges:
+  W_air_kg_s:     [0.1, 1.2]
+  pr_c:           [1.8, 5.0]
+  eta_c:          [0.55, 0.82]
+  tit_K:          [950.0, 1350.0]
+  eta_t:          [0.70, 0.90]
+  eta_mech:       [0.95, 1.0]
+  eta_burner:     [0.85, 1.0]
+  dp_burner_frac: [0.02, 0.08]
+  inlet_recovery: [0.96, 1.0]
+  dp_nozzle_frac: [0.0, 0.03]
+  nozzle_cv:      [0.95, 1.0]
+  alt_m:          [0.0, 6000.0]
+  mach:           [0.0, 0.6]
+fixed:
+  lhv_J_kg: 42.8e+6
+  power_offtake_W: 0.0

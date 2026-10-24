@@ -75,6 +75,40 @@ terms and a short "what we did and why".
   real-gas properties of air and combustion products.
 - **CoolProp** – Open-source fluid-property library, used by RadComp and TurboFlow.
 
+### Added in Phase 1
+- **Specific thrust** – Net thrust per unit air mass flow [N per kg/s]. High specific thrust
+  means a small engine for a given thrust. In a turbojet it rises mainly with TIT.
+- **LHV (lower heating value)** – Heat released by burning 1 kg of fuel completely, with the
+  water left as vapour. For Jet A/A-1 it's about 43 MJ/kg (ASTM D1655 minimum 42.8).
+- **Combustion efficiency η_b** – Fraction of the LHV actually released in the combustor.
+  Small combustors burn less completely than large ones.
+- **Mechanical efficiency η_m** – Fraction of turbine power that reaches the compressor after
+  bearing and windage losses.
+- **Intake pressure recovery** – Pt2/Pt0, the share of free-stream total pressure the intake keeps.
+- **Nozzle velocity coefficient Cv** – Actual ÷ ideal jet velocity. It lumps nozzle friction
+  losses into one number.
+- **Choked nozzle** – When the nozzle pressure ratio Pt/Pambient exceeds ≈1.85, the throat
+  reaches Mach 1. The exit pressure then stays above ambient, and the excess pushes as
+  "pressure thrust" A·(Ps − Pamb).
+- **Variable cp / NASA polynomials** – Gas specific heat rises with temperature (air: 1005
+  J/(kg K) at 300 K, ~1140 at 1000 K). NASA publishes fitted polynomials for cp, h and s of each
+  species; we use them for air and combustion products.
+- **Absolute enthalpy** – Enthalpy measured including the chemical (formation) energy, so one
+  energy balance covers combustion: fuel + air in, CO2 + H2O + leftover air out.
+- **Equilibrium chemistry (CEA)** – NASA's CEA solves for the chemical equilibrium mixture,
+  including dissociation (CO2 splitting into CO + O at high temperature). That's negligible below
+  ~1500 K, which is why our simpler "complete combustion" model matches it.
+- **Geometric vs geopotential altitude** – Geometric is true height. Geopotential corrects for
+  gravity weakening with height and is what the standard atmosphere is defined in (they differ
+  by 1.4 m at 3 km).
+- **Verification vs validation** – Verification asks "are the equations solved right?" (e.g. two
+  independent models agree). Validation asks "are they the right equations?" (agreement with
+  measurements). See docs/VALIDATION.md.
+- **Inverse problem** – Instead of predicting outputs from inputs, inferring unknown inputs
+  (here TIT and turbine efficiency) from measured outputs (thrust, SFC).
+- **Ill-conditioning** – When the answer is a small difference of large numbers (net thrust =
+  jet momentum − ram drag in slow, weak engines), tiny input errors become large output errors.
+
 ### ML and optimization (expanded from Phase 4 on)
 - **Surrogate model** – A fast ML approximation of a slow physics model. Here it runs in
   microseconds instead of seconds.
@@ -126,3 +160,31 @@ burner exit 2370 °R (1317 K) and TSFC = 0.7985 lbm/(lbf·h) (22.6 g/(kN·s)). T
 full-size engine, roughly 100× the thrust we're designing for. Micro turbojets have much
 lower pressure ratio and component efficiencies, so expect noticeably higher TSFC. Phase 1
 adapts the model to that scale using sourced efficiencies.
+
+### Phase 1 — Cycle model (2026-10-24)
+**What we did**
+1. Wrote a gas model (`turboml/gas/thermo.py`): air and kerosene combustion products as
+   ideal-gas mixtures with temperature-dependent cp from NASA polynomials.
+2. Built two independent design-point cycle models with the same inputs and outputs:
+   - `cycle_pycycle.py` adapts NASA pyCycle to a micro turbojet: convergent nozzle, shaft
+     mechanical loss, real fuel heating value.
+   - `cycle_simple.py` is our own 0-D model, about 200× faster.
+3. Verified them:
+   - The ideal-Brayton test: with no losses and a constant-cp gas, the code reproduces the
+     textbook formula η = 1 − PR^(−(γ−1)/γ) to 1e-9.
+   - Energy and mass balances close to 1e-10.
+   - The two models agree to ~0.1 % over a 64-point sweep.
+4. Compared against five JetCat engines (63–425 N) and inferred what TIT and turbine efficiency
+   their datasheet numbers imply.
+
+**Why it matters:** every later surrogate is trained on these numbers. Two independent models
+that agree, plus conservation checks, make a hidden modelling bug unlikely. They do *not* prove
+the efficiencies are right; that's what validation data is for.
+
+**Things we learned the hard way**
+- pyCycle's default fuel enthalpy silently uses a ~5 % too-high heating value (now fixed in
+  our wrapper).
+- pyCycle's fast "tabular" property option costs up to ~3 % accuracy here.
+- Exhaust temperature is pinned by energy conservation: thrust × SFC / air flow fixes it almost
+  regardless of component efficiencies. That makes it a powerful consistency check on
+  datasheets.

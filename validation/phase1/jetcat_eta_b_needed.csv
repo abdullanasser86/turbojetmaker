@@ -1,0 +1,5 @@
+engine,egt_max_C,eta_burner_max,note
+P62-RX,730,0.9335685045521747,EGT limit reached only if eta_b <= this
+P160-RXi-B,750,1.0,consistent for every eta_b <= 1
+P300-PRO,750,0.7426139457024483,EGT limit reached only if eta_b <= this
+P400-PRO,750,0.7006821779855142,EGT limit reached only if eta_b <= this

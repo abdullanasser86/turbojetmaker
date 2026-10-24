@@ -1,0 +1,25 @@
+# Baseline design-point cycle inputs for a ~150-250 N class micro turbojet.
+#
+# STATUS: PROVISIONAL. Values tagged `kind: assumption` are engineering judgement placeholders
+# with NO micro-scale source yet. They are used only to exercise the models (Phase 1
+# cross-checks). Phase 1's JetCat inverse analysis (docs/PHASE1_REPORT.md) shows which combinations
+# are consistent with published engine data; sourced values replace these once the user supplies
+# literature (see docs/VALIDATION.md "data requests").
+#
+# kinds: assumption | datasheet (manufacturer data, cite) | literature (paper, cite) | spec (standard)
+
+values:
+  W_air_kg_s:     {value: 0.38,   kind: datasheet,  source: "JetCat P160-RXi-B listed mass flow 0.38 kg/s (web-search extract of jetcat.de, unverified)"}
+  pr_c:           {value: 3.5,    kind: datasheet,  source: "JetCat P160-RXi-B listed pressure ratio 3.5 (web-search extract, unverified)"}
+  eta_c:          {value: 0.72,   kind: assumption, source: "Upper end of KJ-66 compressor peak efficiency 0.55-0.73 (Xiang, Schlueter & Duan 2017, as quoted in PROJECT_BRIEF; paper not yet read)"}
+  tit_K:          {value: 1150.0, kind: assumption, source: "placeholder; datasheet EGT max 750 C bounds Tt5 not Tt4"}
+  eta_t:          {value: 0.80,   kind: assumption, source: "placeholder"}
+  eta_mech:       {value: 0.98,   kind: assumption, source: "placeholder (bearing + windage losses)"}
+  eta_burner:     {value: 0.95,   kind: assumption, source: "placeholder"}
+  dp_burner_frac: {value: 0.05,   kind: assumption, source: "placeholder"}
+  inlet_recovery: {value: 0.99,   kind: assumption, source: "placeholder (static bellmouth intake)"}
+  dp_nozzle_frac: {value: 0.0,    kind: assumption, source: "placeholder (lumped into nozzle_cv)"}
+  nozzle_cv:      {value: 0.98,   kind: assumption, source: "placeholder"}
+  lhv_J_kg:       {value: 42.8e+6, kind: spec,       source: "ASTM D1655 minimum net heat of combustion for Jet A/A-1 (42.8 MJ/kg); to be verified against the standard"}
+  alt_m: 0.0
+  mach: 0.0

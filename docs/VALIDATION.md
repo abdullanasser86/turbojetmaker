@@ -23,6 +23,45 @@ Terminology used in this project:
 
 Regression values are asserted in `tests/test_external_tools.py`.
 
+## Phase 1 — cycle model
+
+### Verification (code solves its equations correctly)
+| Check | Result | Where |
+|---|---|---|
+| Ideal Brayton limit (perfect gas, no losses, full expansion): η_th = 1 − PR^(−(γ−1)/γ) | matches to 1e-9 (PR 1.5, 2.0, 2.4) | `tests/test_cycle_simple.py` |
+| Whole-engine energy balance incl. fuel, mech. loss, off-take | closes to 1e-10 | `tests/test_cycle_simple.py` |
+| Shaft power balance, mass balance (W9 = W + Wf) | exact | `tests/test_cycle_simple.py` |
+| Species cp, S°, ΔHf vs JANAF reference values (N2, O2, Ar, CO2, H2O) | within 0.01 J/mol/K, 20 J/mol | `tests/test_thermo.py` |
+| LHV round trip of fuel enthalpy definition | exact | `tests/test_thermo.py` |
+| ISA vs pyCycle's US-1976 table at 0/3/6 km | < 1e-4 (after geometric→geopotential fix) | `tests/test_atmosphere.py` |
+| **pyCycle (CEA) vs 0-D, 64-point Sobol sweep** (ground–6 km, M 0–0.6, wide efficiency ranges) | Fn median 0.03 %, TSFC median 0.06 %; **63/64 within 1 %**; worst point Fn 1.03 % / TSFC 0.93 % (ill-conditioned: specific thrust 36 N·s/kg at M 0.5; 0.18 % of gross thrust) | `scripts/phase1/cross_check_sweep.py`, `validation/phase1/cross_check*.{csv,txt}` |
+| pyCycle (TABULAR) vs 0-D, same sweep | Fn median 0.34 % / max 3.2 %; TSFC max 3.5 %; compressor work max 1.0 % (table interpolation) | same |
+
+### Sanity check vs published engines (NOT validation)
+Data: 5 JetCat engines, 63–425 N (`validation/cases/jetcat_datasheets.yaml`). **Unverified web-search
+extracts** of manufacturer pages; listed fuel flow and SFC are mutually consistent within 0–3 % for an assumed fuel density
+of 0.80 kg/L.
+
+- *Forward*, with provisional baseline assumptions (η_c 0.72, η_t 0.80, TIT 1150 K, η_b 0.95):
+  thrust error −19 % … +23 %, **SFC under-predicted by 10–15 % for every engine**. The placeholder efficiencies are optimistic.
+- *Inverse* (solve TIT and η_t to match thrust + SFC exactly for each assumed η_c):
+  - P160-RXi-B: consistent for any η_b ≤ 1 (implied EGT 691 °C at η_b 0.95; listed max 750 °C).
+  - P62-RX: consistent if η_b ≤ 0.93 (implied EGT 742 °C at η_b 0.95 vs listed max 730 °C).
+  - For both: implied TIT 1090–1130 K and η_t 0.62–0.77 for η_c 0.82…0.64.
+  - P220-RXi: implied EGT ≈ 787 °C at η_b 0.95 (no EGT listed).
+  - **P300-PRO, P400-PRO: inconsistent** at η_b 0.95. Implied EGT 933 / 978 °C vs listed max 750 °C, which would
+    need η_b ≤ 0.74 / 0.70. Since EGT follows from energy conservation (FAR = thrust·SFC/W), this points at the
+    extracted numbers (mass flow? thrust?) or at the EGT definition (sensor reading vs mean total temperature),
+    not at component efficiencies. **Needs the official datasheets.**
+
+## Data requests (user)
+1. Micro-turbojet review PDF ([R] in configs/bounds_proposal_phase1.yaml): full engine table.
+2. Official JetCat datasheet PDFs for P62-RX, P160-RXi-B, P220-RXi, P300-PRO, P400-PRO, to verify the extracted
+   values and find the EGT definition.
+3. Any source with measured or CFD-derived component efficiencies for 100–500 N engines (compressor η, turbine η,
+   combustor ΔP/P and η_b). Candidates surfaced by search: the AFRL thesis AD1100321; the JetCat P300-RX integrated
+   model study (Lee et al., 2024); the KJ-66 compressor paper (Xiang et al., 2017).
+
 ## Planned validation cases (to be done in their phases)
 - Phase 1: cycle model vs. independent 0-D model (verification); published engines from the
   micro-turbojet review database (sanity check — **PDF needed from user**).
