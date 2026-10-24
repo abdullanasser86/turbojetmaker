@@ -43,7 +43,9 @@ pyCycle's own element table lists C = 12.017, a ~0.05 % typo; see docs/DECISIONS
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
+from functools import lru_cache
 
 import numpy as np
 from pycycle.thermo.cea.thermo_data import janaf
@@ -132,7 +134,14 @@ class GasMixture:
 
     All properties are per kg of mixture, SI units. Enthalpy is absolute (includes
     formation enthalpy); entropy uses the 1 atm standard-state reference.
+
+    Speed: because every property is linear in the NASA coefficients, the mixture's
+    coefficients are summed once per temperature interval (all species used here share the
+    200/1000/6000 K breaks). Each property is then a single polynomial evaluation, which is
+    mathematically identical to summing species by species.
     """
+
+    T_MIN, T_BREAK, T_MAX = 200.0, 1000.0, 6000.0
 
     def __init__(self, mol_per_kg: dict[str, float]):
         self.n = {k: float(v) for k, v in mol_per_kg.items() if v != 0.0}
@@ -140,23 +149,48 @@ class GasMixture:
         if abs(mass - 1.0) > 1e-9:
             raise ValueError(f"composition does not sum to 1 kg (got {mass:.12f} kg)")
         self.R = R_UNIVERSAL * sum(self.n.values())  # J/(kg K)
+        for k in self.n:
+            if not np.allclose(_SP[k].t_breaks[:3], [self.T_MIN, self.T_BREAK, self.T_MAX]):
+                raise ValueError(f"species {k} has different temperature breaks")
+        # mixture coefficients (per kg) for the two intervals, as plain floats
+        self._a = [
+            [
+                R_UNIVERSAL * sum(n * _SP[k].coeffs[i][j] for k, n in self.n.items())
+                for j in range(9)
+            ]
+            for i in (0, 1)
+        ]
+
+    def _coef(self, T: float):
+        if not (self.T_MIN <= T <= self.T_MAX):
+            raise ValueError(f"T = {T:.1f} K outside NASA polynomial range [200, 6000] K")
+        return self._a[0] if T <= self.T_BREAK else self._a[1]
 
     def cp(self, T: float) -> float:
-        return sum(n * species_cp_h_s(k, T)[0] for k, n in self.n.items())
+        a = self._coef(T)
+        return a[0] / (T * T) + a[1] / T + a[2] + T * (a[3] + T * (a[4] + T * (a[5] + T * a[6])))
 
     def h(self, T: float) -> float:
-        return sum(n * species_cp_h_s(k, T)[1] for k, n in self.n.items())
+        a = self._coef(T)
+        return (
+            -a[0] / T + a[1] * math.log(T) + T * (a[2] + T * (a[3] / 2 + T * (a[4] / 3 + T * (a[5] / 4 + T * a[6] / 5))))
+            + a[7]
+        )  # fmt: skip
 
     def s0(self, T: float) -> float:
         """Σ n_i S°_i(T): the temperature part of the entropy [J/(kg K)]."""
-        return sum(n * species_cp_h_s(k, T)[2] for k, n in self.n.items())
+        a = self._coef(T)
+        return (
+            -a[0] / (2 * T * T) - a[1] / T + a[2] * math.log(T)
+            + T * (a[3] + T * (a[4] / 2 + T * (a[5] / 3 + T * a[6] / 4))) + a[8]
+        )  # fmt: skip
 
     def gamma(self, T: float) -> float:
         cp = self.cp(T)
         return cp / (cp - self.R)
 
     def sound_speed(self, T: float) -> float:
-        return float(np.sqrt(self.gamma(T) * self.R * T))
+        return math.sqrt(self.gamma(T) * self.R * T)
 
     # --- inversions (Newton; the functions are smooth and monotonic) ---------------
     def T_from_h(self, h: float, T_guess: float = 800.0) -> float:
@@ -170,7 +204,7 @@ class GasMixture:
 
     def T_isentropic(self, T1: float, p_ratio: float) -> float:
         """Temperature after an isentropic change p2/p1 = p_ratio from T1."""
-        target = self.s0(T1) + self.R * np.log(p_ratio)
+        target = self.s0(T1) + self.R * math.log(p_ratio)
         T = T1 * p_ratio ** (self.R / self.cp(T1))  # constant-cp first guess
         for _ in range(50):
             dT = (self.s0(T) - target) / (self.cp(T) / T)
@@ -181,9 +215,10 @@ class GasMixture:
 
     def p_ratio_isentropic(self, T1: float, T2: float) -> float:
         """p2/p1 of an isentropic process between T1 and T2."""
-        return float(np.exp((self.s0(T2) - self.s0(T1)) / self.R))
+        return math.exp((self.s0(T2) - self.s0(T1)) / self.R)
 
 
+@lru_cache(maxsize=1)
 def air() -> GasMixture:
     """Dry air with pyCycle's CEA elemental composition, as N2/O2/Ar/CO2 species."""
     e = AIR_ELEMENTS_MOL_PER_G

@@ -109,6 +109,35 @@ terms and a short "what we did and why".
 - **Ill-conditioning** – When the answer is a small difference of large numbers (net thrust =
   jet momentum − ram drag in slow, weak engines), tiny input errors become large output errors.
 
+### Added in Phase 2
+- **Velocity triangle** – At each blade edge, absolute velocity C = relative velocity W + blade speed U. Its
+  geometry decides the work done and the losses.
+- **Euler turbine equation** – Specific work = U2·Cθ2 − U1·Cθ1 (Cθ = swirl velocity). The heart of every
+  turbomachine.
+- **Slip factor σ** – The air leaving a centrifugal impeller swirls less than the blades would suggest. σ ≈ 0.7–0.9;
+  correlations (Wiesner, Stodola) are uncertain by roughly ±0.05 or more.
+- **Backsweep** – Impeller blades bent backwards at the tip. Lowers the work and the exit speed, widens the stable
+  operating range, and usually improves efficiency.
+- **Incidence** – The angle between the incoming flow and the blade's leading edge. Off-design flow means large
+  incidence, which means loss.
+- **Loss correlation / loss set** – Empirical formulas for each loss mechanism (incidence, friction, tip clearance,
+  mixing, disk friction…). A "set" is one consistent choice of them (e.g. Oh et al. 1997).
+- **Internal vs parasitic loss** – Internal losses reduce the useful pressure rise. Parasitic losses (disk friction,
+  recirculation, leakage) need extra shaft work that ends up as heat.
+- **Vaneless diffuser** – A plain annular channel outside the impeller. The flow slows down as it moves outward,
+  converting speed into pressure; wall friction costs total pressure.
+- **Speed line / map** – PR and efficiency versus mass flow at one shaft speed; several speeds make a map.
+- **Choke (compressor)** – Some passage (inducer, throat) reaches Mach 1, so the flow can't increase further.
+- **Surge criterion** – Meanline models can't really predict surge. We flag a PR peak or diffuser stall (Senoo).
+  Unvalidated here.
+- **Blind prediction / calibration / held-out validation** – Run the model with only published inputs first (blind),
+  tune a few parameters on part of the data (calibration), then judge only on data the tuning never saw (held-out).
+  Only the held-out error says something about predictive skill.
+- **Effective parameter** – A tuned value that lumps several unknown effects together. Valid for the case it was fitted
+  on; transferring it elsewhere is an assumption.
+- **NGV / stator, rotor, total-to-static efficiency** – Turbine stator vanes accelerate and swirl the gas; the rotor
+  extracts the work. η_ts counts the exit kinetic energy as lost.
+
 ### ML and optimization (expanded from Phase 4 on)
 - **Surrogate model** – A fast ML approximation of a slow physics model. Here it runs in
   microseconds instead of seconds.
@@ -188,3 +217,18 @@ the efficiencies are right; that's what validation data is for.
 - Exhaust temperature is pinned by energy conservation: thrust × SFC / air flow fixes it almost
   regardless of component efficiencies. That makes it a powerful consistency check on
   datasheets.
+
+### Phase 2 — Component meanline models (2026-10-24)
+**What we did**
+1. Ingested your documents into `validation/cases/` (the 109-engine review table, the JetCat catalog and datasheets,
+   KJ-66 measured and CFD data, geometry), then set the active bounds.
+2. Tried TurboFlow's centrifugal compressor and found three problems (a slip-angle units bug, a lossless diffuser, a
+   crashing 1-D diffuser). So we wrote our own compressor meanline model, verified it against TurboFlow's impeller
+   (0.01 %), and gave it a real friction diffuser plus explicit choke and surge checks.
+3. Validated against the measured KJ-66 compressor. Blind it misses (inputs unknown); calibrated on one speed it hits
+   the other speeds within ±4.6 % PR.
+4. Validated TurboFlow's axial turbine against NASA's Kofskey turbine (about 1–2 %, no tuning) and quantified the error of
+   using air for turbine gas (< 0.5 %).
+
+**Why it matters:** Phase 3 couples these maps into the cycle. Off-design behaviour (idle, flight), surge margin and
+choke now come from geometry instead of guessed efficiencies.

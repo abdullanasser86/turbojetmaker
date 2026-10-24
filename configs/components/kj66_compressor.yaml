@@ -1,0 +1,38 @@
+# KJ-66 centrifugal compressor as modelled in TurboML (Phase 2 validation case).
+# kind: measured | digitized | assumption.  Sources: see validation/cases/kj66_compressor_geometry.yaml
+#   [X16] Xiang, Schlueter & Duan 2016;  [L07] Ling, Wong & Armfield 2007.
+#
+# MODEL-FORM SIMPLIFICATION: the real KJ-66 has a 15-vane wedge diffuser followed by a 90 deg turn.
+# Its vane geometry is not published in the available sources, so the diffuser is modelled as a
+# VANELESS diffuser with the same inner radius and width. Expect diffuser losses (and the diffuser's
+# effect on the stage map) to be represented only approximately.
+
+impeller:
+  radius_hub_in_m:      {value: 0.00625, kind: measured,   source: "[X16] p.3; [L07]"}
+  radius_tip_in_m:      {value: 0.0225,  kind: measured,   source: "[X16] p.3; [L07]"}
+  radius_out_m:         {value: 0.033,   kind: measured,   source: "[X16] p.3; [L07] (66 mm wheel)"}
+  width_out_m:          {value: 0.006,   kind: measured,   source: "[L07] p.964 (blade tip height 6 mm)"}
+  number_of_blades:     {value: 10,      kind: measured,   source: "[X16] Table 1"}
+  tip_clearance_m:      {value: 0.0003,  kind: measured,   source: "[L07] p.962 (value used in their CFD model)"}
+  leading_edge_angle_deg:  {value: 42.0, kind: digitized,  source: "[L07] Fig. 2 midspan inlet blade angle ~-42 deg (from meridional), +/-3; TurboFlow sign convention positive"}
+  trailing_edge_angle_deg: {value: -21.0, kind: digitized, source: "[L07] Fig. 2 midspan last point ~-21 deg; hub/shroud -13/-35; UNCERTAIN whether these are trailing-edge values"}
+  length_meridional_m:  {value: 0.030,   kind: digitized,  source: "[L07] Fig. 2 meridional-length axis: hub ~40, shroud ~20 (units assumed mm) -> mean ~30 mm"}
+  length_axial_m:       {value: 0.020,   kind: assumption, source: "not published; ~0.6 x tip radius, same ratio as TurboFlow's example impeller (45/71.5)"}
+  area_throat_ratio:    {value: 0.70,    kind: assumption, source: "not published; estimate A_throat ~ A_inducer*cos(beta1b,mid=42 deg)*(1-0.05 blade blockage) = 0.70. Used only by the throat-choke criterion"}
+
+vaneless_diffuser:
+  radius_out_m:         {value: 0.048,   kind: assumption, source: "not published; below casing inner radius 53.7 mm ([X16],[L07])"}
+  width_out_m:          {value: 0.006,   kind: assumption, source: "parallel walls, = impeller exit width"}
+
+operating:
+  T0_in_K:   {value: 288.15,   kind: assumption, source: "ISA SLS; [X16] CFD used 288 K / 101325 Pa"}
+  p0_in_Pa:  {value: 101325.0, kind: assumption, source: "ISA SLS"}
+
+# Extra inputs needed only by the RadComp cross-check model (Schiffmann & Favrat loss set).
+radcomp_extra:
+  blade_thickness_m:    {value: 0.0005, kind: assumption, source: "not published; typical small cast/milled wheel"}
+  shroud_inlet_angle_deg: {value: -60.0, kind: digitized, source: "[L07] Fig. 2 shroud inlet angle ~-60 deg"}
+  mid_inlet_angle_deg:  {value: -42.0, kind: digitized, source: "[L07] Fig. 2 midspan inlet angle ~-42 deg"}
+  roughness_m:          {value: 1.0e-5, kind: assumption, source: "RadComp default-like value (known_compressors.yml)"}
+  backface_clearance_m: {value: 0.0005, kind: assumption, source: "not published"}
+  inducer_length_m:     {value: 0.02,  kind: assumption, source: "not published"}

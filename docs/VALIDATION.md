@@ -57,3 +57,39 @@ the ~0.03 % turbine-pressure-ratio difference between CEA equilibrium chemistry 
 into ~1 % in net thrust. |ΔFn/Fn| correlates with Fg/Fn at r = 0.92 across the sweep. Not a modelling error. The
 regression test fails if this point's difference leaves the band 0.8–1.3 % or the secondary metric exceeds 0.3 %.
 Such points (nearly thrustless, poor components) lie far outside realistic designs. The 5 % gate still counts them.
+
+## Phase 2 — component meanline models
+
+### Compressor (TurboML meanline, `turboml/physics/compressor.py`)
+**Verification**
+| Check | Result | Where |
+|---|---|---|
+| Loss-free, σ = 1, radial blades, frictionless diffuser: Δh0 = U2², η = 1 | exact (1e-9) | `tests/test_compressor.py` |
+| Port of the Oh (1997) loss set vs TurboFlow's impeller (same conventions), 9 points 70–110 krpm | PR within 0.013 %, η within 0.004 pts | `tests/test_compressor.py`, scratch study |
+| TurboFlow slip hook (degrees, no NaN at −40°) | pass | `tests/test_compressor.py` |
+
+**Validation vs KJ-66 MEASURED data** (Murray 2009, digitized from Xiang et al. 2016; ±0.003 kg/s, ±0.01 PR, ±0.005 η)
+| Model | PR error mean / max abs | η error mean / max abs |
+|---|---|---|
+| TurboML, blind (published geometry + labelled assumptions) | +20.9 % / 33.8 % | +13.3 / 15.6 pts |
+| RadComp, blind (independent Schiffmann loss set; 14/32 points failed) | +11.6 % / 18.0 % | +3.2 / 5.8 pts |
+| TurboML, calibrated on 90 krpm only → **held-out 70/80/100/110 krpm** | **+1.1 % / 4.6 %** | **+0.9 / 3.1 pts** |
+
+- Calibrated effective parameters: Δσ = −0.104 (σ = 0.70), diffuser Cf = 0.094. They absorb the unknown backsweep and
+  the unmodelled wedge-vane diffuser and 90° turn.
+- **Trends reproduced:** PR rises steeply with speed; peak η stays almost flat (0.754 → 0.770 over 70–117 krpm), as
+  measured (0.73–0.77). The CFD η drop (0.73 → 0.55, Xiang) is neither measured nor reproduced.
+- **Slip uncertainty:** Δσ = ±0.05 shifts PR by ≈ ±5 %. Bands are shown in notebook 02.
+- **Not validated:** surge (no surge data); choke location (no choke data); diffuser model form (real diffuser is vaned).
+
+### Axial turbine (TurboFlow, `turboml/physics/turbine.py`)
+**Validation vs Kofskey & Nusbaum (1972), NASA TN D-6967, MEASURED, no tuning** (50–110 % speed, PR 1.6–4.6)
+| Quantity | mean | mean abs | max abs | n |
+|---|---|---|---|---|
+| η_ts | −1.18 pts | 1.42 pts | 2.83 pts | 106 |
+| mass flow | +1.13 % | 1.13 % | 2.69 % | 46 |
+| torque | −0.52 % | 1.48 % | 5.19 % | 60 |
+| exit flow angle | −0.1° | 1.78° | 6.63° (110 % speed) | 50 |
+
+**Gas model error** (air instead of combustion products, TIT 1000–1250 K, FAR 0.015–0.025, PR 1.8–2.6): turbine work
+−0.17 … −0.46 %, choked flow function +0.28 … +0.47 %. TurboML air vs CoolProp air: cp within 0.15 %.

@@ -134,3 +134,40 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
 ### D-020 · 2026-10-24 · Device-agnostic training (`turboml.device.get_device`)
 - CUDA if available, else CPU; override with `TURBOML_DEVICE`. `scripts/check_env.py` verifies installed
   versions against `uv.lock` and smoke-tests torch/GPyTorch/BoTorch on the selected device.
+
+### D-021 · 2026-10-24 · Own centrifugal-compressor meanline model; TurboFlow and RadComp as cross-checks
+- **Findings in TurboFlow 0.1.18's centrifugal-compressor module** (its axial-turbine module is unaffected):
+  1. Wiesner slip evaluates `np.cos()` of the trailing-edge angle **in radians although the angle is in degrees**
+     (wrong slip factor; NaN for |β2b| ≳ 33°).
+  2. The `algebraic` vaneless diffuser with the Oh loss set is **lossless**. Oh's vaneless loss (Stanitz) is a
+     thermodynamic definition of loss, so the loss residual is satisfied identically; entropy and p0 are unchanged
+     for any skin-friction factor (verified: Cf 0.02 vs 0.5 gives identical p0). Reported stage efficiency is
+     effectively impeller-only.
+  3. The `1D` vaneless diffuser model raises `TypeError: Expected numeric dtype, got object` in our pinned stack.
+- **Decision:** write `turboml/physics/compressor.py`: impeller losses = Oh, Yoon & Chung (1997) set as implemented
+  in TurboFlow's `loss_model_oh.py` (MIT, ported with attribution); 1-D vaneless diffuser with wall friction
+  (real p0 loss); selectable slip with Δσ uncertainty; explicit choke and surge criteria; our own thermo
+  (no CoolProp). Fast enough for Phase 3/4.
+- TurboFlow's impeller (with our slip-bug fix, `compressor_turboflow.py`) serves as a port-verification
+  cross-check. RadComp (Schiffmann & Favrat loss set) serves as an independent-loss-set cross-check.
+
+### D-022 · 2026-10-24 · Incidence loss relative to the blade (default) instead of TurboFlow's reading
+- TurboFlow reads Conrad's incidence loss as ½·f·W_t1² (the whole inlet tangential relative velocity), which doesn't
+  depend on mass flow. Speed lines then have no off-design incidence penalty and no PR peak.
+- Default `incidence_model="blade_relative"`: ½·f·(W1·sin(|β1| − β1b))² at the mean radius. The TurboFlow reading
+  stays available (used for the port-verification test).
+
+### D-023 · 2026-10-24 · Compressor surge criterion (preliminary design, NOT validated)
+- Surge point = highest flow where either an interior PR maximum occurs or the vaneless-diffuser critical flow angle
+  (Senoo & Kinoshita 1977, via RadComp's fit) is exceeded. The impeller diffusion ratio W1t/W2 is output but not used
+  (no sourced threshold yet). The available KJ-66 data contains no surge points.
+
+### D-024 · 2026-10-24 · KJ-66 compressor calibration method
+- Blind run first (reported). Then 2 effective parameters (Δσ, diffuser Cf) fitted on ONE measured speed (90 krpm),
+  validated on the other four. Values in `configs/components/kj66_compressor_calibration.yaml`. Transfer to other
+  designs is an open decision for the user.
+
+### D-025 · 2026-10-24 · Axial turbine: TurboFlow, run on air
+- TurboFlow's axial-turbine module reproduces Kofskey (1972) measured data untuned (η_ts ≈1.4 pts, ṁ ≈1.1 %).
+- Air instead of combustion products: work −0.2…−0.5 %, choked flow function +0.3…+0.5 % (`scripts/phase2/turbine_gas_error.py`).
+- It takes ~3 s per point, too slow for Phase 3/4 matching at scale. Options are in the Phase 2 report.

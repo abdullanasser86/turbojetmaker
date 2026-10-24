@@ -1,0 +1,14 @@
+# Calibrated effective parameters for the KJ-66 compressor (Phase 2), produced by
+# scripts/phase2/kj66_compressor_validation.py -> validation/phase2/kj66_summary.yaml.
+#
+# kind: calibrated. Fitted to the MEASURED 90 krpm points only (Murray 2009, digitized from Xiang
+# et al. 2016), least squares on PR and efficiency. Validated on 70/80/100/110 krpm (held out):
+# PR mean +1.1 %, max |4.6 %|; efficiency mean +0.9 pts, max |3.1 pts|.
+#
+# These are EFFECTIVE values: delta_sigma absorbs the unknown real backsweep/slip; diffuser_cf (~19x a
+# plain vaneless-diffuser value) absorbs the unmodelled wedge-vane diffuser + 90 deg turn losses.
+# Whether they transfer to other designs is an open decision (docs/PHASE2_REPORT.md).
+model: turboml.physics.compressor.CentrifugalCompressor (slip wiesner, incidence blade_relative, loss_convention oh_aungier)
+geometry: configs/components/kj66_compressor.yaml
+delta_sigma: {value: -0.1041, kind: calibrated, slip_factor: 0.7031}
+diffuser_cf: {value: 0.0937,  kind: calibrated}

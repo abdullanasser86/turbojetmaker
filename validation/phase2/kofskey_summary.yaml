@@ -1,0 +1,55 @@
+reference: Kofskey & Nusbaum 1972, NASA TN D-6967 (measured, digitized by TurboFlow
+  authors)
+model: TurboFlow 0.1.18 axial turbine, Benner losses, Aungier deviation, no tuning
+map_points: 305
+map_converged: 303
+runtime_s: 359.8
+errors:
+  efficiency_ts:
+    mean_pts: -1.18
+    mean_abs_pts: 1.42
+    max_abs_pts: 2.83
+    n: 106
+    n_outside_model_range: 0
+    mean_abs_by_speed_pct:
+      50: 1.05
+      70: 1.31
+      90: 1.87
+      100: 1.72
+      110: 1.1
+  exit_flow_angle:
+    mean_deg: -0.1
+    mean_abs_deg: 1.78
+    max_abs_deg: 6.63
+    n: 50
+    n_outside_model_range: 0
+    mean_abs_by_speed_pct:
+      50: 1.72
+      70: 1.45
+      90: 1.06
+      100: 1.17
+      110: 3.45
+  mass_flow:
+    mean_%: 1.13
+    mean_abs_%: 1.13
+    max_abs_%: 2.69
+    n: 46
+    n_outside_model_range: 0
+    mean_abs_by_speed_pct:
+      50: 1.51
+      70: 1.13
+      90: 0.93
+      100: 1.03
+      110: 1.09
+  torque:
+    mean_%: -0.52
+    mean_abs_%: 1.48
+    max_abs_%: 5.19
+    n: 60
+    n_outside_model_range: 0
+    mean_abs_by_speed_pct:
+      50: 2.89
+      70: 1.04
+      90: 1.64
+      100: 1.17
+      110: 0.57

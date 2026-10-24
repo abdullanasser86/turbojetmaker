@@ -14,7 +14,7 @@ physics models.
 > testing by qualified people before anything is built or run.
 
 ## Status
-Phase 1 (cycle model) complete — see `docs/PHASE1_REPORT.md` (Phase 0: `docs/PHASE0_REPORT.md`).
+Phase 2 (component meanline models) complete — see `docs/PHASE2_REPORT.md` (earlier: `docs/PHASE0_REPORT.md`, `docs/PHASE1_REPORT.md`).
 The full plan is in `PROJECT_BRIEF.md`.
 
 ## Quick start

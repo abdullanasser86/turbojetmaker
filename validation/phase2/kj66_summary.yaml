@@ -1,0 +1,134 @@
+reference: Murray 2009 measured, digitized from Xiang et al. 2016 Figs 6-7
+blind_turboml:
+  PR_rel_err:
+    mean: 20.91
+    max_abs: 33.81
+    n: 19
+  eta_abs_err_pts:
+    mean: 13.34
+    max_abs: 15.58
+    n: 25
+blind_radcomp:
+  PR_rel_err:
+    mean: 11.55
+    max_abs: 17.98
+    n: 13
+  eta_abs_err_pts:
+    mean: 3.18
+    max_abs: 5.81
+    n: 17
+blind_radcomp_failed_points: 14
+blind_max_pr_per_speed:
+  70000:
+  - 0.05
+  - 1.576
+  80000:
+  - 0.05
+  - 1.795
+  90000:
+  - 0.05
+  - 2.07
+  100000:
+  - 0.05
+  - 2.413
+  110000:
+  - 0.05
+  - 2.84
+  117000:
+  - 0.05
+  - 3.199
+failure_reasons_per_speed:
+  70000:
+  - choke_throat
+  80000:
+  - choke_throat
+  90000:
+  - choke_throat
+  100000:
+  - choke_throat
+  110000:
+  - choke_throat
+  117000:
+  - choke_throat
+slip_uq_PR_rel_err_mean_by_delta_sigma:
+  -0.1: 10.88
+  -0.05: 15.87
+  0.0: 20.91
+  0.05: 26.01
+  0.1: 31.22
+calibration:
+  fitted_on_speed_rpm: 90000
+  delta_sigma: -0.1041
+  slip_factor: 0.7031
+  diffuser_cf: 0.0937
+  at_bound: false
+  calibration_speed_errors:
+    PR_rel_err:
+      mean: -0.0
+      max_abs: 1.17
+      n: 5
+    eta_abs_err_pts:
+      mean: -0.03
+      max_abs: 1.58
+      n: 5
+  validation_speed_errors:
+    PR_rel_err:
+      mean: 1.14
+      max_abs: 4.58
+      n: 14
+    eta_abs_err_pts:
+      mean: 0.92
+      max_abs: 3.13
+      n: 20
+calibrated_peak_eta_point_per_speed:
+  70000:
+  - 0.125
+  - 1.365
+  - 0.754
+  80000:
+  - 0.15
+  - 1.495
+  - 0.757
+  90000:
+  - 0.175
+  - 1.658
+  - 0.761
+  100000:
+  - 0.205
+  - 1.855
+  - 0.765
+  110000:
+  - 0.235
+  - 2.097
+  - 0.768
+  117000:
+  - 0.26
+  - 2.293
+  - 0.77
+calibrated_surge_points:
+  70000:
+  - 0.065
+  - peak_pr
+  80000:
+  - 0.075
+  - peak_pr
+  90000:
+  - 0.085
+  - peak_pr
+  100000:
+  - 0.05
+  - diffuser_stall
+  110000:
+  - 0.06
+  - diffuser_stall
+  117000:
+  - 0.07
+  - diffuser_stall
+calibrated_max_converged_flow_per_speed:
+  70000: 0.26
+  80000: 0.265
+  90000: 0.27
+  100000: 0.275
+  110000: 0.28
+  117000: 0.285
+runtime_s: 152.5
