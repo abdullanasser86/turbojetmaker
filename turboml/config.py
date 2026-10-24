@@ -63,6 +63,7 @@ class Constraints(_Strict):
     max_egt_K: float | None = None
     max_diameter_m: float | None = None
     max_length_m: float | None = None
+    max_impeller_tip_speed_m_s: float | None = None
 
 
 class TurboMLConfig(_Strict):
@@ -72,6 +73,7 @@ class TurboMLConfig(_Strict):
     off_design_points: list[OperatingPoint] = []
     constraints: Constraints = Constraints()
     materials: dict[str, Material] = {}
+    bounds_file: str | None = None  # relative to the config file; merged by load_config
     bounds: dict[str, Bound] = {}
 
 
@@ -95,8 +97,22 @@ def _load_raw(path: Path) -> dict[str, Any]:
 
 
 def load_config(path: str | Path = CONFIG_DIR / "default.yaml") -> TurboMLConfig:
-    """Load, merge (``extends:``) and validate a YAML config."""
-    return TurboMLConfig.model_validate(_load_raw(Path(path)))
+    """Load, merge (``extends:``, then ``bounds_file:``) and validate a YAML config.
+
+    The bounds file holds ``bounds:`` and bound-related ``constraints:`` (each constraint as
+    ``{value, source}``). Values set in the main config win over the bounds file.
+    """
+    path = Path(path)
+    raw = _load_raw(path)
+    if raw.get("bounds_file"):
+        b = yaml.safe_load((path.parent / raw["bounds_file"]).read_text()) or {}
+        raw["bounds"] = _deep_merge(b.get("bounds", {}), raw.get("bounds", {}))
+        cons = {
+            k: v["value"] if isinstance(v, dict) else v for k, v in b.get("constraints", {}).items()
+        }
+        explicit = {k: v for k, v in raw.get("constraints", {}).items() if v is not None}
+        raw["constraints"] = {**raw.get("constraints", {}), **cons, **explicit}
+    return TurboMLConfig.model_validate(raw)
 
 
 def require(value: Any, what: str) -> Any:

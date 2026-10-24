@@ -14,7 +14,7 @@ pytestmark = pytest.mark.slow
 def cea():
     from turboml.physics.cycle_pycycle import PyCycleDesignModel
 
-    return PyCycleDesignModel("CEA")
+    return PyCycleDesignModel()
 
 
 def test_baseline_matches_simple_model(cea):

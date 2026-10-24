@@ -33,8 +33,14 @@ come from the meanline models in Phase 2/3. **Do not use this model off-design y
 
 Thermodynamics
 --------------
-``thermo='TABULAR'`` (default, fast): pyCycle's precomputed air/Jet-A property tables.
-``thermo='CEA'``: NASA CEA chemical-equilibrium thermo (slower, includes dissociation).
+NASA CEA chemical-equilibrium thermo only. pyCycle's TABULAR option was dropped (D-016):
+in the Phase 1 sweep its table interpolation produced up to 1 % error in compressor work
+and 3.5 % in TSFC.
+
+Role in TurboML
+---------------
+This model is the *reference* for cross-checks (:mod:`turboml.physics.crosscheck`). Training
+data come from the fast 0-D model (:mod:`turboml.physics.cycle_simple`).
 """
 
 from __future__ import annotations
@@ -58,19 +64,10 @@ DESIGN_MN = {"inlet": 0.4, "comp": 0.15, "burner": 0.05, "turb": 0.3}  # static 
 class MicroTurbojet(pyc.Cycle):
     """Design-point single-spool turbojet with a convergent nozzle."""
 
-    def initialize(self):
-        self.options.declare("thermo", default="TABULAR", values=("TABULAR", "CEA"))
-        super().initialize()
-
     def setup(self):
-        if self.options["thermo"] == "TABULAR":
-            self.options["thermo_method"] = "TABULAR"
-            self.options["thermo_data"] = pyc.AIR_JETA_TAB_SPEC
-            fuel = "FAR"
-        else:
-            self.options["thermo_method"] = "CEA"
-            self.options["thermo_data"] = pyc.species_data.janaf
-            fuel = "Jet-A(g)"
+        self.options["thermo_method"] = "CEA"
+        self.options["thermo_data"] = pyc.species_data.janaf
+        fuel = "Jet-A(g)"
 
         self.add_subsystem("fc", pyc.FlightConditions())
         self.add_subsystem("inlet", pyc.Inlet())
@@ -132,15 +129,14 @@ class MicroTurbojet(pyc.Cycle):
 class PyCycleDesignModel:
     """Builds the OpenMDAO problem once; :meth:`evaluate` reruns it for new inputs."""
 
-    def __init__(self, thermo: str = "TABULAR"):
-        self.thermo = thermo
+    def __init__(self):
         self.prob = om.Problem(reports=False)
-        self.prob.model = MicroTurbojet(thermo=thermo)
+        self.prob.model = MicroTurbojet()
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             self.prob.setup(check=False)
         self.prob.set_solver_print(level=-1)
-        # The fuel-enthalpy input sits at a different depth for CEA vs TABULAR thermo.
+        # Locate the combustor's fuel-enthalpy input (not promoted by pyCycle).
         (self._fuel_h_name,) = [
             n
             for n in self.prob.model.get_io_metadata(iotypes="input")
@@ -184,7 +180,7 @@ class PyCycleDesignModel:
                 p.run_model()
         except AnalysisError as err:
             return CycleResult(
-                model=f"pycycle_{self.thermo.lower()}",
+                model="pycycle_cea",
                 converged=False,
                 failure_reason=f"no_convergence: {str(err).splitlines()[0][:200]}",
             )
@@ -208,7 +204,7 @@ class PyCycleDesignModel:
         }
         Fn, Wf = g("perf.Fn", "N"), g("burner.Wfuel", "kg/s")
         return CycleResult(
-            model=f"pycycle_{self.thermo.lower()}",
+            model="pycycle_cea",
             converged=True,
             W_air_kg_s=g("inlet.Fl_O:stat:W", "kg/s"),
             Fn_N=Fn,

@@ -3,7 +3,7 @@
 # nozzles, ground and flight), NOT design-variable bounds.
 n_samples: 64          # Sobol points (power of 2)
 seed: 1
-thermo: [TABULAR, CEA]
+# pyCycle reference uses CEA thermo only (TABULAR dropped, D-016)
 tolerance_rel: 0.01    # acceptance: |Fn| and |TSFC| relative difference < 1 % (PROJECT_BRIEF Phase 1)
 ranges:
   W_air_kg_s:     [0.1, 1.2]

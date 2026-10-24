@@ -34,6 +34,7 @@ constraints:
   max_egt_K: null
   max_diameter_m: null
   max_length_m: null
+  max_impeller_tip_speed_m_s: null   # set in bounds.yaml (500 m/s, configurable)
 
 # Material property limits: preliminary-design proxies, to be researched + cited (Phase 1).
 materials:
@@ -44,26 +45,6 @@ materials:
   turbine_nickel:
     name: "Cast nickel superalloy turbine wheel (alloy TBD)"
 
-# Design-variable bounds: derived from the engine database + literature in Phase 1,
-# then confirmed with the user. Names follow PROJECT_BRIEF sec. 5.
-bounds:
-  cycle_pressure_ratio: {}
-  air_mass_flow_kg_s: {}
-  tit_K: {}
-  shaft_speed_rpm: {}
-  imp_tip_radius_m: {}
-  inducer_hub_radius_m: {}
-  inducer_tip_radius_m: {}
-  imp_blade_count: {integer: true}
-  imp_backsweep_deg: {}
-  imp_exit_blade_height_m: {}
-  diffuser_radius_ratio: {}
-  diffuser_vane_count: {integer: true}
-  imp_tip_clearance_m: {}
-  turb_mean_radius_m: {}
-  turb_blade_height_m: {}
-  turb_flow_coefficient: {}
-  turb_loading_coefficient: {}
-  turb_reaction: {}
-  combustor_dp_frac: {}
-  nozzle_exit_area_m2: {}
+# Design-variable bounds and bound-related constraints (e.g. impeller tip speed) live in
+# bounds.yaml, each with its source. Bounds listed here would override that file.
+bounds_file: bounds.yaml

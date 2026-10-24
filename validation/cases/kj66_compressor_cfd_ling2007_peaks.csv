@@ -1,0 +1,9 @@
+# KJ66 original compressor stage (KKK2038 wheel, 66 mm, wedge diffuser), CFD (ANSYS CFX, k-epsilon, 0.3 mm tip
+# clearance, T0 = 300 K). Ling, Wong & Armfield (2007), 16th Australasian Fluid Mechanics Conf., pp. 961-966,
+# Figs. 3-4. Approximate PEAK points only, DIGITIZED from the figures (+/-0.005 kg/s, +/-0.02 PR, +/-0.01 eff).
+# Paper text: "maximum speed 117,000 rpm, PR 2.2 at 0.22 kg/s ... well matched by the CFD".
+speed_rpm,peak_pr,mass_flow_at_peak_pr_kg_s,peak_efficiency_tt,mass_flow_at_peak_eff_kg_s
+80000,1.54,0.14,0.83,0.17
+100000,1.88,0.19,0.80,0.21
+117000,2.25,0.255,0.755,0.265
+120000,2.32,0.265,0.745,0.27

@@ -1,0 +1,32 @@
+# KJ-66 compressor stage, steady RANS CFD (Fluent, Spalart-Allmaras, no tip clearance, adiabatic, smooth walls),
+# Xiang, Schlueter & Duan (2016), Proc IMechE Part G, doi:10.1177/0954410016644632, Figs. 6-7.
+# Mass-flow grid = Table 2 "real value". Values DIGITIZED (+/-0.01 PR, +/-0.005 eff) except the peaks quoted in the
+# text (marked source=text): peak PR 1.54/1.76/1.96 at 0.13/0.19/0.24 kg/s and peak eff 0.73/0.63/0.55 at
+# 0.13/0.20/0.25 kg/s for 80/100/117 krpm.
+speed_rpm,mass_flow_kg_s,pressure_ratio,efficiency_ad,source
+80000,0.11,1.460,0.687,digitized
+80000,0.12,1.480,0.704,digitized
+80000,0.13,1.540,0.730,text
+80000,0.14,1.520,0.725,digitized
+80000,0.15,1.500,0.710,digitized
+80000,0.16,1.475,0.694,digitized
+80000,0.17,1.450,0.675,digitized
+80000,0.19,1.385,0.611,digitized
+100000,0.17,1.720,,digitized
+100000,0.18,1.735,0.612,digitized
+100000,0.19,1.760,0.630,text
+100000,0.20,1.755,0.630,text
+100000,0.21,1.725,0.623,digitized
+100000,0.22,1.685,0.602,digitized
+100000,0.23,1.645,0.577,digitized
+100000,0.24,1.605,0.560,digitized
+100000,0.25,1.560,0.520,digitized
+117000,0.22,1.930,0.495,digitized
+117000,0.23,1.930,0.509,digitized
+117000,0.24,1.960,0.540,text
+117000,0.25,1.955,0.550,text
+117000,0.26,1.925,0.546,digitized
+117000,0.27,1.880,0.534,digitized
+117000,0.28,1.825,0.508,digitized
+117000,0.29,1.775,0.482,digitized
+117000,0.30,1.730,0.460,digitized

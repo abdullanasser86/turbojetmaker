@@ -44,3 +44,13 @@ def test_require_refuses_placeholders():
     with pytest.raises(ValueError, match="not set"):
         require(None, "constraints.max_tit_K")
     assert require(1200.0, "x") == 1200.0
+
+
+def test_active_bounds_have_sources_and_tip_speed_constraint():
+    cfg = load_config()
+    active = {k: b for k, b in cfg.bounds.items() if b.is_set()}
+    assert {"cycle_pressure_ratio", "air_mass_flow_kg_s", "shaft_speed_rpm", "tit_K"} <= set(active)
+    for name, b in active.items():
+        assert b.source, f"bound {name} has no source"
+        assert b.lower < b.upper
+    assert cfg.constraints.max_impeller_tip_speed_m_s == 500.0

@@ -1,0 +1,58 @@
+# Design-variable bounds (ACTIVE). Loaded by turboml.config via `bounds_file:` in default.yaml.
+#
+# Every bound states its source. `{}` = not yet set (component variables are filled in as the
+# Phase 2/3 component models define them). Sources:
+#   [U]   User decision 2026-10-24 (pre-Phase 2 instructions), based on the documents below.
+#   [R]   Anjomrouz, Ghadiri & Imani (2023), J. Solid Fluid Mech. 13(5):59-76, Table 3
+#         -> validation/cases/review_engine_table.csv (109 engines, 15.6-979 N)
+#   [JC]  JetCat PRO Engines catalog 2024 -> validation/cases/jetcat_pro_catalog_2024.csv
+#   [JD]  JetCat P500-PRO / P550-PRO datasheets V1.1 02/2023
+#   [D]   DePaola, AFIT thesis 2020 (as summarised by the user; thesis not yet available to us)
+#
+# Database check (scripts/data/derive_bounds.py; numbers for engines >= 50 N unless stated):
+#   PR: 2.0-4.7 (28 engines report PR; P20-SX at 24 N has 1.5).
+#   Specific thrust Fn/W: 352-634 N s/kg (18 engines); small engines (<250 N) 352-511.
+#   Max rpm: 205 krpm at 50 N ... 61.5 krpm (AMT Nike 784 N, JetCat P1000 1100 N);
+#            fit rpm ~ 7.3e5 * F^-0.343 -> 190 krpm @ 50 N, 68 krpm @ 1000 N.
+#   Max EGT: 650-875 C (AMT Titan/Nike 875 C).
+
+bounds:
+  cycle_pressure_ratio:
+    lower: 2.0
+    upper: 5.0
+    source: "[U] from [R] ('PR < 5' for < 1000 N; Table 3 max 4.7) and JetCat P90 ~2.35 (user). Database: 2.0-4.7 for >= 50 N."
+  air_mass_flow_kg_s:
+    lower: 0.08
+    upper: 1.9
+    source: "[U] from [JD] P500 0.90 kg/s @ 500 N, P550 0.93 @ 550 N; 50 N needs ~0.09 and 1000 N ~1.8 at 550-600 N s/kg. Database: engines < 250 N have 352-511 N s/kg -> 50 N needs 0.10-0.14 kg/s (inside bound)."
+  shaft_speed_rpm:
+    lower: 50000.0
+    upper: 220000.0
+    source: "[U] P500/P550 80-83 krpm, P220 117 krpm, P80 125 krpm, 50 N engines ~160-200 krpm. Database: >= 50 N engines 61.5-205 krpm."
+  tit_K:
+    lower: 1000.0
+    upper: 1250.0
+    source: "[U] PROVISIONAL. JetCat EGT 480-750 C (~750-1020 K) and TIT > EGT; refine with measured TIT in [D]. NOTE: [R] lists EGT up to 875 C (1148 K) for AMT engines, which implies TIT above 1250 K for those; see Phase 2 report."
+  # --- component variables (defined with the Phase 2/3 component models) -------------
+  imp_tip_radius_m: {}
+  inducer_hub_radius_m: {}
+  inducer_tip_radius_m: {}
+  imp_blade_count: {integer: true}
+  imp_backsweep_deg: {}
+  imp_exit_blade_height_m: {}
+  diffuser_radius_ratio: {}
+  diffuser_vane_count: {integer: true}
+  imp_tip_clearance_m: {}
+  turb_mean_radius_m: {}
+  turb_blade_height_m: {}
+  turb_flow_coefficient: {}
+  turb_loading_coefficient: {}
+  turb_reaction: {}
+  combustor_dp_frac: {}
+  nozzle_exit_area_m2: {}
+
+# Constraints that come with the bounds (merged into `constraints:`).
+constraints:
+  max_impeller_tip_speed_m_s:
+    value: 500.0
+    source: "[U] / [D] Sec. 2.4.3: turbocharger-type impellers typically limited to 400-550 m/s. Configurable."

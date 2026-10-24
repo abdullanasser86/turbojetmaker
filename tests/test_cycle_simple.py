@@ -81,3 +81,24 @@ def test_better_components_lower_tsfc(base, field, better):
 def test_failures_are_labelled_not_raised(base, overrides, reason):
     r = design_point(replace(base, **overrides))
     assert not r.converged and r.failure_reason == reason
+
+
+def test_turbine_modes_are_inverse(base):
+    """Phase 3 off-design interface: imposing the design pressure ratio on the turbine must
+    return the design shaft power (turbine_given_pr is the inverse of turbine_for_power)."""
+    from turboml.physics.cycle_simple import (
+        combustor,
+        compressor,
+        free_stream,
+        intake,
+        turbine_for_power,
+        turbine_given_pr,
+    )
+
+    s0, _ = free_stream(th.air(), 288.15, 101325.0, 0.0, base.W_air_kg_s)
+    s3, p_c = compressor(intake(s0, base.inlet_recovery), base.pr_c, base.eta_c)
+    s4 = combustor(s3, base.tit_K, base.dp_burner_frac, base.eta_burner, base.lhv_J_kg)
+    s5, pr_t = turbine_for_power(s4, p_c, base.eta_t)
+    s5b, power = turbine_given_pr(s4, pr_t, base.eta_t)
+    assert power == pytest.approx(p_c, rel=1e-9)
+    assert s5b.Tt == pytest.approx(s5.Tt, rel=1e-10)

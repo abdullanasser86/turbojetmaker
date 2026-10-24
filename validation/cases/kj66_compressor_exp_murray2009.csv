@@ -1,0 +1,51 @@
+# KJ-66 compressor, EXPERIMENTAL data (engine test) from Murray (2009), as plotted in Xiang, Schlueter & Duan (2016),
+# Proc IMechE Part G, doi:10.1177/0954410016644632, Fig. 6 (pressure ratio) and Fig. 7 (adiabatic efficiency).
+# Original: Murray PW, "Microturbine for micro-cogeneration application", MSc thesis, Queen's University, Canada, 2009.
+# DIGITIZED by hand from a 400-dpi render of the figure (TurboML, 2026-10-24). Estimated reading uncertainty:
+# mass flow +/-0.003 kg/s, PR +/-0.01, efficiency +/-0.005. PR and efficiency points are NOT paired in the figure,
+# so they are stored as separate rows (quantity column). Efficiency definition: total-to-total adiabatic (per Xiang).
+speed_rpm,mass_flow_kg_s,quantity,value
+70000,0.107,pressure_ratio,1.390
+70000,0.110,pressure_ratio,1.392
+70000,0.113,pressure_ratio,1.385
+80000,0.124,pressure_ratio,1.520
+80000,0.126,pressure_ratio,1.510
+80000,0.131,pressure_ratio,1.510
+80000,0.131,pressure_ratio,1.520
+90000,0.141,pressure_ratio,1.680
+90000,0.143,pressure_ratio,1.675
+90000,0.150,pressure_ratio,1.690
+90000,0.152,pressure_ratio,1.660
+90000,0.155,pressure_ratio,1.695
+100000,0.161,pressure_ratio,1.865
+100000,0.162,pressure_ratio,1.850
+100000,0.171,pressure_ratio,1.855
+100000,0.172,pressure_ratio,1.840
+110000,0.181,pressure_ratio,2.075
+110000,0.181,pressure_ratio,2.055
+110000,0.194,pressure_ratio,2.055
+70000,0.107,efficiency_ad,0.765
+70000,0.108,efficiency_ad,0.750
+70000,0.107,efficiency_ad,0.740
+70000,0.108,efficiency_ad,0.730
+70000,0.113,efficiency_ad,0.770
+70000,0.112,efficiency_ad,0.735
+80000,0.124,efficiency_ad,0.765
+80000,0.124,efficiency_ad,0.750
+80000,0.125,efficiency_ad,0.740
+80000,0.131,efficiency_ad,0.770
+80000,0.131,efficiency_ad,0.745
+90000,0.140,efficiency_ad,0.755
+90000,0.143,efficiency_ad,0.750
+90000,0.148,efficiency_ad,0.768
+90000,0.150,efficiency_ad,0.768
+90000,0.151,efficiency_ad,0.742
+100000,0.160,efficiency_ad,0.745
+100000,0.161,efficiency_ad,0.735
+100000,0.170,efficiency_ad,0.767
+100000,0.171,efficiency_ad,0.742
+110000,0.180,efficiency_ad,0.725
+110000,0.181,efficiency_ad,0.732
+110000,0.182,efficiency_ad,0.727
+110000,0.193,efficiency_ad,0.752
+110000,0.193,efficiency_ad,0.730

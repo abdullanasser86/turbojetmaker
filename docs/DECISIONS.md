@@ -105,3 +105,32 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
 ### D-015 · 2026-10-24 · OPEN: which cycle model generates training data (decision for user)
 - See docs/PHASE1_REPORT.md: 0-D (5 ms) vs pyCycle CEA (≈1 s) vs pyCycle TABULAR (≈0.35 s,
   up to 3.6 % error).
+
+### D-016 · 2026-10-24 · Training data from the 0-D model; pyCycle-CEA as cross-check (user decision)
+- Supersedes the open question D-015. Data generation uses `cycle_simple` (≈5 ms/point).
+- **Cross-check policy** (`turboml/physics/crosscheck.py`): pyCycle-CEA runs in parallel on a random 2 % of
+  every generated dataset **and** on every final Pareto design. A point is flagged if |ΔFn/Fn| or |ΔTSFC/TSFC| > 1 %.
+  If more than 5 % of cross-checked points are flagged → stop and report before training surrogates (`crosscheck.gate`).
+- pyCycle-TABULAR dropped (removed from the wrapper).
+- 0-D model refactored into component functions (`free_stream`, `intake`, `compressor`, `combustor`,
+  `turbine_for_power`, `turbine_given_pr`, `convergent_nozzle`) sharing a `FlowState`, so Phase 3 meanline maps
+  can drive them in an off-design matching solver.
+
+### D-017 · 2026-10-24 · Phase 1 cross-check accepted at 63/64; metric unchanged (user decision)
+- Primary metric stays |ΔFn/Fn|, |ΔTSFC/TSFC| < 1 %. Sample 8 is a documented known exception
+  (`validation/phase1/known_exceptions.yaml`), pinned by a regression test.
+- |ΔFn|/Fg is reported from now on as a **secondary, labelled** metric. It never decides pass/fail.
+
+### D-018 · 2026-10-24 · Active bounds in `configs/bounds.yaml` (user decision)
+- PR 2.0–5.0, air flow 0.08–1.9 kg/s, shaft speed 50–220 krpm, TIT 1000–1250 K (provisional),
+  impeller tip speed ≤ 500 m/s (configurable constraint). Each bound has its source.
+- Checked against the 109-engine review database (`scripts/data/derive_bounds.py`); see the Phase 2 report
+  for proposed updates (TIT upper limit).
+
+### D-019 · 2026-10-24 · Source documents are not committed
+- Uploaded PDFs are copyrighted. Committed: extracted tables (CSV with per-row citation), the parsers
+  (`scripts/data/`), and digitized data clearly labelled as digitized with reading uncertainty.
+
+### D-020 · 2026-10-24 · Device-agnostic training (`turboml.device.get_device`)
+- CUDA if available, else CPU; override with `TURBOML_DEVICE`. `scripts/check_env.py` verifies installed
+  versions against `uv.lock` and smoke-tests torch/GPyTorch/BoTorch on the selected device.

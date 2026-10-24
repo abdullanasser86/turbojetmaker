@@ -1,0 +1,37 @@
+# KJ-66 compressor geometry and design data, assembled from the uploaded sources.
+# Every field gives its source. `null` = not found in the available sources. When a value has to be
+# assumed for a model run, the run config says so; it is never filled in here.
+#
+# [X16] Xiang, Schlueter & Duan (2016), Proc IMechE Part G, doi:10.1177/0954410016644632 (Table 1, p. 3)
+# [L07] Ling, Wong & Armfield (2007), 16th Australasian Fluid Mech. Conf., pp. 961-966
+# [GTBA] KJ66 engine designs, Gas Turbine Builders Association (cited as ref 37 in [X16]; not read)
+
+engine:
+  thrust_N: {value: 75, source: "[X16] Table 1"}
+  max_rpm: {value: 117000, source: "[X16] Table 1; [L07] p. 963"}
+  design_pressure_ratio: {value: 2.2, source: "[X16] Table 1; [L07] p. 963 ('specification')"}
+  design_mass_flow_kg_s: {value: 0.22, source: "[X16] Table 1; [L07] p. 963"}
+  max_exhaust_temperature_K: {value: 843, source: "[X16] Table 1"}
+  diameter_mm: {value: 110, source: "[X16] Table 1 ([L07]: 108 mm)"}
+  length_mm: {value: 240, source: "[X16] Table 1"}
+  mass_kg: {value: 0.93, source: "[X16] Table 1"}
+
+impeller:
+  wheel: {value: "KKK2038 (turbocharger compressor wheel)", source: "[L07] p. 961"}
+  tip_radius_m: {value: 0.033, source: "[X16] p. 3 (Rtip = 33 mm); [L07] tip diameter 66 mm"}
+  inlet_hub_radius_m: {value: 0.00625, source: "[X16] p. 3; [L07] hub diameter 12.5 mm"}
+  inlet_shroud_radius_m: {value: 0.0225, source: "[X16] p. 3; [L07] shroud diameter 45 mm"}
+  blade_count: {value: 10, source: "[X16] Table 1 ('number of compressor rotor blades'); splitters not stated"}
+  exit_blade_height_m: {value: 0.006, source: "[L07] p. 964 ('impeller blade tip height ... 6 mm in the original impeller')"}
+  tip_clearance_m: {value: 0.0003, source: "[L07] p. 962 (value used in their CFD model; [X16] CFD used none)"}
+  blade_angle_inlet_deg_hub_mid_shroud: {value: [-27, -42, -60], source: "[L07] Fig. 2, DIGITIZED (+/-3 deg), angle from meridional"}
+  blade_angle_exit_deg_hub_mid_shroud: {value: [-13, -21, -35], source: "[L07] Fig. 2 last points of each span curve, DIGITIZED (+/-3 deg); the curves end at different meridional lengths, so whether these are true trailing-edge angles is UNCERTAIN"}
+
+diffuser:
+  type: {value: "radial wedge-vaned diffuser, then 90 deg turn to axial", source: "[L07] p. 962"}
+  vane_count: {value: 15, source: "[X16] Table 1 ('number of compressor stator blades')"}
+  wedge_angle_to_radial_deg: {value: 3, source: "[L07] p. 962"}
+  casing_inner_diameter_m: {value: 0.1074, source: "[X16] p. 3; [L07] p. 962"}
+  inlet_radius_m: {value: null, source: "not given"}
+  outlet_radius_m: {value: null, source: "not given; bounded above by casing radius 53.7 mm"}
+  width_m: {value: null, source: "not given"}

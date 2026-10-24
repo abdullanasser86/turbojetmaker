@@ -1,0 +1,37 @@
+# Documented known exceptions of the pyCycle-CEA vs 0-D cross-check (user decision 2026-10-24:
+# accept 63/64 within 1 %; do not change the metric; keep this as a regression test).
+# Tested by tests/test_crosscheck_known_exception.py.
+
+exceptions:
+  - sample: 8
+    sweep: configs/phase1_crosscheck.yaml (Sobol seed 1, 64 points)
+    inputs:
+      W_air_kg_s: 0.1271705193445086
+      pr_c: 4.625874483585358
+      eta_c: 0.554887272072956
+      tit_K: 1108.4267627447844
+      eta_t: 0.7260507913306355
+      eta_mech: 0.950818259967491
+      eta_burner: 0.9794113212730736
+      dp_burner_frac: 0.0649175865575671
+      inlet_recovery: 0.9775437220931052
+      dp_nozzle_frac: 0.0031038688961416
+      nozzle_cv: 0.9601272825617344
+      alt_m: 2594.443917274475
+      mach: 0.5045929335057735
+      lhv_J_kg: 42.8e+6
+    observed_2026_10_24:
+      dFn_over_Fn: 0.01034     # PRIMARY, exceeds 1 %
+      dTSFC_over_TSFC: -0.00932
+      dFn_over_Fg: 0.00184     # SECONDARY (labelled), for context only
+    cause: >
+      Ill-conditioned point, not a modelling disagreement. Very poor components (eta_c 0.55,
+      eta_t 0.73) leave a nozzle pressure ratio of only 1.09 at Mach 0.5. Two amplifiers multiply:
+      (1) jet velocity is 5.6x as sensitive to nozzle total pressure as at typical points,
+      (2) net thrust is the small difference Fg - ram drag (Fg/Fn = 5.6, sweep median 1.24).
+      Net: d ln Fn / d ln Pt9 ~ 31. The ~0.03 % turbine-pressure-ratio difference between CEA
+      (equilibrium chemistry incl. minor species) and the 0-D model (complete combustion) therefore
+      becomes ~1 % in Fn. |dFn/Fn| correlates with Fg/Fn at r = 0.92 across the sweep.
+    regression_bounds:      # test fails if behaviour changes outside these
+      dFn_over_Fn: [0.008, 0.013]
+      abs_secondary_dFn_over_Fg_max: 0.003

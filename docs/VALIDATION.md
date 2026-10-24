@@ -37,33 +37,23 @@ Regression values are asserted in `tests/test_external_tools.py`.
 | **pyCycle (CEA) vs 0-D, 64-point Sobol sweep** (ground–6 km, M 0–0.6, wide efficiency ranges) | Fn median 0.03 %, TSFC median 0.06 %; **63/64 within 1 %**; worst point Fn 1.03 % / TSFC 0.93 % (ill-conditioned: specific thrust 36 N·s/kg at M 0.5; 0.18 % of gross thrust) | `scripts/phase1/cross_check_sweep.py`, `validation/phase1/cross_check*.{csv,txt}` |
 | pyCycle (TABULAR) vs 0-D, same sweep | Fn median 0.34 % / max 3.2 %; TSFC max 3.5 %; compressor work max 1.0 % (table interpolation) | same |
 
-### Sanity check vs published engines (NOT validation)
-Data: 5 JetCat engines, 63–425 N (`validation/cases/jetcat_datasheets.yaml`). **Unverified web-search
-extracts** of manufacturer pages; listed fuel flow and SFC are mutually consistent within 0–3 % for an assumed fuel density
-of 0.80 kg/L.
+**Acceptance (user decision 2026-10-24): ACCEPTED at 63/64 within 1 %.** The metric was not changed afterwards.
+Re-run with the parallel cross-check module (CEA only, 70 s): identical numbers; 1/64 flagged (1.6 %).
 
-- *Forward*, with provisional baseline assumptions (η_c 0.72, η_t 0.80, TIT 1150 K, η_b 0.95):
-  thrust error −19 % … +23 %, **SFC under-predicted by 10–15 % for every engine**. The placeholder efficiencies are optimistic.
-- *Inverse* (solve TIT and η_t to match thrust + SFC exactly for each assumed η_c):
-  - P160-RXi-B: consistent for any η_b ≤ 1 (implied EGT 691 °C at η_b 0.95; listed max 750 °C).
-  - P62-RX: consistent if η_b ≤ 0.93 (implied EGT 742 °C at η_b 0.95 vs listed max 730 °C).
-  - For both: implied TIT 1090–1130 K and η_t 0.62–0.77 for η_c 0.82…0.64.
-  - P220-RXi: implied EGT ≈ 787 °C at η_b 0.95 (no EGT listed).
-  - **P300-PRO, P400-PRO: inconsistent** at η_b 0.95. Implied EGT 933 / 978 °C vs listed max 750 °C, which would
-    need η_b ≤ 0.74 / 0.70. Since EGT follows from energy conservation (FAR = thrust·SFC/W), this points at the
-    extracted numbers (mass flow? thrust?) or at the EGT definition (sensor reading vs mean total temperature),
-    not at component efficiencies. **Needs the official datasheets.**
+**Secondary metric (labelled; context only, never pass/fail):** |ΔFn|/Fg, median 0.025 %, max 0.184 %.
 
-## Data requests (user)
-1. Micro-turbojet review PDF ([R] in configs/bounds_proposal_phase1.yaml): full engine table.
-2. Official JetCat datasheet PDFs for P62-RX, P160-RXi-B, P220-RXi, P300-PRO, P400-PRO, to verify the extracted
-   values and find the EGT definition.
-3. Any source with measured or CFD-derived component efficiencies for 100–500 N engines (compressor η, turbine η,
-   combustor ΔP/P and η_b). Candidates surfaced by search: the AFRL thesis AD1100321; the JetCat P300-RX integrated
-   model study (Lee et al., 2024); the KJ-66 compressor paper (Xiang et al., 2017).
+#### Known exception: sample 8 (`validation/phase1/known_exceptions.yaml`, test `tests/test_crosscheck_known_exception.py`)
+| | value |
+|---|---|
+| inputs | W 0.127 kg/s, PR 4.63, η_c 0.555, TIT 1108 K, η_t 0.726, η_m 0.951, M 0.50 at 2594 m |
+| primary |ΔFn/Fn| / |ΔTSFC/TSFC| | 1.03 % / 0.93 % |
+| secondary |ΔFn|/Fg | 0.18 % |
+| nozzle pressure ratio | 1.09 (unchoked, barely above ambient) |
+| Fg/Fn (ram-drag amplification) | 5.6 (sweep median 1.24; highest in sweep) |
+| d ln Fn / d ln Pt9 | 31 (vs ~5–6 at typical points) |
 
-## Planned validation cases (to be done in their phases)
-- Phase 1: cycle model vs. independent 0-D model (verification); published engines from the
-  micro-turbojet review database (sanity check — **PDF needed from user**).
-- Phase 2: KJ-66 compressor, Xiang, Schlüter & Duan (2017) — **paper/data needed from user**;
-  Kofskey (1972) single-stage turbine (data shipped with TurboFlow).
+Cause: two multiplying amplifiers (jet velocity at near-unity nozzle pressure ratio, and net = gross − ram drag) turn
+the ~0.03 % turbine-pressure-ratio difference between CEA equilibrium chemistry and the 0-D complete-combustion model
+into ~1 % in net thrust. |ΔFn/Fn| correlates with Fg/Fn at r = 0.92 across the sweep. Not a modelling error. The
+regression test fails if this point's difference leaves the band 0.8–1.3 % or the secondary metric exceeds 0.3 %.
+Such points (nearly thrustless, poor components) lie far outside realistic designs. The 5 % gate still counts them.

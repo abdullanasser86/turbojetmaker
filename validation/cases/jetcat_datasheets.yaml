@@ -1,16 +1,17 @@
 # JetCat micro-turbojet manufacturer data (ISA sea-level static, maximum rpm).
 #
-# PROVENANCE / STATUS: UNVERIFIED.
-# Retrieved 2026-10-24 via web-search result extracts of jetcat.de product pages. The pages
-# themselves could not be opened from the development container (network policy), so every
-# number below is second-hand and must be checked against the official datasheets before it is
-# treated as reference data. Internal consistency check that WAS done: listed fuel flow x an
-# assumed kerosene density of 0.80 kg/L reproduces the listed SFC within 0-3 %
-# (scripts/phase1/jetcat_inverse.py prints this).
+# PROVENANCE / STATUS (updated 2026-10-24 after the user supplied primary documents):
+#   Originally web-search extracts of jetcat.de pages (Phase 1). Now cross-checked:
+#   - P300-PRO: matches the JetCat PRO catalog 2024 (validation/cases/jetcat_pro_catalog_2024.csv) exactly.
+#   - P400-PRO: catalog lists SFC 0.158 kg/(N h) (extract said 0.157); all else matches. CATALOG WINS.
+#   - P160-RXi-B, P220-RXi: match the micro-turbojet review Table 3 (validation/cases/review_engine_table.csv,
+#     sourced from jetcat.de) in thrust, PR, mass flow, rpm. Note: the review lists P160 fuel flow 468 g/min, which
+#     is inconsistent with 158 N x 0.160 kg/(N h) = 421 g/min; the extract's 510 ml/min x 0.80 kg/L = 408 g/min.
+#   - P62-RX: no primary source available (review lists the older P60-SE: 63 N, PR 2.0, 0.16 kg/s).
+#   Superseded for P300/P400 by the catalog; kept for P62/P160/P220 and for reproducibility of Phase 1.
 #
 # Units: thrust N, mass flow kg/s, fuel flow ml/min (full load), SFC kg/(N h), rpm 1/min,
-# EGT deg C (range as listed), mass g, dimensions mm.
-# `null` = not in the retrieved extract.
+# EGT deg C (range as listed), mass g, dimensions mm. `null` = not in the retrieved extract.
 
 engines:
   - name: P62-RX

@@ -25,7 +25,7 @@ def test_isa_matches_pycycle_table(alt_m):
     from turboml.physics.cycle_common import CycleInputs
     from turboml.physics.cycle_pycycle import PyCycleDesignModel
 
-    m = PyCycleDesignModel("TABULAR")
+    m = PyCycleDesignModel()
     m.evaluate(CycleInputs.from_yaml(alt_m=alt_m))
     T, p = m.ambient()
     ref = isa(alt_m)

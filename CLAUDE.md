@@ -7,6 +7,7 @@ Read `PROJECT_BRIEF.md` first: it is the source of truth for scope, phases and r
   `docs/LEARNING.md` (glossary + per-phase "what we did and why") up to date.
 - **Stop at the end of every phase** with: what was built, test/validation results, open
   issues, decisions needed. Never start the next phase without an explicit "go".
+- **Push to the GitHub remote at the end of every phase** (remote URL still to be provided by the user).
 - Genuine design choices: give 2–3 options + recommendation, then wait.
 - **Never invent** validation data, engine specs, material limits or paper results. Unknown
   values stay `null` in `configs/` until a source is found; ask the user for papers/data.
@@ -37,6 +38,13 @@ Read `PROJECT_BRIEF.md` first: it is the source of truth for scope, phases and r
 - Failed / non-converged simulations are data: record them with a failure reason; never
   silently clip, drop or "fix" them.
 - Final results are always physics-verified, never surrogate-only.
+- Training data come from the 0-D cycle (`cycle_simple`). Every generated dataset and every final
+  Pareto set must pass `turboml.physics.crosscheck` (pyCycle-CEA on a random 2 % + all Pareto
+  designs; flag > 1 % on Fn or TSFC; stop if > 5 % flagged). Report |ΔFn|/Fg only as a labelled
+  secondary metric.
+- Bounds live in `configs/bounds.yaml`, each with a source. Uploaded PDFs are never committed;
+  commit extracted CSVs + parsers in `scripts/data/`. Digitized values are labelled as such.
+- Training code is device-agnostic: use `turboml.device.get_device()`.
 - `third_party/` holds verbatim upstream files — do not edit, wrap instead.
 - Record every significant choice in `docs/DECISIONS.md`; validation evidence in
   `docs/VALIDATION.md`.
