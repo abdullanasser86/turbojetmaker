@@ -1,0 +1,81 @@
+[project]
+name = "turboml"
+version = "0.0.1"
+description = "ML-driven preliminary design and multi-objective optimization of micro turbojets (50-1000 N)."
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+license = { text = "MIT" }
+dependencies = [
+    # --- physics -----------------------------------------------------------
+    # pyCycle: PyPI 4.4.0 crashes with OpenMDAO >= 3.42 (pyCycle issue #116) and with
+    # numpy 2.x in thermo_add. Fixed on master but not yet released -> pin the commit.
+    # See docs/DECISIONS.md D-003.
+    "om-pycycle @ git+https://github.com/OpenMDAO/pyCycle@ee7e16126a7a54b5fe35292c53b7eb4e9572620b",
+    "openmdao==3.45.1",
+    "radcompressor==1.0.1",
+    "turboflow==0.1.18",
+    "CoolProp>=6.6",
+    # numpy < 2.4: pyCycle example viewers (and parts of our wrappers) rely on
+    # size-1-array -> float conversion, which numpy 2.4 turned into an error. D-004.
+    "numpy>=2.0,<2.4",
+    "scipy>=1.13",
+    "pandas>=2.2,<3",  # TurboFlow declares pandas<3
+    "pyarrow>=17",
+    # --- config / infra ---------------------------------------------------
+    "pydantic>=2.7",
+    "PyYAML>=6.0",
+    "joblib>=1.4",
+    # --- ML / optimisation ------------------------------------------------
+    "torch==2.14.1",
+    "gpytorch==1.15.2",
+    "botorch==0.18.1",
+    "pymoo==0.6.2",
+    "SALib==1.6.0",
+    "scikit-learn>=1.5",
+    # --- plotting / notebooks ---------------------------------------------
+    "matplotlib>=3.9",
+    "ipykernel>=6",
+    "nbformat>=5",
+    "nbconvert>=7",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6", "black>=24", "pre-commit>=3.7"]
+
+[tool.uv]
+# TurboFlow 0.1.18 pins numpy<2 and CoolProp<7. We verified (Phase 0) that it runs on
+# numpy 2.3 / CoolProp 8 and checked its regression tests -- see docs/DECISIONS.md D-002.
+override-dependencies = ["numpy>=2.0,<2.4", "CoolProp>=6.6"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["turboml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: runs an external physics code (seconds); deselect with -m 'not slow'"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+extend-exclude = "third_party"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["third_party"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "NPY"]
+ignore = ["E501"]  # black handles line length
+
+[tool.ruff.lint.per-file-ignores]
+# Notebooks favour compact, readable teaching code over strict style.
+"*.ipynb" = ["E401", "E402", "E701", "E702", "E741", "I001"]

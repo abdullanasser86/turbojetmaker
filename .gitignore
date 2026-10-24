@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+runs/
+reports/
+*_out/
+coloring_files/
+*.sql
+*.db

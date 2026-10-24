@@ -1,0 +1,23 @@
+# Hooks run the tool versions pinned in uv.lock (language: system via `uv run`),
+# so pre-commit and the project environment can never disagree.
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff (lint)
+        entry: uv run --frozen ruff check --fix
+        language: system
+        types: [python]
+        exclude: ^third_party/
+      - id: black
+        name: black (format)
+        entry: uv run --frozen black
+        language: system
+        types: [python]
+        exclude: ^third_party/
+      - id: uv-lock-check
+        name: uv.lock is up to date
+        entry: uv lock --check
+        language: system
+        pass_filenames: false
+        files: ^(pyproject\.toml|uv\.lock)$

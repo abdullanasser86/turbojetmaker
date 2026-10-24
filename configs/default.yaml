@@ -1,0 +1,69 @@
+# TurboML default configuration.
+#
+# Conventions
+#   * SI units (m, kg, s, K, Pa, N, rad/s; shaft speeds in rpm where named *_rpm).
+#   * `null` = NOT YET RESEARCHED. Code refuses to use null values (turboml.config.require).
+#     Every number filled in later must carry a `source:` (paper / dataset / decision id).
+#   * Study configs use `extends: default.yaml` and override only what they change.
+
+name: default
+seed: 20261024
+
+design_point:
+  name: SLS_ISA
+  mach: 0.0
+  alt_m: 0.0
+  note: "Static, sea-level ISA (PROJECT_BRIEF sec. 5)"
+
+off_design_points:
+  - name: idle
+    mach: 0.0
+    alt_m: 0.0
+    speed_fraction: null      # idle % of max rpm -> research from engine database (Phase 1)
+    note: "Ground idle (PROJECT_BRIEF sec. 5)"
+  - name: cruise_M05_3km
+    mach: 0.5
+    alt_m: 3000.0
+    note: "Example flight condition from PROJECT_BRIEF sec. 5; configurable"
+
+constraints:
+  thrust_target_N: null       # user picks per study (e.g. 100, 200, 500 N)
+  thrust_tolerance_frac: 0.05
+  min_surge_margin: null      # to be agreed in Phase 1/2
+  max_tit_K: null             # from turbine material, Phase 1
+  max_egt_K: null
+  max_diameter_m: null
+  max_length_m: null
+
+# Material property limits: preliminary-design proxies, to be researched + cited (Phase 1).
+materials:
+  impeller_aluminium:
+    name: "Aluminium alloy impeller (alloy TBD)"
+  impeller_titanium:
+    name: "Titanium alloy impeller (alloy TBD)"
+  turbine_nickel:
+    name: "Cast nickel superalloy turbine wheel (alloy TBD)"
+
+# Design-variable bounds: derived from the engine database + literature in Phase 1,
+# then confirmed with the user. Names follow PROJECT_BRIEF sec. 5.
+bounds:
+  cycle_pressure_ratio: {}
+  air_mass_flow_kg_s: {}
+  tit_K: {}
+  shaft_speed_rpm: {}
+  imp_tip_radius_m: {}
+  inducer_hub_radius_m: {}
+  inducer_tip_radius_m: {}
+  imp_blade_count: {integer: true}
+  imp_backsweep_deg: {}
+  imp_exit_blade_height_m: {}
+  diffuser_radius_ratio: {}
+  diffuser_vane_count: {integer: true}
+  imp_tip_clearance_m: {}
+  turb_mean_radius_m: {}
+  turb_blade_height_m: {}
+  turb_flow_coefficient: {}
+  turb_loading_coefficient: {}
+  turb_reaction: {}
+  combustor_dp_frac: {}
+  nozzle_exit_area_m2: {}
