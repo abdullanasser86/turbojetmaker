@@ -1,0 +1,71 @@
+name: phase4_v1
+designs_evaluated: 256
+designs_planned: 2000
+design_status:
+  design_failed: 164
+  ok: 92
+design_failure_reasons:
+  design_compressor_r2_below_inducer: 51
+  design_compressor_pr_not_reached_choke_diffuser: 43
+  design_turbine: 23
+  design_compressor_pr_not_reached_choke_impeller_exit: 23
+  design_compressor_choke_impeller_exit: 23
+  design_compressor_choke_diffuser: 1
+feasible_designs: 3
+infeasible_designs_by_active_constraint:
+  AN2;tip_speed: 51
+  AN2: 29
+  AN2;TIT_ngv_above_material_data;tip_speed: 5
+  AN2;TIT_ngv_above_material_data: 2
+  tip_speed: 2
+premium_material_required: 2
+points:
+  cruise_M05_3km:
+    converged_all_designs: 90/256
+    converged_designed_engines: 90/92
+    failure_reasons_designed_engines:
+      choke_compressor_inducer: 2
+    surge_flags:
+      ? ''
+      : 92
+  design:
+    converged_all_designs: 92/256
+    converged_designed_engines: 92/92
+    failure_reasons_designed_engines: {}
+    surge_flags:
+      ? ''
+      : 92
+  idle_35:
+    converged_all_designs: 92/256
+    converged_designed_engines: 92/92
+    failure_reasons_designed_engines: {}
+    surge_flags:
+      ? ''
+      : 92
+  part_speed_80:
+    converged_all_designs: 92/256
+    converged_designed_engines: 92/92
+    failure_reasons_designed_engines: {}
+    surge_flags:
+      ? ''
+      : 92
+split:
+  train_val: 221
+  test: 35
+split_ok_designs:
+  train_val: 82
+  test: 10
+calibration_sampled: 53
+time_per_design_s:
+  mean: 2.16
+  median: 0.91
+  p95: 6.07
+  max: 12.01
+ngv_pf_max_in713c:
+  p10: 0.043
+  median: 0.238
+  p90: 0.517
+last_run:
+  designs_this_run: 256
+  wall_s: 188.95278549194336
+  workers: 3

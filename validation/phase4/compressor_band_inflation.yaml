@@ -1,0 +1,21 @@
+target_coverage: 0.95
+held_out_points: 34
+k_grid_tried:
+- 1
+- 2
+- 2.25
+- 2.5
+- 2.75
+chosen:
+  k: 2.75
+  delta_sigma_lo: -0.14479999999999998
+  delta_sigma_hi: -0.0634
+  cf_lo: 0.0723875
+  cf_hi: 0.11501250000000002
+  coverage: 1.0
+  coverage_pressure_ratio: 1.0
+  coverage_efficiency_ad: 1.0
+  n_failed_predictions: 0
+statistical_2sigma_half_widths:
+  delta_sigma: 0.0148
+  diffuser_cf: 0.007750000000000007

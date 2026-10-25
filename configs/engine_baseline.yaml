@@ -9,11 +9,11 @@ components:
   dp_burner_frac:        {value: 0.10, kind: user_summary, source: "[D] burner total-pressure loss ~10 %"}
   eta_burner:            {value: 0.95, kind: user_summary, source: "[D] combustion efficiency ~0.95"}
   eta_mech:              {value: 0.99, kind: user_summary, source: "[D] mechanical efficiency ~0.99"}
-  dp_nozzle_frac:        {value: 0.05, kind: user_summary, source: "[D] nozzle ~0.95, read as the nozzle total-pressure ratio (CONFIRM the meaning)"}
+  dp_nozzle_frac:        {value: 0.05, kind: user_summary, source: "[D] nozzle ~0.95 = nozzle total-pressure ratio Pt9/Pt7 (Mattingly convention, P0/P9 ~ 1; confirmed by the user 2026-10-25, D-039; re-check against the thesis text)"}
   nozzle_cv:             {value: 1.0,  kind: assumption,   source: "nozzle losses lumped into the total-pressure ratio above"}
   lhv_J_kg:              {value: 42.8e+6, kind: spec,     source: "ASTM D1655 minimum net heat of combustion, Jet A/A-1"}
   power_offtake_W:       {value: 0.0,  kind: assumption,   source: "no generator/pump load"}
-  off_design_loss_scaling: {value: corrected_flow_squared, kind: assumption, source: "intake, burner and nozzle pressure-loss FRACTIONS scale with (W sqrt(Tt)/Pt)^2 relative to the design point (dynamic-head scaling, e.g. Walsh & Fletcher, Gas Turbine Performance -- PROVISIONAL, confirm). 'constant' keeps the design fractions"}
+  off_design_loss_scaling: {value: corrected_flow_squared, kind: assumption, source: "intake, burner and nozzle pressure-loss FRACTIONS scale with (W sqrt(Tt)/Pt)^2 relative to the design point (dynamic-head scaling; Walsh & Fletcher, Gas Turbine Performance, 2nd ed. 2004 -- accepted by the user 2026-10-25, D-039; page to be checked). 'constant' keeps the design fractions"}
   turbine_exit_total_pressure: {value: absolute, kind: assumption, source: "nozzle inlet total pressure = turbine-exit absolute total pressure (exit-swirl kinetic energy assumed recovered in the jet pipe; optimistic when the exit swirl is large)"}
 
 compressor_design:

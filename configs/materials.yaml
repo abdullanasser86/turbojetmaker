@@ -1,46 +1,43 @@
-# Turbine materials for the TIT (temperature) and AN^2 (blade root stress) feasibility checks.
+# Turbine materials and creep-check settings (turboml/physics/creep.py, turboml/physics/mechanical.py).
 #
-# STATUS: PARTIALLY SOURCED. All values are web-search extracts of the pages cited (2026-10-25);
-# the pages themselves could not be opened from the build container. Verify against an alloy
-# datasheet / ASM Handbook before relying on them. Missing values are `null`. A check that needs a
-# null value is reported as "unchecked: material_data_missing", never filled in with a guess.
+# Source of all alloy data: Nickel Development Institute publication No. 393, "High-Temperature,
+# High-Strength Nickel Base Alloys" (1984, with 1995 supplement): Table 1 (density, condition; p. 4-5),
+# Table 9 (100 h rupture strength, p. 14), Table 10 (1000 h rupture strength, p. 15), transcribed in
+# validation/cases/ni393_cast_rupture.csv. "Typical" values, not design minima (No. 393, p. 2).
 #
-# How the values are used (turboml/physics/mechanical.py):
-#   * TIT limit: TIT <= max_use_temperature_K + gas_to_metal_allowance_K. The default allowance is 0:
-#     the uncooled nozzle guide vanes of a micro turbojet see the full turbine-inlet total temperature
-#     at their leading edge (conservative ASSUMPTION; replace with measured data, e.g. DePaola).
-#   * AN^2 / blade root stress: sigma_root = rho * omega^2 * A * K / (2 pi)  (derived: constant-section
-#     blade, integral of rho omega^2 r dr from hub to tip; K = taper factor <= 1). Feasible if
-#     sigma_root <= allowable_stress_Pa(T_metal). allowable_stress_Pa is null until sourced.
-#   * Designs above the DEFAULT material's limit but within a higher-grade material's limit are feasible
-#     but tagged "premium material required"; above every material's limit -> infeasible.
+# Feasibility (user decision 2026-10-25): a design is infeasible only if the selected material fails the
+# creep check at the required life. Default material first; if it fails, the premium material ("premium
+# material required"); if both fail, the design is infeasible (kept in the data, with the active constraint).
 
 default_turbine_material: in713c
-gas_to_metal_allowance_K: 0.0      # ASSUMPTION (see above)
-blade_taper_factor: 1.0            # ASSUMPTION: untapered blade (conservative); tapered blades ~0.5-0.8
+premium_turbine_material: marm247
+
+# PRELIMINARY-DESIGN CHOICES (user decision 2026-10-25), not requirements from a standard:
+design_life_h:        {value: 100.0, kind: preliminary_design_choice, source: "user decision 2026-10-25"}
+stress_safety_factor: {value: 1.5,   kind: preliminary_design_choice, source: "user decision 2026-10-25 (on stress)"}
+blade_taper_factor:
+  value: 1.0
+  kind: assumption
+  source: "K in sigma_c = K rho omega^2 A / 2 pi; 1 = untapered constant-section blade (conservative upper bound). Dataset stores sigma_c per unit K, so feasibility can be recomputed with a sourced K."
+
+# Nozzle-guide-vane hot streak: T_metal = TIT + PF (TIT - T3), PF = combustor exit pattern factor
+# (definition: DePaola 2020 Sec. 2.5.2, per user; Lefebvre & Ballal, Gas Turbine Combustion).
+# NOT SOURCED YET: no verifiable typical range was found (web search 2026-10-25 found definitions and single
+# examples only). Until it is, the NGV check reports PF_max = the largest pattern factor the vanes survive;
+# designs failing even at PF = 0 are infeasible.
+combustor_pattern_factor:
+  value: null
+  kind: missing
+  source: "NEEDED: cited range for small annular combustors (DePaola 2020 Sec. 2.5.2; Lefebvre & Ballal)"
 
 materials:
   in713c:
-    name: "Inconel 713C (cast, equiaxed nickel superalloy)"
+    name: "Alloy 713C (cast nickel superalloy), as cast"
     grade: default
-    density_kg_m3:
-      value: 7913.0
-      source: "supplier pages via web search: ~7.913 g/cm3 (several), 7.92 g/cm3 (technical datasheet); range quoted 7.8-8.1. e.g. https://www.americanelements.com/inconel-713c-alloy, https://artizono.com/inconel-713c-technical-reference-guide/"
-    max_use_temperature_K:
-      value: 1253.15
-      source: "'useful up to 980 C (1800 F)' for strength and creep resistance (supplier pages via web search, e.g. https://www.huaxiao-alloy.com/alloy-grades/inconel-713c-alloy-supplier.html). Oxidation resistance quoted as excellent below 900 C."
-    allowable_stress_Pa:
-      value: null
-      source: "NOT FOUND: need stress-rupture strength vs temperature (e.g. 100 h / 1000 h at 870/980 C) from Nickel Institute publication 'High-Temperature High-Strength Nickel Base Alloys' or ASM Handbook"
+    density_kg_m3: {value: 7910.0, source: "NiDI No. 393 Table 1, p. 5: 7.91 g/cm3 (0.286 lb/in3)"}
+    rupture_data: {alloy_key: in713c, source: "NiDI No. 393 Table 9 (p. 14) and Table 10 (p. 15); 760-1093 C (100 h), 760-982 C (1000 h)"}
   marm247:
-    name: "MAR-M 247 (cast nickel superalloy, higher grade)"
+    name: "MAR-M 247 (cast nickel superalloy, equiaxed; data from test bars machined from blades, 870 C/16 h/AC)"
     grade: premium
-    density_kg_m3:
-      value: 8525.0
-      source: "0.308 lb/in3 (= 8.53 g/cm3) quoted in a USPTO patent comparing alloys (web search result, e.g. US 6632299 / US 8618434; verify)"
-    max_use_temperature_K:
-      value: 1273.15
-      source: "'applications requiring high strength at elevated temperatures up to about 1000 C' (Metal 2016 conference paper, https://www.confer.cz/metal/2016/1993-microstructure-and-mechanical-properties-of-mar-m-247-nickel-superalloy)"
-    allowable_stress_Pa:
-      value: null
-      source: "NOT FOUND: need stress-rupture data (ASM Handbook / Cannon-Muskegon datasheet)"
+    density_kg_m3: {value: 8530.0, source: "NiDI No. 393 Table 1, p. 5: 8.53 g/cm3 (0.308 lb/in3)"}
+    rupture_data: {alloy_key: marm247, source: "NiDI No. 393 Table 9 (p. 14) and Table 10 (p. 15); 760-1038 C (100 h), 871-982 C (1000 h)"}

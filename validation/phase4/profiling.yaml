@@ -1,0 +1,43 @@
+machine_note: measured in the cloud container (Xeon 2.1 GHz, one process); laptop
+  timings differ
+wall_s_bracketed_solver:
+  design_engine_s: 2.97
+  off_design_n100_alt3000_M0.5_s: 3.197
+  off_design_n80_alt0_M0.0_s: 2.638
+  off_design_n35_alt0_M0.0_s: 4.105
+wall_s_newton_warm_start:
+  design_engine_s: 0.904
+  off_design_n100_alt3000_M0.5_s: 0.954
+  off_design_n80_alt0_M0.0_s: 0.708
+  off_design_n35_alt0_M0.0_s: 0.951
+speedup:
+  design_engine_s: 3.3
+  off_design_n100_alt3000_M0.5_s: 3.4
+  off_design_n80_alt0_M0.0_s: 3.7
+  off_design_n35_alt0_M0.0_s: 4.3
+max_rel_diff_outputs: 3.0347058199708954e-11
+cumulative_time_fraction_top_turboml_functions_after_speedup:
+  profile_engine.py:run: 1.0
+  engine.py:off_design: 0.771
+  engine.py:_solve: 0.757
+  engine.py:_residuals: 0.755
+  compressor.py:evaluate: 0.732
+  compressor.py:_evaluate: 0.732
+  engine.py:_march_speed: 0.494
+  thermo.py:T_from_h: 0.388
+  compressor.py:_static_from_total: 0.383
+  compressor.py:_diffuser: 0.382
+  compressor.py:deriv: 0.367
+  compressor.py:_subsonic_root: 0.33
+  compressor.py:exit_state: 0.317
+  compressor.py:flux2_safe: 0.305
+  compressor.py:flux2: 0.305
+  compressor.py:_solve_continuity_newton: 0.269
+  engine.py:_continue_inlet: 0.263
+  _zeros_py.py:brentq: 0.258
+  _zeros_py.py:f_raise: 0.257
+  engine.py:design_engine: 0.23
+  turbine_meanline.py:evaluate: 0.211
+  turbine_meanline.py:_solve: 0.21
+  turbine_meanline.py:_monotone_root: 0.191
+  thermo.py:h: 0.174

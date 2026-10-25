@@ -129,23 +129,26 @@ cells = [
         "ol.loc[~ol.converged, ['n_frac', 'failure_reason']]"
     ),
     md(
-        "## 5. Materials: where TIT becomes a constraint\n"
-        "The TIT bound is now 1000-1350 K. Feasibility comes from the turbine material "
-        "(`configs/materials.yaml`): IN-713C (default) to 1253 K, MAR-M 247 (premium) to 1273 K, with zero "
-        "gas-to-metal allowance. Above the default material: tagged *premium material required*; above all: "
-        "infeasible but kept in the data."
+        "## 5. Materials: turbine creep (updated in Phase 4)\n"
+        "Phase 3 used a fixed material temperature limit. Since Phase 4 the check is a **creep-rupture** check "
+        "(`turboml/physics/creep.py`, NiDI No. 393 data, D-037): at the design life (100 h) the material's "
+        "rupture strength at the blade metal temperature must exceed the blade stress x 1.5. Rotor metal "
+        "temperature = rotor-inlet relative total temperature; stress = centrifugal (AN^2) + gas bending. "
+        "IN-713C first, MAR-M 247 if 713C fails (*premium material required*), else infeasible, with the "
+        "failing check named (*active constraint*). The baseline engine below fails on AN^2: its blade root "
+        "stress is too high for either alloy at 1088 K with the conservative taper factor 1."
     ),
     code(
-        "from turboml.physics import mechanical as mech\n"
-        "M = mech.MaterialSet.from_yaml()\n"
-        "pd.DataFrame([{'TIT [K]': T, **{k: v for k, v in mech.turbine_temperature_check(T, M).items() if k in ('material', 'premium_material_required', 'feasible')}}\n"
-        "              for T in (1100, 1200, 1250, 1260, 1270, 1280, 1350)])"
+        "from turboml.physics.engine import design_engine, load_engine_config\n"
+        "cfg = load_engine_config(); d = design_engine(cfg['baseline_design'], cfg)\n"
+        "pd.DataFrame({k: {q: v[q] for q in ('rotor_metal_T_K', 'rotor_stress_centrifugal_Pa', 'rotor_stress_gas_bending_Pa',\n"
+        "              'rotor_allowable_Pa', 'rotor_status', 'ngv_pf_max', 'feasible')} for k, v in d.mechanical.checks['creep'].items()})"
     ),
     md("## 6. Try it: one off-design point (a few seconds)"),
     code(
         "import time\n"
-        "from turboml.physics.engine import Engine, design_engine, load_engine_config\n"
-        "cfg = load_engine_config(); d = design_engine(cfg['baseline_design'], cfg); e = Engine(d, cfg)\n"
+        "from turboml.physics.engine import Engine\n"
+        "e = Engine(d, cfg)\n"
         "t0 = time.perf_counter(); p = e.off_design(0.9 * d.design_point.n_rpm, alt_m=1000.0, mach=0.3)\n"
         "print(f'{time.perf_counter() - t0:.1f} s:', {k: round(v, 3) if isinstance(v, float) else v for k, v in p.to_dict().items()\n"
         "      if k in ('converged', 'failure_reason', 'Fn_N', 'W_air_kg_s', 'pr_c', 'tit_K', 'T05_K', 'TSFC_g_kN_s')})"

@@ -1,0 +1,32 @@
+# Nickel Development Institute (NiDI) publication No. 393, "High-Temperature, High-Strength Nickel Base Alloys"
+# (1984 edition, distributed with the 1995 supplement; the supplement has no data for these two alloys).
+# Table 9 "Cast alloys - 100 hour rupture strength" (booklet p. 14) and Table 10 "Cast alloys - 1000 hour rupture
+# strength" (booklet p. 15). Values are "typical" properties, NOT design minima (booklet p. 2).
+# Alloy 713C: as cast (Table 1, p. 5). MAR-M 247: "(MFB) test bar machined from blade", 1600F/870C/16h/AC (Table 1, p. 5).
+# strength_ksi is the booklet's primary unit; strength_MPa_printed is its rounded metric column, transcribed as printed.
+# extrapolated = value shown in parentheses in the booklet ("extrapolated values"); excluded from fits.
+# Transcription note: 713C 1000 h at 1400F prints "65 / 458"; 65 ksi = 448 MPa (and 458 breaks the booklet's
+# round-to-5 rule), so the ksi value is used everywhere (MPa derived as ksi x 6.894757).
+alloy,life_h,T_F,T_C,strength_ksi,strength_MPa_printed,extrapolated,table,page
+in713c,100,1400,760,83,570,false,9,14
+in713c,100,1500,816,60,415,false,9,14
+in713c,100,1600,871,42,290,false,9,14
+in713c,100,1700,927,30,205,false,9,14
+in713c,100,1800,982,21,145,false,9,14
+in713c,100,1900,1038,12,83,false,9,14
+in713c,100,2000,1093,6.4,44,false,9,14
+in713c,1000,1300,704,88,605,true,10,15
+in713c,1000,1400,760,65,458,false,10,15
+in713c,1000,1500,816,44,305,false,10,15
+in713c,1000,1600,871,28,195,false,10,15
+in713c,1000,1700,927,18,125,false,10,15
+in713c,1000,1800,982,13,90,false,10,15
+in713c,1000,1900,1038,7.7,53,true,10,15
+marm247,100,1400,760,100,690,false,9,14
+marm247,100,1600,871,65,450,false,9,14
+marm247,100,1700,927,42,290,false,9,14
+marm247,100,1800,982,27,185,false,9,14
+marm247,100,1900,1038,18,125,false,9,14
+marm247,1000,1600,871,42,290,false,10,15
+marm247,1000,1700,927,28,195,false,10,15
+marm247,1000,1800,982,18,125,false,10,15

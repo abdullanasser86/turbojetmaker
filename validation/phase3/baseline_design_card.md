@@ -4,6 +4,8 @@
 
 Status: physics-evaluated design point (0-D cycle + meanline components); not surrogate output.
 
+**Flag: turbine efficiency at micro scale unvalidated (Kofskey validation turbine is 0.24 m).**
+
 ## Design point
 
 | quantity | value |
@@ -37,12 +39,18 @@ Status: physics-evaluated design point (0-D cycle + meanline components); not su
 
 ## Constraints and proxies
 
-- material: in713c; metal temperature basis TIT - gas_to_metal_allowance (nozzle guide vanes): 1150 K; margins in713c +103 K, marm247 +123 K
-- rotor inlet relative total temperature: 1088 K
+Creep (NiDI No. 393 rupture data; life and safety factor from configs/materials.yaml):
+
+| material | rotor T_metal (T0,rel) | rotor stress centrifugal + gas bending | allowable | rotor | NGV gas bending | NGV PF_max | NGV |
+|---|---|---|---|---|---|---|---|
+| in713c | 1088 K | 557 + 17 MPa (x SF 1.5) | 415 MPa | AN2 | 22 MPa | 0.30 | unchecked_pattern_factor_missing |
+| marm247 | 1088 K | 601 + 17 MPa (x SF 1.5) | 557 MPa | AN2 | 22 MPa | 0.22 | unchecked_pattern_factor_missing |
+
+- selected material: NONE (infeasible)
 - impeller tip speed 482 m/s (limit 500)
-- blade root stress proxy: 557 MPa (unchecked: material_data_missing); AN^2 = 4.03e+07 m2 rpm2
-- feasible: True
-- tags: blade stress unchecked (allowable stress not sourced)
+- AN^2 = 4.03e+07 m2 rpm2
+- feasible: False (active constraints: AN2)
+- tags: turbine efficiency at micro scale unvalidated (Kofskey validation turbine is 0.24 m), NGV creep unchecked: pattern factor not sourced (vanes survive PF <= 0.30)
 
 ## Off-design (physics-evaluated, speed-controlled)
 

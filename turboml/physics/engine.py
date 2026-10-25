@@ -161,7 +161,7 @@ def compressor_reference(cfg: dict) -> CompressorReference:
 
 
 def size_compressor(ref: CompressorReference, mdot: float, n_rpm: float, pr_target: float, T01: float, p01: float,
-                    tol: float = 1e-6, max_iter: int = 40):  # fmt: skip
+                    tol: float = 1e-6):  # fmt: skip
     """KJ-66-like compressor resized for (mdot, N, PR) -- rules in configs/engine_baseline.yaml.
     Returns (geometry, CompressorPoint at the design point)."""
     air = thermo.air()
@@ -200,28 +200,116 @@ def size_compressor(ref: CompressorReference, mdot: float, n_rpm: float, pr_targ
                        diffuser_width_out_m=b2, tip_clearance_m=max(ref.clearance_to_b2 * b2, ref.min_clearance_m),
                        provenance={"sizing": "engine.size_compressor (KJ-66-like rules)"})  # fmt: skip
 
-    # secant on r2 for the target PR; the exit width follows the latest exit density (both converge together)
-    pts = []
-    for _ in range(max_iter):
-        g = build(r2, rho2)
-        comp = CentrifugalCompressor(g, delta_sigma=ref.delta_sigma, diffuser_cf=ref.diffuser_cf,
-                                     T0_in_K=T01, p0_in_Pa=p01)  # fmt: skip
-        pt = comp.evaluate(mdot, n_rpm)
-        if not pt.converged:
-            raise EngineFailure(f"design_compressor_{pt.failure_reason.split(':')[0]}")
-        err = pt.pr_tt / pr_target - 1
-        drho = pt.exit_density_kg_m3 / rho2 - 1
-        if abs(err) < tol and abs(drho) < 1e-5:  # b2 to 1e-5 relative
-            return g, pt
-        rho2 = pt.exit_density_kg_m3
-        pts.append((r2, err))
-        if len(pts) >= 2 and pts[-1][1] != pts[-2][1]:
-            (ra, ea), (rb, eb) = pts[-2], pts[-1]
-            r_new = rb - eb * (rb - ra) / (eb - ea)
+    warm = {"rho2": rho2}
+
+    def pr_at(r2):
+        """Compressor at radius r2 with the exit width consistent with its own exit density (fixed point).
+        A choked impeller exit on the way means the density guess was too high (b2 too narrow): lower it.
+        """
+        rho, seen_ok, prev = warm["rho2"], False, None
+        for _ in range(30):
+            g = build(r2, rho)
+            comp = CentrifugalCompressor(g, delta_sigma=ref.delta_sigma, diffuser_cf=ref.diffuser_cf,
+                                         T0_in_K=T01, p0_in_Pa=p01)  # fmt: skip
+            pt = comp.evaluate(mdot, n_rpm)
+            if not pt.converged:
+                label = pt.failure_reason.split(":")[0]
+                if not seen_ok and label in ("choke_impeller_exit", "choke_diffuser"):
+                    rho *= 0.85
+                    continue
+                return None, None, label
+            seen_ok = True
+            F = pt.exit_density_kg_m3 - rho
+            if abs(F) < 1e-6 * rho:
+                warm["rho2"] = rho
+                return pt, g, ""
+            # secant on F(rho) = rho2(rho) - rho (the plain iteration oscillates slowly near choke)
+            if prev is not None and F != prev[1]:
+                rho_new = rho - F * (rho - prev[0]) / (F - prev[1])
+                rho_new = min(max(rho_new, 0.5 * rho), 2.0 * rho)
+            else:
+                rho_new = pt.exit_density_kg_m3
+            prev = (rho, F)
+            rho = rho_new
+        return None, None, "no_convergence"
+
+    # bracket the target PR in r2 (PR rises with r2 at fixed speed), stepping around failed geometries
+    r_min = 1.05 * r1t
+    step = 1.12
+    r2 = max(r2, r_min)
+    pt, g, why = pr_at(r2)
+    first_why = why
+    if pt is None:  # initial guess failed: look upward, then downward, for a working radius
+        for r in [r2 * step**k for k in range(1, 9)] + [
+            r2 / step**k for k in range(1, 9) if r2 / step**k >= r_min
+        ]:
+            pt, g, why = pr_at(r)
+            if pt is not None:
+                r2 = r
+                break
         else:
-            r_new = r2 * (1 - 0.5 * err)
-        r2 = min(max(r_new, 0.7 * r2), 1.3 * r2)
-    raise EngineFailure("design_compressor_pr_not_reached")
+            raise EngineFailure(f"design_compressor_{first_why}")
+    lo = hi = None
+    pts = {r2: (pt, g)}
+    if pt.pr_tt < pr_target:
+        lo = r2
+        r = r2
+        while hi is None:
+            r_next = r * step
+            q, gq, why = pr_at(r_next)
+            if q is None:  # find the edge of the working region between r and r_next
+                a, b = r, r_next
+                for _ in range(8):
+                    m = math.sqrt(a * b)
+                    qm, gm, _w = pr_at(m)
+                    if qm is None:
+                        b = m
+                    else:
+                        a = m
+                        pts[m] = (qm, gm)
+                        if qm.pr_tt >= pr_target:
+                            hi = m
+                            break
+                if hi is None:
+                    raise EngineFailure(f"design_compressor_pr_not_reached_{why}")
+                break
+            pts[r_next] = (q, gq)
+            if q.pr_tt >= pr_target:
+                hi = r_next
+            else:
+                lo = r = r_next
+            if r_next > 20 * r_min:
+                raise EngineFailure("design_compressor_pr_not_reached")
+    else:
+        hi = r2
+        r = r2
+        while lo is None:
+            r_next = r / step
+            if r_next < r_min:
+                raise EngineFailure(
+                    "design_compressor_r2_below_inducer"
+                )  # even the smallest wheel overshoots the PR
+            q, gq, why = pr_at(r_next)
+            if q is None:
+                raise EngineFailure(f"design_compressor_{why}")
+            pts[r_next] = (q, gq)
+            if q.pr_tt <= pr_target:
+                lo = r_next
+            else:
+                hi = r = r_next
+
+    def f(r):
+        q, gq, why = pr_at(r)
+        if q is None:
+            raise EngineFailure(f"design_compressor_{why}")
+        pts[r] = (q, gq)
+        return math.log(q.pr_tt / pr_target)
+
+    r_sol = brentq(f, lo, hi, xtol=1e-9 * hi, rtol=1e-9)
+    q, gq = pts.get(r_sol) or pr_at(r_sol)[:2]
+    if q is None or abs(q.pr_tt / pr_target - 1) > 1e-5:
+        raise EngineFailure("design_compressor_no_convergence")
+    return gq, q
 
 
 # ======================================================================================
@@ -467,12 +555,9 @@ class Engine:
                             self._continue_inlet(n_rpm=dp.n_rpm, ctx=ctx, key=key),
                             dp.n_rpm,
                         )
-                speeds = _speed_steps(n_prev, n_rpm, continuation_step * dp.n_rpm)
-                x = x_prev
-                for n in speeds:
-                    guess = _extrapolate(self._last.get(key, []), n, x)
-                    x, st, it, rmax = self._solve(n, ctx, guess)
-                    self._last.setdefault(key, []).append((n, list(x)))
+                x, st, it, rmax = self._march_speed(
+                    n_prev, x_prev, n_rpm, ctx, key, continuation_step * dp.n_rpm
+                )
             else:
                 x, st, it, rmax = self._solve(n_rpm, ctx, x0)
             pt = self._point(x, st, n_rpm, ctx, it, rmax, t0)
@@ -486,24 +571,64 @@ class Engine:
             )
         return pt
 
-    def _continue_inlet(self, n_rpm, ctx, key, steps=4):
-        """Continuation from SLS design to a different inlet state (altitude / flight Mach) at design speed."""
+    def _guess(self, key, n_from, x_from, n_to):
+        """Initial guess at speed n_to: linear extrapolation from the two nearest solved speeds if available,
+        else the solution at n_from scaled with speed (mass flow ~ N, turbine PR - 1 ~ N^2)."""
+        hist = self._last.get(key, [])
+        if len(hist) >= 2:
+            return _extrapolate(hist, n_to, x_from)
+        r = n_to / n_from
+        prd = self.scale[2]
+        return [
+            x_from[0] * r,
+            x_from[1],
+            max(1.0 + 1e-3, (1.0 + (x_from[2] * prd - 1.0) * r * r) / prd),
+        ]
+
+    def _march_speed(self, n_from, x_from, n_to, ctx, key, step, min_step_frac=1 / 64):
+        """Adaptive continuation in shaft speed: a failed step is halved (down to step/64) and retried from
+        the last converged point; a successful step lets the step grow back. Raises the last failure.
+        """
+        n, x, h0 = n_from, list(x_from), abs(step)
+        h = h0
+        if n_from == n_to:
+            return self._solve(n_to, ctx, x)
+        while True:
+            n_next = n_to if abs(n_to - n) <= h else n + math.copysign(h, n_to - n)
+            try:
+                x_new, st, it, rmax = self._solve(n_next, ctx, self._guess(key, n, x, n_next))
+            except EngineFailure:
+                h /= 2
+                if h < h0 * min_step_frac:
+                    raise
+                continue
+            n, x = n_next, list(x_new)
+            self._last.setdefault(key, []).append((n, list(x)))
+            if n == n_to:
+                return x_new, st, it, rmax
+            h = min(h0, 1.5 * h)
+
+    def _continue_inlet(self, n_rpm, ctx, key, min_df=1 / 64):
+        """Adaptive continuation from the SLS design point to a different inlet state (altitude / flight Mach)
+        at design speed: ambient and inlet totals blended from design (f = 0) to target (f = 1)."""
         dp = self.design.design_point
-        x = [1.0, 1.0, 1.0]
-        for k in range(1, steps + 1):
-            f = k / steps
+        x, f, df = [1.0, 1.0, 1.0], 0.0, 0.25
+        while f < 1.0:
+            f_next = min(1.0, f + df)
             c = dict(ctx)
             for name, d0 in (("T02", dp.T02_K), ("Pt0", dp.p02_Pa / self.losses.inlet_recovery),
                              ("Ps0", self.design.inputs["Ps0_Pa"]), ("V0", 0.0)):  # fmt: skip
-                c[name] = d0 + f * (ctx[name] - d0)
-            x, _, _, _ = self._solve(n_rpm, c, x)
+                c[name] = d0 + f_next * (ctx[name] - d0)
+            try:
+                x, _, _, _ = self._solve(n_rpm, c, x)
+            except EngineFailure:
+                df /= 2
+                if df < min_df:
+                    raise
+                continue
+            f, df = f_next, min(0.25, 1.5 * df)
         self._last.setdefault(key, []).append((n_rpm, list(x)))
         return list(x)
-
-
-def _speed_steps(n0, n1, step):
-    k = max(1, math.ceil(abs(n1 - n0) / step - 1e-9))
-    return [n0 + (n1 - n0) * (i + 1) / k for i in range(k)]
 
 
 def _extrapolate(hist, n, x):
@@ -525,16 +650,35 @@ def _comp_label(reason: str) -> str:
 # ======================================================================================
 # Design mode
 # ======================================================================================
-def design_engine(inputs: dict, cfg: dict | None = None) -> EngineDesign:
+_REF_CACHE: dict = {}
+
+
+def _cached_reference(cfg: dict) -> CompressorReference:
+    """compressor_reference is deterministic for a given config: compute once per process."""
+    key = (cfg["compressor_design"]["reference_geometry"], cfg["compressor_design"]["calibration"],
+           str(cfg["compressor_design"]["reference_point"]))  # fmt: skip
+    if key not in _REF_CACHE:
+        _REF_CACHE[key] = compressor_reference(cfg)
+    return _REF_CACHE[key]
+
+
+def design_engine(
+    inputs: dict, cfg: dict | None = None, calibration: tuple[float, float] | None = None
+) -> EngineDesign:
     """Size an engine for the design-point inputs (keys as in configs/engine_baseline.yaml
-    `baseline_design`). Raises EngineFailure with a label if the design can't be built."""
+    `baseline_design`). `calibration` = (delta_sigma, diffuser_cf) overrides the KJ-66 calibration factors.
+    Raises EngineFailure with a label if the design can't be built."""
     cfg = cfg or load_engine_config()
     L = ComponentLosses.from_config(cfg)
     x = {k: float(_val(v)) for k, v in inputs.items()}
     amb, V0, T02, p02 = flight_inlet(
         x.get("alt_m", 0.0), x.get("mach", 0.0), x.get("dT_isa_K", 0.0), L
     )
-    ref = compressor_reference(cfg)
+    ref = _cached_reference(cfg)
+    if calibration is not None:
+        # sampled calibration factors (Phase 4 uncertainty): same sizing rules (reference flow coefficients from
+        # the nominal calibration), different compressor performance in sizing and off-design
+        ref = replace(ref, delta_sigma=float(calibration[0]), diffuser_cf=float(calibration[1]))
     m, N, tit = x["W_air_kg_s"], x["n_rpm"], x["tit_K"]
     cg, cpt = size_compressor(ref, m, N, x["pr_c"], T02, p02)
     air = thermo.air()
@@ -568,8 +712,9 @@ def design_engine(inputs: dict, cfg: dict | None = None) -> EngineDesign:
     from turboml.config import load_config
 
     tip_limit = load_config().constraints.max_impeller_tip_speed_m_s
-    mech = mechanical.evaluate(tit, omega, cg.radius_out_m, sz.geometry.rotor_annulus_area_m2, tip_limit, mats,
-                               t0_rel_rotor_K=tpt.T0_rel_rotor_in_K)  # fmt: skip
+    gb = mechanical.turbine_gas_bending(tpt, sz.geometry, s4.W)
+    mech = mechanical.evaluate(tit, cpt.T03_K, omega, cg.radius_out_m, sz.geometry.rotor_annulus_area_m2, tip_limit,
+                               tpt.T0_rel_rotor_in_K, gb["rotor"], gb["ngv"], mats)  # fmt: skip
     dp.tags.extend(mech.tags)
     design = EngineDesign(inputs={**x, "Ps0_Pa": amb.p_Pa}, compressor_geometry=cg, turbine_geometry=sz.geometry,
                           A9_m2=noz.A, design_point=dp, mechanical=mech, turbine_sizing=sz,
@@ -597,9 +742,10 @@ def design_card(
              "Status: physics-evaluated design point (0-D cycle + meanline components); not surrogate output.", ""]  # fmt: skip
     if mech.premium_material_required:
         lines += [
-            "**Tag: premium material required** (turbine temperature above the default material's limit).",
+            "**Tag: premium material required** (the default turbine alloy fails the creep check).",
             "",
         ]
+    lines += [f"**Flag: {mechanical.TURBINE_EFFICIENCY_FLAG}.**", ""]
     lines += ["## Design point", "", "| quantity | value |", "|---|---|",
               f"| net thrust | {p.Fn_N:.1f} N |", f"| air mass flow | {p.W_air_kg_s:.3f} kg/s |",
               f"| specific thrust | {p.specific_thrust_N_s_kg:.0f} N s/kg |",
@@ -620,15 +766,24 @@ def design_card(
               f"| turbine blades (stator / rotor, non-integer sizing) | {d.turbine_sizing.n_blades[0]:.1f} / {d.turbine_sizing.n_blades[1]:.1f} |",
               f"| envelope D x L (proxy) | {env['diameter_m'] * 1e3:.0f} x {env['length_m'] * 1e3:.0f} mm |",
               f"| dry mass (proxy) | {env['dry_mass_kg']:.2f} +- {env['dry_mass_1sigma_kg']:.2f} kg |", ""]  # fmt: skip
-    t = mech.checks["turbine_temperature"]
-    s = mech.checks["blade_root_stress"]
+    cr = mech.checks["creep"]
     lines += ["## Constraints and proxies", "",
-              f"- material: {t['material'] or 'NONE (infeasible)'}; metal temperature basis {t['basis']}: {t['metal_temperature_K']:.0f} K; "
-              f"margins {', '.join(f'{k} {v:+.0f} K' for k, v in t['margins_K'].items())}",
-              f"- rotor inlet relative total temperature: {p.t0_rel_rotor_K:.0f} K",
+              "Creep (NiDI No. 393 rupture data; life and safety factor from configs/materials.yaml):", "",
+              "| material | rotor T_metal (T0,rel) | rotor stress centrifugal + gas bending | allowable | rotor | NGV gas bending | NGV PF_max | NGV |",
+              "|---|---|---|---|---|---|---|---|"]  # fmt: skip
+    for k, c in cr.items():
+        allow = (
+            "n/a" if c["rotor_allowable_Pa"] is None else f"{c['rotor_allowable_Pa'] / 1e6:.0f} MPa"
+        )
+        pfm = "n/a" if c["ngv_pf_max"] is None else f"{c['ngv_pf_max']:.2f}"
+        lines.append(f"| {k} | {c['rotor_metal_T_K']:.0f} K | {c['rotor_stress_centrifugal_Pa'] / 1e6:.0f} + "
+                     f"{c['rotor_stress_gas_bending_Pa'] / 1e6:.0f} MPa (x SF {c['safety_factor']}) | {allow} | {c['rotor_status']} | "
+                     f"{c['ngv_stress_gas_bending_Pa'] / 1e6:.0f} MPa | {pfm} | {c['ngv_status']} |")  # fmt: skip
+    lines += ["",
+              f"- selected material: {mech.material or 'NONE (infeasible)'}",
               f"- impeller tip speed {mech.checks['impeller_tip_speed']['value_m_s']:.0f} m/s (limit {mech.checks['impeller_tip_speed']['limit_m_s']:.0f})",
-              f"- blade root stress proxy: {s.get('root_stress_Pa', float('nan')) / 1e6:.0f} MPa ({s['status']}); AN^2 = {s['an2_m2_rpm2']:.3g} m2 rpm2",
-              f"- feasible: {mech.feasible}" + (f" ({', '.join(mech.infeasible_reasons)})" if mech.infeasible_reasons else ""),
+              f"- AN^2 = {mech.checks['an2_m2_rpm2']:.3g} m2 rpm2",
+              f"- feasible: {mech.feasible}" + (f" (active constraints: {', '.join(mech.infeasible_reasons)})" if mech.infeasible_reasons else ""),
               f"- tags: {', '.join(p.tags) or 'none'}", ""]  # fmt: skip
     if d.notes:
         lines += ["Sizing warnings: " + "; ".join(d.notes), ""]

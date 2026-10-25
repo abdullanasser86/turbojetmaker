@@ -271,6 +271,28 @@ class CentrifugalCompressor:
 
         return _subsonic_root(flux, mdot, 1e-3, 1.2 * self.air.sound_speed(T0), f"choke_{tag}")
 
+    def _solve_continuity_newton(self, mdot, area, h0, T0, p0, v_other, cm_guess, tol=1e-12):
+        """Fast path of `_solve_continuity` for the diffuser march: Newton from the previous step's Cm.
+        d(rho Cm A)/dCm = rho A (1 - Cm^2/a^2) at constant h0 and entropy with the swirl held fixed
+        (d ln rho = d ln T/(gamma - 1), dT = -C dC/cp, (gamma - 1) cp T = a^2). Returns None if it leaves
+        the subsonic branch or doesn't converge; the caller then uses the bracketed solver."""
+        cm = cm_guess
+        for _ in range(30):
+            T, _, rho = self._static_from_total(h0, T0, p0, math.hypot(cm, v_other))
+            a2 = self.air.gamma(T) * self.air.R * T
+            m2 = cm * cm / a2
+            if m2 >= 0.95:
+                return None
+            f = rho * cm * area - mdot
+            step = f / (rho * area * (1.0 - m2))
+            cm_new = cm - step
+            if cm_new <= 0.0:
+                return None
+            if abs(step) < tol * cm:
+                return cm_new
+            cm = cm_new
+        return None
+
     # main evaluation -----------------------------------------------------------------
     def set_inlet(self, T0_in_K: float, p0_in_Pa: float) -> None:
         """Change the inlet total state (engine at altitude / flight Mach)."""
@@ -488,13 +510,17 @@ class CentrifugalCompressor:
         def width(r):
             return b2 + (b3 - b2) * (r - r2) / (r3 - r2)
 
+        last = {"cm": cm2}
+
         def deriv(r, y):
             rct, p0 = y
             ct = rct / r
             b = width(r)
-            cm = self._solve_continuity(
-                mdot, 2 * math.pi * r * b, h0, T0, p0, v_other=ct, tag="diffuser"
-            )
+            area = 2 * math.pi * r * b
+            cm = self._solve_continuity_newton(mdot, area, h0, T0, p0, ct, last["cm"])
+            if cm is None:  # robust bracketed solver (also detects diffuser choke)
+                cm = self._solve_continuity(mdot, area, h0, T0, p0, v_other=ct, tag="diffuser")
+            last["cm"] = cm
             c = math.hypot(cm, ct)
             _, _, rho = self._static_from_total(h0, T0, p0, c)
             return np.array([-cf * c * ct * r / (cm * b), -cf * rho * c**3 / (cm * b)])

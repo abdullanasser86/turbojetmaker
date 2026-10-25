@@ -252,3 +252,73 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
 - Band = 2σ from the least-squares Jacobian on the 10 calibration rows (90 krpm only): Δσ [−0.119, −0.089],
   Cf [0.086, 0.102]. It is statistical only (no model-form error). Phase 4 samples a fraction (proposal 20 %) of the
   designs uniformly inside it. Validation errors are only ever reported on the held-out speeds.
+
+### D-036 · 2026-10-25 · Incidence sign: both selectable, TurboFlow's effective sign stays default (user decision)
+- `configs/engine_baseline.yaml` → `turbine_design.incidence_sign`: `turboflow` (default) or `rotor_plus`. Both
+  validation runs are recorded:
+  - Kofskey vs measured: η_ts mean −1.20 / −2.00 pts, torque −0.53 / −2.38 % (turboflow / rotor_plus).
+  - Kofskey vs TurboFlow: turboflow sign within 0.1 % / 0.06 pts; rotor_plus up to 7.5 % power.
+  - Sobol 512 points: rotor_plus − turboflow η_ts mean +0.04 pts, but single points jump to another solution branch
+    (−4.3 … +47 pts).
+- Reasoning: the released behaviour fits the only measured data; the paper (Benner et al. 1997) is paywalled, so the
+  sign stays an open modelling uncertainty. Issue text for TurboFlow drafted in `docs/upstream_issues.md`; posting is
+  the user's call.
+
+### D-037 · 2026-10-25 · Turbine creep checks from NiDI No. 393 (user decision, materials item)
+- Data: Tables 9/10 (100 h / 1000 h rupture), Table 1 (density) for Alloy 713C (default) and MAR-M 247 (premium,
+  test bars machined from blades) → `validation/cases/ni393_cast_rupture.csv`. One printed typo (713C 1000 h at
+  1400 °F: 458 MPa vs 65 ksi = 448) is resolved by using the ksi column throughout.
+- Method: interpolation of log-stress in temperature at a tabulated life (and in log-life between 100 and 1000 h).
+  Larson–Miller (C = 20, quadratic fit, max error 10 % for 713C) only for other lives. No extrapolation above the
+  tabulated temperatures (→ "TIT_*_above_material_data"); strength held constant below them.
+- Settings (preliminary-design choices): life 100 h, safety factor 1.5 on stress, taper factor 1.0.
+- Metal temperatures: rotor = rotor-inlet relative total temperature (meanline); NGV = TIT + PF (TIT − T3).
+- Stresses: rotor = centrifugal (AN²) + gas bending; NGV = gas bending. Cantilever with a uniform load;
+  Zs = (8/105) c t² is derived for a parabolic profile and ignores camber (conservative).
+- Pattern factor: no verifiable cited range found (web search 2026-10-25), so `combustor_pattern_factor: null`. The
+  dataset stores PF_max, the largest PF the NGVs survive, and feasibility can be recomputed once PF is sourced. A design
+  that fails at PF = 0 is infeasible.
+- Infeasible only if the selected material fails. Active constraints reported: AN2, creep_rotor, creep_ngv,
+  TIT_rotor/ngv_above_material_data, tip_speed.
+- Consequence: the Phase 3 baseline (557 MPa centrifugal at a 1088 K rotor) is infeasible (AN2) with K = 1 and SF 1.5.
+
+### D-038 · 2026-10-25 · Calibration band inflated for model-form error (user decision)
+- Common factor k on both 2σ half-widths, increased until ≥ 95 % of the 34 held-out measured points lie inside the
+  model's prediction envelope (3 × 3 grid). Result: k = 2.75 (34/34; k = 2.5 → 32/34). Inflated band:
+  Δσ [−0.145, −0.063], Cf [0.072, 0.115]. 20 % of the Phase 4 designs sample it uniformly.
+- Caveat: the held-out points now size the band, so they are no longer independent evidence for its width.
+
+### D-039 · 2026-10-25 · DePaola values and off-design loss scaling confirmed (user decision)
+- "Nozzle ≈ 0.95" is the nozzle total-pressure ratio Pt9/Pt7 (Mattingly convention), with P0/P9 ≈ 1. The inlet 0.98
+  is also a total-pressure ratio. The implementation already used `dp_nozzle_frac = 0.05`. To be re-checked against
+  the thesis text when it arrives.
+- Loss scaling with (corrected flow)² is accepted. Source: Walsh & Fletcher, *Gas Turbine Performance* (2nd ed.,
+  Blackwell 2004), component pressure-loss scaling with corrected flow squared (dynamic head). Chapter-level citation;
+  page to be checked.
+
+### D-040 · 2026-10-25 · Compressor speedups (profiling pass)
+- 90 % of a compressor evaluation was the vaneless-diffuser march: each RK4 stage solved continuity with a bracketed
+  search (~21 thermo calls). It is replaced by a Newton step warm-started from the previous step,
+  d(ρCmA)/dCm = ρA(1 − Cm²/a²), with the bracketed solver kept as a fallback (and for choke detection).
+- Results are identical (max difference 7e-14 over 40 test points, same failure labels). The compressor is ~4×
+  faster. On the baseline engine (`scripts/phase4/profile_engine.py` → `validation/phase4/profiling.yaml`, warm
+  cache): design 0.90 s instead of 2.97 s, the three Phase 4 off-design points 0.71–0.95 s instead of 2.6–4.1 s
+  (3.3–4.3×), outputs equal to 3e-11. No numba, no rewrite.
+- The next hot spot is the gas-property inversion `thermo.T_from_h` (~39 % of the time after the speedup). It is left
+  alone: the full 2000-design run already fits in minutes to tens of minutes.
+
+### D-041 · 2026-10-25 · Robust compressor sizing and adaptive engine continuation
+- Compressor sizing: r2 is bracketed (steps of ×1.12, bisection toward the edge of the working region) and then found
+  by brentq. The exit width is made consistent with the exit density by a secant iteration, with a lower density
+  guess after a choked first try. Before this, failures depended on the iteration path; now a design fails only if no
+  working radius reaches the PR (labels design_compressor_pr_not_reached_<choke>, r2_below_inducer, ...).
+- Off-design continuation is adaptive in speed and inlet state: a failed step is halved (down to 1/64) and the initial
+  guess is speed-scaled (m ∝ N, PR_t − 1 ∝ N²). Before this, 80 % / idle points failed only because of the starting
+  guess.
+
+### D-042 · 2026-10-25 · Phase 4 dataset design (scope approved by the user)
+- 2000 designs, scrambled Sobol (first 2000 of 2^11), 7 variables in the configs/bounds.yaml box. Mass flow is sampled
+  on a log scale; the other variables linearly. 4 points per design with per-point failure reasons.
+- 15 % test split frozen before evaluation (`data/splits/phase4_v1_split.csv`).
+- Append-only resumable JSONL. Workers = physical cores − 1.
+- pyCycle-CEA cross-check on a random 2 % of designed engines.

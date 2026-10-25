@@ -20,11 +20,13 @@ delta_sigma:
   slip_factor_on_kj66: 0.7031
   sigma_1: 0.0074
   band_2sigma: [-0.1189, -0.0893]
+  band_inflated: [-0.1448, -0.0634]   # statistical + model-form, see `band_inflation` below
 diffuser_cf:
   value: 0.0937
   kind: calibrated
   sigma_1: 0.0039
   band_2sigma: [0.0860, 0.1015]
+  band_inflated: [0.0724, 0.1150]
 parameter_correlation: -0.14
 
 fit:
@@ -37,9 +39,19 @@ fit:
   calibration_points: {speed_rpm: [90000], rows: "5 pressure-ratio + 5 efficiency rows at 90 krpm (m = 0.140-0.155 kg/s)"}
   validation_points: {speed_rpm: [70000, 80000, 100000, 110000], rows: "all other measured rows of the same file"}
 
+band_inflation:
+  # User decision 2026-10-25: widen the statistical band until >= 95 % of the held-out measured points lie inside
+  # the model's prediction envelope (min/max over a 3 x 3 grid of the band, evaluated at each point's mass flow and
+  # speed). Common factor k on both 2-sigma half-widths; smallest k on the grid {1, 2, 2.25, 2.5, 2.75, 3, ...}
+  # with coverage >= 95 %. scripts/phase4/compressor_band_inflation.py -> validation/phase4/compressor_band_*.
+  method: "band = centre +- k * (2-sigma half-width); envelope over 3 x 3 grid; measured value inside [min, max] prediction"
+  k: 2.75
+  coverage_held_out: "34/34 (k = 2.5: 32/34 = 94 %)"
+  caveat: "the held-out points size this band, so they are no longer independent evidence for its width (they still are for the point calibration)"
+
 phase4_sampling:
   # Carry the factors as uncertain parameters: a subset of the dataset samples them inside the band.
-  fraction_of_designs: 0.2   # PROPOSAL, confirm (Phase 3 report)
+  fraction_of_designs: 0.2   # approved by the user 2026-10-25
   distribution: uniform
-  range: band_2sigma
+  range: band_inflated
   independent: true          # correlation -0.14 neglected
