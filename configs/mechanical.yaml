@@ -1,0 +1,19 @@
+# Envelope and mass proxies (turboml/physics/mechanical.py). Fitted values are reproducible with
+# scripts/phase3/fit_envelope.py.
+envelope:
+  casing_to_impeller_diameter:
+    value: 1.627
+    kind: measured_geometry_ratio
+    source: "KJ-66: casing inner radius 53.7 mm / impeller tip radius 33 mm (Xiang et al. 2016 p.3; Ling 2007), validation/cases/kj66_compressor_geometry.yaml. ONE engine only; the casing wall thickness is not included."
+  length_to_diameter:
+    value: 2.59
+    kind: database_median
+    source: "median L/D of 87 engines >= 50 N with both dimensions in validation/cases/review_engine_table.csv (Anjomrouz et al. 2023, Table 3); IQR 2.44-2.76"
+  mass_coefficient_kg_m3:
+    value: 431.7
+    kind: fitted
+    source: "dry mass / (D^2 L), mean over the 14 variants of validation/cases/jetcat_pro_catalog_2024.csv (catalog masses include the listed accessories)"
+  mass_coefficient_std_kg_m3:
+    value: 43.2
+    kind: fitted
+    source: "standard deviation over the same 14 variants (366-500 kg/m3)"

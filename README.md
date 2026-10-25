@@ -14,7 +14,11 @@ physics models.
 > testing by qualified people before anything is built or run.
 
 ## Status
-Phase 2 (component meanline models) complete — see `docs/PHASE2_REPORT.md` (earlier: `docs/PHASE0_REPORT.md`, `docs/PHASE1_REPORT.md`).
+Phase 3 (coupled engine model) complete — see `docs/PHASE3_REPORT.md` (earlier: `docs/PHASE0_REPORT.md` … `docs/PHASE2_REPORT.md`).
+
+What exists now: a 0-D cycle (plus pyCycle-CEA cross-check), meanline compressor and axial-turbine models, and a
+coupled engine model with design mode (sizing) and off-design matching. Example: the ~150 N baseline engine's design
+card is in `validation/phase3/baseline_design_card.md`. Every design card carries the scope/safety note above.
 The full plan is in `PROJECT_BRIEF.md`.
 
 ## Quick start
@@ -24,6 +28,46 @@ uv run python scripts/check_env.py        # versions + GPU check
 uv run pytest                             # tests (use -m "not slow" to skip solver runs)
 uv run jupyter lab notebooks/             # phase notebooks (or open them in VS Code)
 ```
+
+## Laptop setup (RTX 4080 Laptop GPU, 12 GB)
+
+The lock file pins **torch 2.10.0 built for CUDA 12.8** (Linux x86-64 wheels from PyPI), with
+GPyTorch 1.15.2 and BoTorch 0.18.1. Any recent NVIDIA driver (≥ 570, CUDA 12.8 capable) works.
+*Windows:* PyPI only ships CPU-only torch wheels for Windows, so a CUDA build needs the PyTorch
+package index. This is not yet in the lock (see docs/PHASE3_REPORT.md, open question about your OS).
+
+1. Install [uv](https://docs.astral.sh/uv/) and git.
+2. Clone and create the environment:
+   ```bash
+   git clone https://github.com/abdullanasser86/turbojetmaker.git
+   cd turbojetmaker
+   uv sync --frozen            # exact versions from uv.lock (~3 GB incl. CUDA libraries)
+   ```
+3. Check the environment, GPU and ML stack (versions vs lock, GPU name/VRAM/driver/power limit,
+   short GP and MLP benchmark with peak memory):
+   ```bash
+   uv run python scripts/check_env.py
+   ```
+4. Run the tests (fast set first, then everything):
+   ```bash
+   uv run pytest -m "not slow"
+   uv run pytest
+   ```
+5. For long runs: plug into **AC power** and select the laptop's **performance / turbo power mode**.
+   Expect lower sustained throughput than a desktop RTX 4080, and possible thermal throttling.
+   Training writes resumable checkpoints (`turboml/checkpoint.py`), so a run interrupted by sleep
+   or throttling can continue from its last checkpoint.
+
+**Resource settings**
+- Physics data generation runs on the CPU with `compute.n_workers` parallel processes
+  (`configs/default.yaml`; default = physical cores − 1, so the laptop stays usable). Override per
+  run with `TURBOML_N_WORKERS=4`.
+- Training code picks CUDA automatically and falls back to CPU (`turboml/device.py`, override with
+  `TURBOML_DEVICE=cpu`). GPs use float64, neural networks float32. Sized for 12 GB VRAM: exact GPs
+  up to ~10k points per output, variational/sparse GPs or deep ensembles above that, ensemble
+  members trained one after another if VRAM is tight.
+- Generated datasets and model checkpoints are git-ignored. Seeds, configs and dataset cards are
+  committed so everything can be regenerated.
 
 ## Documentation
 - `docs/LEARNING.md` – glossary and "what we did and why" per phase

@@ -66,9 +66,14 @@ class Constraints(_Strict):
     max_impeller_tip_speed_m_s: float | None = None
 
 
+class Compute(_Strict):
+    n_workers: int | None = Field(default=None, ge=1)  # None -> physical cores - 1
+
+
 class TurboMLConfig(_Strict):
     name: str
     seed: int = 0
+    compute: Compute = Compute()
     design_point: OperatingPoint
     off_design_points: list[OperatingPoint] = []
     constraints: Constraints = Constraints()

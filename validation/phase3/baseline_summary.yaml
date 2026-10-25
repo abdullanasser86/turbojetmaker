@@ -1,0 +1,87 @@
+design_inputs: {W_air_kg_s: 0.3, pr_c: 3.0, tit_K: 1150.0, n_rpm: 130000.0, turb_phi: 0.7,
+  turb_psi: 1.0, turb_reaction: 0.5, alt_m: 0.0, mach: 0.0, dT_isa_K: 0.0, Ps0_Pa: 101325.0}
+design_time_s: 8.7
+design_point: {n_rpm: 130000.0, alt_m: 0.0, mach: 0.0, converged: true, failure_reason: '',
+  W_air_kg_s: 0.3, far: 0.02054, Wf_kg_s: 0.00616, Fn_N: 148.28586, Fg_N: 148.28586,
+  TSFC_kg_N_s: 4.0e-05, pr_c: 3.0, eta_c: 0.75098, P_comp_W: 42632.88231, tit_K: 1150.0,
+  pr_t_ts: 1.85488, eta_t_ts: 0.74203, P_turb_W: 43063.49153, turbine_choked: '',
+  T02_K: 288.15, p02_Pa: 99298.5, T03_K: 428.91341, p03_Pa: 297895.65149, p04_Pa: 268106.08634,
+  T05_K: 1032.52415, p05_Pa: 161708.60493, V9_m_s: 484.33932, nozzle_choked: false,
+  surge_flag: '', compressor_tip_speed_m_s: 481.8491, t0_rel_rotor_K: 1088.11002,
+  tags: blade stress unchecked (allowable stress not sourced), specific_thrust_N_s_kg: 494.28621,
+  TSFC_g_kN_s: 41.54886}
+turbine_sizing:
+  r_mean_mm: 27.55
+  U_m_s: 375.0
+  angles_deg: {alpha1: 0.0, alpha2: 55.01, beta2: 0.0, beta3: -55.01, alpha3: 0.0,
+    gauging_stator: 56.25, gauging_rotor: -56.06}
+  warnings: []
+mechanical:
+  feasible: true
+  material: in713c
+  premium_material_required: false
+  tags: [blade stress unchecked (allowable stress not sourced)]
+  infeasible_reasons: []
+off_design:
+  design_check: {converged: true, failure_reason: '', Fn_N: 148.29, TSFC_g_kN_s: 41.55,
+    W_air_kg_s: 0.3, pr_c: 3.0, tit_K: 1150.0, EGT_K: 1032.5, surge_flag: '', time_s: 0.73,
+    iterations: 2}
+  cruise_M05_3km: {converged: true, failure_reason: '', Fn_N: 99.47, TSFC_g_kN_s: 48.37,
+    W_air_kg_s: 0.2574, pr_c: 3.052, tit_K: 1086.5, EGT_K: 967.6, surge_flag: '',
+    time_s: 5.19, iterations: 1}
+  part_speed_80: {converged: true, failure_reason: '', Fn_N: 72.28, TSFC_g_kN_s: 51.99,
+    W_air_kg_s: 0.2158, pr_c: 2.047, tit_K: 1007.2, EGT_K: 931.3, surge_flag: '',
+    time_s: 2.45, iterations: 6}
+  part_speed_60: {converged: true, failure_reason: '', Fn_N: 33.31, TSFC_g_kN_s: 73.78,
+    W_air_kg_s: 0.1461, pr_c: 1.503, tit_K: 954.3, EGT_K: 911.8, surge_flag: '', time_s: 2.29,
+    iterations: 7}
+  idle_35: {converged: true, failure_reason: '', Fn_N: 9.54, TSFC_g_kN_s: 139.11,
+    W_air_kg_s: 0.0768, pr_c: 1.15, tit_K: 941.6, EGT_K: 927.3, surge_flag: '', time_s: 10.64,
+    iterations: 21}
+operating_line_converged: 14/15
+operating_line_failures:
+- {n_frac: 0.3, failure_reason: no_nozzle_pressure_ratio}
+plausibility:
+  comparison_set: review table engines with thrust 104-193 N (n = 32)
+  thrust_N: 148.3
+  specific_thrust_N_s_kg:
+    model: 494.3
+    database_range_lt_250N: [352, 511]
+    source: configs/bounds.yaml database check
+  TSFC_g_kN_s:
+    model: 41.55
+    db_min_median_max_n: [37.963, 46.418, 54.517, 32]
+    jetcat_pro_2024_min_max: [35.3, 43.9]
+  shaft_speed_rpm:
+    model: 130000
+    db_trend_7.3e5_F^-0.343: 131412
+    db_min_median_max_n: [115000.0, 126500.0, 175000.0, 32]
+  diameter_mm:
+    model_proxy: 115.2
+    db_trend: 105.1
+    db_min_median_max_n: [90.0, 103.0, 120.0, 32]
+  length_mm:
+    model_proxy: 298.3
+    db_min_median_max_n: [198.0, 283.0, 346.0, 29]
+  dry_mass_kg: {model_proxy: 1.71, note: k D^2 L fitted on JetCat PRO (250-1100 N)}
+  EGT_C:
+    model: 759.4
+    jetcat_max_egt_C: [720.0, 750.0]
+    db_min_median_max_n: [680.0, 700.0, 760.0, 27]
+  idle:
+    model_lowest_converged_speed_frac: 0.35
+    model_thrust_frac: 0.0644
+    model_EGT_C: 654.1
+    jetcat_idle_rpm_frac: [0.286, 0.311, 0.33, 14]
+    jetcat_idle_thrust_frac: [0.033, 0.047, 0.057, 14]
+    jetcat_egt_min_C: [480.0, 480.0, 480.0, 14]
+cross_check_design_point:
+  equivalent_0D_inputs: {W_air_kg_s: 0.3, pr_c: 3.0, eta_c: 0.75098, tit_K: 1150.0,
+    eta_t: 0.89483, eta_mech: 0.99, eta_burner: 0.95, dp_burner_frac: 0.1, inlet_recovery: 0.98,
+    dp_nozzle_frac: 0.05, nozzle_cv: 1.0, lhv_J_kg: 42800000.0, power_offtake_W: 0.0,
+    alt_m: 0.0, mach: 0.0, dT_isa_K: 0.0}
+  coupled: {Fn_N: 148.286, TSFC_g_kN_s: 41.5489}
+  cycle_simple: {Fn_N: 148.286, TSFC_g_kN_s: 41.5489}
+  pycycle_cea: {Fn_N: 148.316, TSFC_g_kN_s: 41.5799}
+  coupled_vs_simple_pct: {Fn: 0.0, TSFC: -0.0}
+  coupled_vs_pycycle_pct: {Fn: -0.02, TSFC: -0.075}

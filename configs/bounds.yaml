@@ -7,6 +7,8 @@
 #         -> validation/cases/review_engine_table.csv (109 engines, 15.6-979 N)
 #   [JC]  JetCat PRO Engines catalog 2024 -> validation/cases/jetcat_pro_catalog_2024.csv
 #   [JD]  JetCat P500-PRO / P550-PRO datasheets V1.1 02/2023
+#   [U2]  User decision 2026-10-25 (pre-Phase 3 instructions).
+#   [T]   Textbook range (see entry), provisional until confirmed.
 #   [D]   DePaola, AFIT thesis 2020 (as summarised by the user; thesis not yet available to us)
 #
 # Database check (scripts/data/derive_bounds.py; numbers for engines >= 50 N unless stated):
@@ -31,25 +33,30 @@ bounds:
     source: "[U] P500/P550 80-83 krpm, P220 117 krpm, P80 125 krpm, 50 N engines ~160-200 krpm. Database: >= 50 N engines 61.5-205 krpm."
   tit_K:
     lower: 1000.0
-    upper: 1250.0
-    source: "[U] PROVISIONAL. JetCat EGT 480-750 C (~750-1020 K) and TIT > EGT; refine with measured TIT in [D]. NOTE: [R] lists EGT up to 875 C (1148 K) for AMT engines, which implies TIT above 1250 K for those; see Phase 2 report."
-  # --- component variables (defined with the Phase 2/3 component models) -------------
-  imp_tip_radius_m: {}
-  inducer_hub_radius_m: {}
-  inducer_tip_radius_m: {}
+    upper: 1350.0
+    source: "[U2] User decision 2026-10-25 (pre-Phase 3): raised from 1250 K so AMT-class engines ([R]: EGT up to 875 C = 1148 K, TIT above that) stay in the sampled space. TIT feasibility is a MATERIAL constraint (configs/materials.yaml): designs above the selected material's limit are infeasible, not excluded from sampling. Lower bound from JetCat EGT 480-750 C (TIT > EGT)."
+  # --- component variables -------------------------------------------------------------
+  # Derived in the Phase 3 design mode (turboml/physics/engine.py), NOT independent design variables:
+  #   impeller tip radius (from the target PR), inducer radii and exit width (KJ-66 flow coefficients),
+  #   turbine mean radius and blade heights (from phi, psi, work and speed), nozzle area (from the design flow).
+  turb_flow_coefficient:
+    lower: 0.35
+    upper: 0.9
+    source: "[T] PROVISIONAL: usual axial-turbine stage range (Smith 1965 chart as reproduced in Dixon & Hall, Ch. 4); the Phase 3 verification of the fast turbine model covers exactly this range"
+  turb_loading_coefficient:
+    lower: 0.9
+    upper: 2.2
+    source: "[T] PROVISIONAL, as above; verified range of the fast turbine model"
+  turb_reaction:
+    lower: 0.2
+    upper: 0.6
+    source: "[T] PROVISIONAL, as above; verified range of the fast turbine model"
+  # Phase 4 candidates (bounds still to be set with sources): impeller blade count, backsweep, diffuser
+  # radius ratio, tip clearance, turbine aspect ratio and tip clearance.
   imp_blade_count: {integer: true}
   imp_backsweep_deg: {}
-  imp_exit_blade_height_m: {}
   diffuser_radius_ratio: {}
-  diffuser_vane_count: {integer: true}
   imp_tip_clearance_m: {}
-  turb_mean_radius_m: {}
-  turb_blade_height_m: {}
-  turb_flow_coefficient: {}
-  turb_loading_coefficient: {}
-  turb_reaction: {}
-  combustor_dp_frac: {}
-  nozzle_exit_area_m2: {}
 
 # Constraints that come with the bounds (merged into `constraints:`).
 constraints:

@@ -180,6 +180,9 @@ class CompressorPoint:
     diffusion_ratio_w1t_w2: float = np.nan  # impeller relative-velocity diffusion (output only)
     diffuser_stall: bool = False
     T03_K: float = np.nan
+    inducer_axial_velocity_m_s: float = np.nan  # C1 (no pre-swirl)
+    exit_meridional_velocity_m_s: float = np.nan  # Cm2
+    exit_density_kg_m3: float = np.nan  # rho2 (static)
     losses_J_kg: dict = field(default_factory=dict)
 
 
@@ -269,6 +272,10 @@ class CentrifugalCompressor:
         return _subsonic_root(flux, mdot, 1e-3, 1.2 * self.air.sound_speed(T0), f"choke_{tag}")
 
     # main evaluation -----------------------------------------------------------------
+    def set_inlet(self, T0_in_K: float, p0_in_Pa: float) -> None:
+        """Change the inlet total state (engine at altitude / flight Mach)."""
+        self.T01, self.p01, self.h01 = T0_in_K, p0_in_Pa, self.air.h(T0_in_K)
+
     def evaluate(self, mass_flow_kg_s: float, speed_rpm: float) -> CompressorPoint:
         """One operating point. Never raises for physical/solver failures (failures are data)."""
         pt = CompressorPoint(
@@ -370,6 +377,8 @@ class CentrifugalCompressor:
         st = exit_state(cm2, rho1)
 
         pt.exit_flow_angle_deg = st["alpha2"]
+        pt.inducer_axial_velocity_m_s, pt.exit_meridional_velocity_m_s = c1, cm2
+        pt.exit_density_kg_m3 = st["rho2"]
         pt.diffusion_ratio_w1t_w2 = math.hypot(c1, u1t) / st["w2"]
         pt.exit_mach = st["c2"] / air.sound_speed(st["T2"])
         pt.losses_J_kg = {k: v for k, v in st["L"].items() if k not in ("internal", "parasitic")}

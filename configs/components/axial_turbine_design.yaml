@@ -1,0 +1,25 @@
+# Default dimensionless choices for sizing the single-stage axial turbine (turboml/physics/turbine_design.py).
+#
+# kind: assumption = engineering choice, not data. Each states where the number comes from.
+# The design-space variables (flow coefficient, loading coefficient, reaction) are in configs/bounds.yaml.
+#
+# [K]  Kofskey & Nusbaum 1972, NASA TN D-6967 geometry (third_party/turboflow_kofskey1972_1stage.yaml)
+# [TF] TurboFlow 0.1.18 geometry rules (axial_turbine/geometry_model.py: prepare_geometry, check_turbine_geometry)
+# [Z]  Zweifel (1945) optimum tangential loading coefficient ~0.8 (as reproduced in turbomachinery textbooks,
+#      e.g. Dixon & Hall, Fluid Mechanics and Thermodynamics of Turbomachinery, Ch. 3) -- PROVISIONAL, confirm.
+
+stator_inlet_angle_deg: {value: 0.0, kind: assumption, source: "axial flow from the combustor (as [K])"}
+zweifel_coefficient: {value: 0.8, kind: assumption, source: "[Z]"}
+aspect_ratio: {value: 1.2, kind: assumption, source: "blade height / chord; [K] stator ~1.3; [TF] recommends 0.8-5"}
+tip_clearance_height_ratio: {value: 0.02, kind: assumption, source: "[TF] recommended range 0-0.05; [K] 0.009. Small engines have relatively larger gaps"}
+min_tip_clearance_m: {value: 0.0002, kind: assumption, source: "[TF] recommended minimum 0.2 mm"}
+trailing_edge_thickness_opening_ratio: {value: 0.07, kind: assumption, source: "[K] 0.5 mm / 7.5 mm"}
+min_trailing_edge_thickness_m: {value: 0.0003, kind: assumption, source: "manufacturing floor for small cast/EDM blades -- ASSUMPTION, confirm"}
+leading_edge_diameter_chord_ratio: {value: 0.08, kind: assumption, source: "[K] stator 0.097, rotor 0.062"}
+leading_edge_wedge_angle_deg: {value: 50.0, kind: assumption, source: "[K]"}
+throat_location_fraction: {value: 0.8333333333, kind: assumption, source: "[K] input file (5/6)"}
+# Only for the first sizing estimate of densities (blade heights); the design solve then corrects
+# the annulus area and pressure ratio with the full meanline model.
+eta_stator_estimate: {value: 0.95, kind: assumption, source: "first-guess nozzle efficiency for sizing only"}
+eta_stage_tt_estimate: {value: 0.85, kind: assumption, source: "first-guess stage efficiency for sizing only"}
+critical_mach_estimate: {value: 0.95, kind: assumption, source: "first guess of Ma_crit for the deviation inversion ([K] case: 0.94-0.97)"}

@@ -26,7 +26,9 @@ dependencies = [
     "PyYAML>=6.0",
     "joblib>=1.4",
     # --- ML / optimisation ------------------------------------------------
-    "torch==2.14.1",
+    # torch 2.10.0 = newest PyPI build linked against CUDA 12.x (12.8) on Linux; supports Ada sm_89
+    # (RTX 4080 Laptop). torch >= 2.11 on PyPI uses CUDA 13. See docs/DECISIONS.md D-026.
+    "torch==2.10.0",
     "gpytorch==1.15.2",
     "botorch==0.18.1",
     "pymoo==0.6.2",

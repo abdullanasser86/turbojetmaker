@@ -10,3 +10,14 @@ reports/
 coloring_files/
 *.sql
 *.db
+# generated datasets, model checkpoints and large artefacts: regenerate from seeds + configs
+data/generated/
+datasets/
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.parquet
+*.h5
+*.npz
+validation/phase3/*.partial.jsonl

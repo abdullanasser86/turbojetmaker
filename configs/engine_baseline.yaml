@@ -1,0 +1,56 @@
+# Coupled engine model (turboml/physics/engine.py): component assumptions, sizing rules, baseline design.
+#
+# kinds: user_summary (DePaola 2020 standard assumptions AS SUMMARISED BY THE USER, 2026-10-24; the thesis
+#        itself has not been read yet) | assumption | spec | calibrated | derived
+# [D] DePaola, AFIT thesis 2020 (via user summary).
+
+components:
+  inlet_recovery:        {value: 0.98, kind: user_summary, source: "[D] inlet total-pressure ratio pi_d ~0.98"}
+  dp_burner_frac:        {value: 0.10, kind: user_summary, source: "[D] burner total-pressure loss ~10 %"}
+  eta_burner:            {value: 0.95, kind: user_summary, source: "[D] combustion efficiency ~0.95"}
+  eta_mech:              {value: 0.99, kind: user_summary, source: "[D] mechanical efficiency ~0.99"}
+  dp_nozzle_frac:        {value: 0.05, kind: user_summary, source: "[D] nozzle ~0.95, read as the nozzle total-pressure ratio (CONFIRM the meaning)"}
+  nozzle_cv:             {value: 1.0,  kind: assumption,   source: "nozzle losses lumped into the total-pressure ratio above"}
+  lhv_J_kg:              {value: 42.8e+6, kind: spec,     source: "ASTM D1655 minimum net heat of combustion, Jet A/A-1"}
+  power_offtake_W:       {value: 0.0,  kind: assumption,   source: "no generator/pump load"}
+  off_design_loss_scaling: {value: corrected_flow_squared, kind: assumption, source: "intake, burner and nozzle pressure-loss FRACTIONS scale with (W sqrt(Tt)/Pt)^2 relative to the design point (dynamic-head scaling, e.g. Walsh & Fletcher, Gas Turbine Performance -- PROVISIONAL, confirm). 'constant' keeps the design fractions"}
+  turbine_exit_total_pressure: {value: absolute, kind: assumption, source: "nozzle inlet total pressure = turbine-exit absolute total pressure (exit-swirl kinetic energy assumed recovered in the jet pipe; optimistic when the exit swirl is large)"}
+
+compressor_design:
+  # A new compressor is a KJ-66-like wheel resized for its own design point (see engine.size_compressor):
+  #  * inducer tip radius: same inducer flow coefficient C1/U1t as the reference point; hub/tip ratio of the KJ-66;
+  #  * blade inlet angle: same incidence as the KJ-66 at its reference point;
+  #  * impeller tip radius r2: solved so that the meanline model gives the target pressure ratio;
+  #  * exit width b2: same exit flow coefficient Cm2/U2 as the reference point;
+  #  * axial/meridional lengths and diffuser outlet radius: KJ-66 ratios to r2; blade count, backsweep and
+  #    throat-area ratio: KJ-66 values; tip clearance: KJ-66 clearance/b2 ratio with a floor.
+  reference_geometry: configs/components/kj66_compressor.yaml
+  calibration: configs/components/kj66_compressor_calibration.yaml
+  reference_point: {speed_rpm: 110000.0, mass_flow_kg_s: 0.235, kind: derived,
+                    source: "peak-efficiency point of the CALIBRATED KJ-66 model at 110 krpm (validation/phase2/kj66_summary.yaml)"}
+  min_tip_clearance_m:   {value: 0.0002, kind: assumption, source: "manufacturing/running-clearance floor for small wheels -- ASSUMPTION, confirm"}
+
+turbine_design:
+  defaults: configs/components/axial_turbine_design.yaml
+  incidence_sign: turboflow   # see turboml/physics/turbine_meanline.py (open question in the Phase 3 report)
+
+# Baseline ~150 N class engine (Phase 3 demonstration; NOT an optimised design).
+baseline_design:
+  W_air_kg_s:    {value: 0.30,     kind: assumption, source: "150-200 N class at 500-600 N s/kg (configs/bounds.yaml database range)"}
+  pr_c:          {value: 3.0,      kind: assumption, source: "inside 2-5 bounds; JetCat P250-PRO-S 3.8 at 250 N"}
+  tit_K:         {value: 1150.0,   kind: assumption, source: "inside 1000-1350 K bounds; below the IN-713C limit"}
+  n_rpm:         {value: 130000.0, kind: derived,    source: "database trend rpm ~ 7.3e5 F^-0.343 at F = 150 N (configs/bounds.yaml)"}
+  turb_phi:      {value: 0.7,      kind: assumption, source: "turbine flow coefficient; gives rotor hub/tip 0.60 (>= 0.5, TurboFlow recommended range)"}
+  turb_psi:      {value: 1.0,      kind: assumption, source: "turbine loading coefficient"}
+  turb_reaction: {value: 0.5,      kind: assumption, source: "R = 1 - psi/2: zero exit swirl"}
+  alt_m: 0.0
+  mach: 0.0
+  dT_isa_K: 0.0
+
+# Off-design points for the baseline (speed-controlled engine: the ECU sets the shaft speed).
+off_design_points:
+  - {name: design_check,    n_frac: 1.0,  alt_m: 0.0,    mach: 0.0}
+  - {name: cruise_M05_3km,  n_frac: 1.0,  alt_m: 3000.0, mach: 0.5}
+  - {name: part_speed_80,   n_frac: 0.8,  alt_m: 0.0,    mach: 0.0}
+  - {name: part_speed_60,   n_frac: 0.6,  alt_m: 0.0,    mach: 0.0}
+  - {name: idle_35,         n_frac: 0.35, alt_m: 0.0,    mach: 0.0}

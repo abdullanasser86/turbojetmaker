@@ -53,6 +53,33 @@ class AxialTurbine:
             self.config = tf.load_config(str(config_path), print_summary=False)
         self.design_point = dict(self.config["operation_points"])
 
+    @classmethod
+    def from_geometry(cls, geometry: dict, T0_in_K: float, p0_in_Pa: float, omega_rad_s: float,
+                      template: str | Path = KOFSKEY_1972_CONFIG, fluid_name: str = "air") -> AxialTurbine:  # fmt: skip
+        """TurboFlow model for any stage geometry (TurboFlow geometry dict, SI/degrees), using the
+        solver/loss settings of `template`. The design point (p_out) is set to p0/2 as a placeholder;
+        use `operation_point` to choose the evaluated point."""
+        import tempfile
+
+        import yaml
+
+        cfg = yaml.safe_load(Path(template).read_text())
+        cfg["geometry"] = {
+            k: [float(x) for x in v] if k != "cascade_type" else list(v)
+            for k, v in geometry.items()
+        }
+        op = {"fluid_name": fluid_name, "T0_in": float(T0_in_K), "p0_in": float(p0_in_Pa),
+              "p_out": float(p0_in_Pa) / 2.0, "omega": float(omega_rad_s), "alpha_in": 0}  # fmt: skip
+        cfg["operation_points"] = op
+        cfg["performance_analysis"]["performance_map"] = dict(op)
+        with tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False) as f:
+            yaml.safe_dump(cfg, f)
+            path = f.name
+        try:
+            return cls(path)
+        finally:
+            os.unlink(path)
+
     def operation_point(self, pr_ts: float, speed_frac: float = 1.0, **overrides) -> dict:
         """Operating point at total-to-static pressure ratio p0_in/p_out and fraction of design speed."""
         op = copy.deepcopy(self.design_point)
@@ -63,16 +90,20 @@ class AxialTurbine:
 
     def evaluate(self, points: list[dict]) -> pd.DataFrame:
         """Evaluate a list of operating points (TurboFlow continuation between neighbours)."""
-        with contextlib.redirect_stdout(io.StringIO()), np.errstate(all="ignore"):
-            solvers = self._tf.compute_performance(
-                points, self.config, export_results=False, stop_on_failure=False
-            )
+        error = ""
+        try:
+            with contextlib.redirect_stdout(io.StringIO()), np.errstate(all="ignore"):
+                solvers = self._tf.compute_performance(
+                    points, self.config, export_results=False, stop_on_failure=False
+                )
+        except Exception as e:  # noqa: BLE001 -- TurboFlow can crash in its own summary printout
+            solvers, error = [None] * len(points), f"turboflow_error: {type(e).__name__}: {e}"[:150]
         rows = []
         for op, s in zip(points, solvers, strict=True):
             row = {"p0_in_Pa": op["p0_in"], "T0_in_K": op["T0_in"], "pr_ts": op["p0_in"] / op["p_out"],
                    "omega_rad_s": op["omega"], "speed_frac": op["omega"] / self.design_point["omega"]}  # fmt: skip
             if s is None or not getattr(s, "success", False):
-                rows.append({**row, "converged": False, "failure_reason": "no_convergence"})
+                rows.append({**row, "converged": False, "failure_reason": error or "no_convergence"})
                 continue
             r = s.problem.results
             o = r["overall"]

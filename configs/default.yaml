@@ -9,6 +9,11 @@
 name: default
 seed: 20261024
 
+# CPU parallelism for physics data generation. null -> physical cores - 1 (keeps a laptop
+# usable). Override per run with the TURBOML_N_WORKERS environment variable.
+compute:
+  n_workers: null
+
 design_point:
   name: SLS_ISA
   mach: 0.0

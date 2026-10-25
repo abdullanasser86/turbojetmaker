@@ -1,6 +1,7 @@
 # Validation log
 
-**Nothing in TurboML has been validated against measured engine data yet.**
+**No whole-engine validation yet.** Components have been checked against measured component data (KJ-66 compressor,
+Kofskey turbine); the coupled engine has only been verified (consistency) and sanity-checked against databases.
 
 Terminology used in this project:
 - **Regression check** – "the code gives the same answer as last time / as the upstream
@@ -93,3 +94,57 @@ Such points (nearly thrustless, poor components) lie far outside realistic desig
 
 **Gas model error** (air instead of combustion products, TIT 1000–1250 K, FAR 0.015–0.025, PR 1.8–2.6): turbine work
 −0.17 … −0.46 %, choked flow function +0.28 … +0.47 %. TurboML air vs CoolProp air: cp within 0.15 %.
+
+## Phase 3 — coupled engine model
+
+### KJ-66 compressor calibration: calibration / validation split (user decision 2026-10-25)
+| Set | Speeds | Rows | Use |
+|---|---|---|---|
+| Calibration | 90 krpm | 5 PR + 5 efficiency | fit Δσ and diffuser Cf; 2σ band from the LSQ Jacobian |
+| Validation (held out) | 70, 80, 100, 110 krpm | all other measured rows | the only rows on which errors are reported |
+Band (statistical, no model-form error): Δσ −0.1041 ± 0.0074 (1σ), Cf 0.0937 ± 0.0039 (1σ), correlation −0.14.
+Source and file: `configs/components/kj66_compressor_calibration.yaml`, `scripts/phase3/compressor_calibration_band.py`.
+
+### Fast axial turbine (`turboml/physics/turbine_meanline.py`)
+**Verification (port) vs TurboFlow 0.1.18, Kofskey geometry, 278 common map points (50–110 % speed, PR 1.6–4.6)**
+| mode | mass flow max abs | η_ts max abs | power max abs |
+|---|---|---|---|
+| `turboflow` sign (default) | 0.099 % | 0.061 pts | 0.123 % |
+| `rotor_plus` (TurboFlow's intended rotor sign) | 1.7 % | 4.3 pts | 7.5 % |
+Benner loss port vs TurboFlow's own function: equal to 1e-9 (`tests/test_turbine_meanline.py`).
+
+SOBOL_SECTION
+
+**Validation vs Kofskey MEASURED data (untuned)**
+| mode | η_ts mean / max abs | mass flow mean / max abs | torque mean / max abs |
+|---|---|---|---|
+| `turboflow` (default) | −1.20 / 2.84 pts | +1.08 / 2.59 % | −0.53 / 5.06 % |
+| `rotor_plus` | −2.00 / 3.72 pts | +0.76 / 2.03 % | −2.38 / 9.40 % |
+Per speed, η_ts mean error (`turboflow` / `rotor_plus`): 50 %: +0.13 / −2.63; 70 %: −1.33 / −2.66; 90 %: −1.89 / −1.98;
+100 %: −1.73 / −1.73; 110 %: −1.11 / −1.10 pts. The rotor sign only matters at large rotor incidence (low speed).
+
+**Not validated at micro scale:** the Kofskey turbine is ~0.24 m in diameter, Re ~ 4e5. No measured micro-turbine
+(r ~ 25–35 mm) data is available yet, and the baseline's η_tt = 0.895 is probably optimistic.
+
+### Coupled engine (`turboml/physics/engine.py`), baseline ~150 N design
+**Verification**
+| Check | Result |
+|---|---|
+| Off-design solver at the design speed reproduces the design point | Fn, TIT within 1e-6 (`tests/test_engine.py`) |
+| Design point vs 0-D `cycle_simple` with the coupled model's component efficiencies | Fn 0.000 %, TSFC 0.000 % |
+| Design point vs pyCycle-CEA, same inputs | Fn −0.02 %, TSFC −0.075 % (flag tolerance 1 %) |
+| Power balance, mass balance, nozzle flow at every converged point | residuals < 1e-8 |
+
+**Sanity check vs engine databases** (review table engines 104–193 N, n = 32; JetCat PRO 2024). Not validation: the
+databases have no component data for this geometry.
+| Quantity | Model | Database |
+|---|---|---|
+| specific thrust | 494 N s/kg | 352–511 (engines < 250 N) |
+| TSFC | 41.5 g/(kN s) | 38.0 / 46.4 / 54.5 (min/median/max) |
+| shaft speed | 130 krpm | 115 / 126.5 / 175 krpm; trend 131 krpm |
+| diameter (proxy) | 115 mm | 90 / 103 / 120 mm |
+| length (proxy) | 298 mm | 198 / 283 / 346 mm |
+| EGT | 759 °C | 680 / 700 / 760 °C; JetCat max 720–750 °C |
+| idle (35 % speed) | 6.4 % thrust, EGT 654 °C | JetCat idle 29–33 % speed, 3.3–5.7 % thrust, EGT min 480 °C |
+The idle EGT is about 170 K hotter than JetCat's minimum EGT. Part-speed component efficiencies and the loss-scaling
+assumption are the main suspects (Phase 3 report, open issues).

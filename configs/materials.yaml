@@ -1,0 +1,46 @@
+# Turbine materials for the TIT (temperature) and AN^2 (blade root stress) feasibility checks.
+#
+# STATUS: PARTIALLY SOURCED. All values are web-search extracts of the pages cited (2026-10-25);
+# the pages themselves could not be opened from the build container. Verify against an alloy
+# datasheet / ASM Handbook before relying on them. Missing values are `null`. A check that needs a
+# null value is reported as "unchecked: material_data_missing", never filled in with a guess.
+#
+# How the values are used (turboml/physics/mechanical.py):
+#   * TIT limit: TIT <= max_use_temperature_K + gas_to_metal_allowance_K. The default allowance is 0:
+#     the uncooled nozzle guide vanes of a micro turbojet see the full turbine-inlet total temperature
+#     at their leading edge (conservative ASSUMPTION; replace with measured data, e.g. DePaola).
+#   * AN^2 / blade root stress: sigma_root = rho * omega^2 * A * K / (2 pi)  (derived: constant-section
+#     blade, integral of rho omega^2 r dr from hub to tip; K = taper factor <= 1). Feasible if
+#     sigma_root <= allowable_stress_Pa(T_metal). allowable_stress_Pa is null until sourced.
+#   * Designs above the DEFAULT material's limit but within a higher-grade material's limit are feasible
+#     but tagged "premium material required"; above every material's limit -> infeasible.
+
+default_turbine_material: in713c
+gas_to_metal_allowance_K: 0.0      # ASSUMPTION (see above)
+blade_taper_factor: 1.0            # ASSUMPTION: untapered blade (conservative); tapered blades ~0.5-0.8
+
+materials:
+  in713c:
+    name: "Inconel 713C (cast, equiaxed nickel superalloy)"
+    grade: default
+    density_kg_m3:
+      value: 7913.0
+      source: "supplier pages via web search: ~7.913 g/cm3 (several), 7.92 g/cm3 (technical datasheet); range quoted 7.8-8.1. e.g. https://www.americanelements.com/inconel-713c-alloy, https://artizono.com/inconel-713c-technical-reference-guide/"
+    max_use_temperature_K:
+      value: 1253.15
+      source: "'useful up to 980 C (1800 F)' for strength and creep resistance (supplier pages via web search, e.g. https://www.huaxiao-alloy.com/alloy-grades/inconel-713c-alloy-supplier.html). Oxidation resistance quoted as excellent below 900 C."
+    allowable_stress_Pa:
+      value: null
+      source: "NOT FOUND: need stress-rupture strength vs temperature (e.g. 100 h / 1000 h at 870/980 C) from Nickel Institute publication 'High-Temperature High-Strength Nickel Base Alloys' or ASM Handbook"
+  marm247:
+    name: "MAR-M 247 (cast nickel superalloy, higher grade)"
+    grade: premium
+    density_kg_m3:
+      value: 8525.0
+      source: "0.308 lb/in3 (= 8.53 g/cm3) quoted in a USPTO patent comparing alloys (web search result, e.g. US 6632299 / US 8618434; verify)"
+    max_use_temperature_K:
+      value: 1273.15
+      source: "'applications requiring high strength at elevated temperatures up to about 1000 C' (Metal 2016 conference paper, https://www.confer.cz/metal/2016/1993-microstructure-and-mechanical-properties-of-mar-m-247-nickel-superalloy)"
+    allowable_stress_Pa:
+      value: null
+      source: "NOT FOUND: need stress-rupture data (ASM Handbook / Cannon-Muskegon datasheet)"

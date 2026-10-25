@@ -1,0 +1,63 @@
+reference: Kofskey & Nusbaum 1972, NASA TN D-6967 (measured, digitized by the TurboFlow
+  authors)
+model: turboml.physics.turbine_meanline.AxialTurbineMeanline (Benner losses, Aungier
+  deviation, untuned)
+map_points_per_mode: 305
+rotor_plus:
+  converged: 305/305
+  time_ms_median_sweep: 8.78
+  vs_measured:
+    efficiency_ts:
+      mean_pts: -2.0
+      mean_abs_pts: 2.0
+      max_abs_pts: 3.72
+      n: 106
+    exit_flow_angle:
+      mean_deg: -0.12
+      mean_abs_deg: 1.7
+      max_abs_deg: 6.65
+      n: 50
+    mass_flow:
+      mean_%: 0.76
+      mean_abs_%: 0.78
+      max_abs_%: 2.03
+      n: 46
+    torque:
+      mean_%: -2.38
+      mean_abs_%: 2.45
+      max_abs_%: 9.4
+      n: 60
+  vs_turboflow_map:
+    n: 278
+    mass_flow_max_abs_pct: 1.718
+    eta_ts_max_abs_pts: 4.268
+    power_max_abs_pct: 7.454
+turboflow:
+  converged: 305/305
+  time_ms_median_sweep: 8.69
+  vs_measured:
+    efficiency_ts:
+      mean_pts: -1.2
+      mean_abs_pts: 1.43
+      max_abs_pts: 2.84
+      n: 106
+    exit_flow_angle:
+      mean_deg: -0.14
+      mean_abs_deg: 1.77
+      max_abs_deg: 6.65
+      n: 50
+    mass_flow:
+      mean_%: 1.08
+      mean_abs_%: 1.08
+      max_abs_%: 2.59
+      n: 46
+    torque:
+      mean_%: -0.53
+      mean_abs_%: 1.48
+      max_abs_%: 5.06
+      n: 60
+  vs_turboflow_map:
+    n: 278
+    mass_flow_max_abs_pct: 0.099
+    eta_ts_max_abs_pts: 0.061
+    power_max_abs_pct: 0.123

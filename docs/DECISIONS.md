@@ -171,3 +171,84 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
 - TurboFlow's axial-turbine module reproduces Kofskey (1972) measured data untuned (η_ts ≈1.4 pts, ṁ ≈1.1 %).
 - Air instead of combustion products: work −0.2…−0.5 %, choked flow function +0.3…+0.5 % (`scripts/phase2/turbine_gas_error.py`).
 - It takes ~3 s per point, too slow for Phase 3/4 matching at scale. Options are in the Phase 2 report.
+
+### D-026 · 2026-10-25 · torch 2.10.0 (CUDA 12.8 build) for the RTX 4080 Laptop GPU
+- User requirement: PyTorch built for CUDA 12.x with GPyTorch/BoTorch matched in the lock; Ada GPU (sm_89, 12 GB).
+- `torch==2.10.0` is the newest release whose default PyPI Linux x86-64 wheel is built against CUDA 12.8 (`2.10.0+cu128`,
+  cuDNN 9.10). It contains sm_89 kernels. It needs an NVIDIA driver that supports CUDA 12.8 (R570 or newer). Locked with it:
+  gpytorch 1.15.2, botorch 0.18.1, linear-operator 0.6.1.
+- **Windows caveat:** PyPI ships only CPU torch wheels for Windows. A CUDA build there needs the PyTorch package index
+  (`https://download.pytorch.org/whl/cu128`) as a uv index for torch. That index is blocked from the build container, so the
+  lock can't be resolved for it here. The user's OS is an open question (Phase 3 report).
+- Precision policy: float64 for GPs, float32 for neural networks. Exact GPs up to ~10k points per output; sparse/variational GPs
+  or deep ensembles above that. KeOps only if profiling shows a need.
+
+### D-027 · 2026-10-25 · CPU worker count and resumable checkpoints
+- `compute.n_workers` (configs/default.yaml): `null` → physical cores − 1 (at least 1). It can be overridden with
+  `TURBOML_N_WORKERS` (`turboml/compute.py`).
+- `turboml/checkpoint.Checkpointer`: atomic save (temp file + rename), keep the last N, store and restore the RNG states.
+
+### D-028 · 2026-10-25 · Own fast axial turbine meanline model (user decision 2026-10-25, item 2)
+- `turboml/physics/turbine_meanline.py` uses TurboFlow 0.1.18's equations (Benner losses ported verbatim, Aungier
+  deviation, critical-Mach choking, interspace model) with a **marching** solver. The flow is solved plane by plane,
+  with one scalar unknown at a time (mass flow; or stator-exit pressure when the stator is choked). The thermo is our
+  NASA-polynomial model (combustion products supported).
+- Solver: fused Newton/secant row iteration, choke structure determined first (stator/rotor critical flows), regime
+  decided from the choked-branch onset pressure, warm start between calls. A safety net rejects any point whose exit
+  pressure misses the target (> 1e-7 p0).
+- Speed: median 7.5 ms per point in sweeps/engine iterations, ~17 ms cold (target < 10 ms per point: met in sweeps,
+  not for an isolated cold point).
+- TurboFlow stays available (`turboml/physics/turbine.py`, `AxialTurbine.from_geometry`) as the higher-fidelity
+  cross-check and a possible multi-fidelity level. Interface `TurbineModel` (evaluate/with_gas) is generic, so a radial
+  turbine can be added later.
+- Gap between the subsonic and choked branches (< ~0.3 % mass flow, inherent to the critical-Mach criterion): the
+  choked branch is used there.
+
+### D-029 · 2026-10-25 · Benner incidence sign: keep TurboFlow's effective behaviour (OPEN)
+- TurboFlow 0.1.18 `get_incidence_loss` sets `cascade_type = ["cascade_type"]` (a list literal), so its intended
+  rotor sign (+1) is never applied and every row uses −1.
+- Default `incidence_sign="turboflow"` (−1 everywhere), because it reproduces TurboFlow's validated results and fits
+  the Kofskey measurements better. Mean η_ts error is −1.2 pts with this sign and −2.0 pts with the intended sign
+  (`rotor_plus`); at 50 % speed (+27° rotor incidence) the errors are +0.1 and −2.6 pts.
+- Open until the Benner et al. (1997) paper is checked for its angle convention. Report the bug upstream either way.
+
+### D-030 · 2026-10-25 · Turbine sizing rules (design mode)
+- Velocity triangles from φ, ψ, R (constant Cx and radius, repeating-stage relations). Zero-incidence leading edges.
+  Gauging angles inverted from the Aungier deviation at the design Mach number (Ma_crit first guess 0.95). Pitch from
+  Zweifel 0.8, chord from aspect ratio, t_max from TurboFlow's camber rule. TE, LE and clearance come from ratios in
+  `configs/components/axial_turbine_design.yaml`.
+- `design_stage` scales the annulus (blade heights) and the PR with a 2×2 Newton, so the meanline model passes exactly
+  the design flow at exactly the design work.
+
+### D-031 · 2026-10-25 · Compressor sizing for new designs (KJ-66-like family)
+- Inducer tip radius from the KJ-66 tip flow coefficient C1/U1t; hub/tip ratio from the KJ-66; blade inlet angle with
+  the KJ-66 incidence; r2 solved for the target PR; b2 from the KJ-66 exit flow coefficient Cm2/U2; lengths and
+  diffuser radius scaled with r2; blade count, backsweep and throat ratio from the KJ-66. The reference point is the
+  calibrated model's peak-η point at 110 krpm.
+- This keeps new compressors in the regime where the calibration was made, and it leaves shaft speed as an
+  independent design variable.
+
+### D-032 · 2026-10-25 · Engine matching formulation
+- Speed-controlled off-design (the ECU sets N). Unknowns: air flow, TIT, turbine PR_ts. Residuals: turbine flow, shaft
+  power, nozzle flow.
+- Solver: damped Newton with an FD Jacobian plus Broyden updates and a line search; failed evaluations count as a
+  failed step. Continuation in 10 % speed steps, and in the inlet state for altitude and flight Mach.
+- Nozzle inlet total pressure = turbine-exit absolute total pressure (exit swirl recovered; labelled assumption).
+- Off-design pressure-loss fractions (intake, burner, nozzle) scale with (corrected flow)² relative to the design
+  point (dynamic-head scaling). With constant fractions, TIT rose at part speed (1602 K at 50 % speed), the opposite of
+  real engines.
+
+### D-033 · 2026-10-25 · Materials and the 1350 K TIT bound (user decision 2026-10-25, item 3)
+- TIT bound raised to 1350 K; feasibility from `configs/materials.yaml`. Metal temperature = TIT − allowance
+  (allowance 0 K, conservative). Above the default material (IN-713C, 1253 K) → "premium material required" (MAR-M
+  247, 1273 K); above all → infeasible, labelled, kept.
+- Blade root stress: σ = K ρ ω² A / 2π. Status "unchecked: material_data_missing" until allowable stresses are sourced.
+
+### D-034 · 2026-10-25 · Envelope and mass proxies
+- D = 1.627 × impeller diameter (KJ-66 casing ratio); L = 2.59 D (median of 87 database engines); m = k D² L with
+  k = 432 ± 43 kg/m³ (14 JetCat PRO variants). `scripts/phase3/fit_envelope.py` reproduces these.
+
+### D-035 · 2026-10-25 · KJ-66 calibration as provisional defaults with an uncertainty band (user decision, item 1)
+- Band = 2σ from the least-squares Jacobian on the 10 calibration rows (90 krpm only): Δσ [−0.119, −0.089],
+  Cf [0.086, 0.102]. It is statistical only (no model-form error). Phase 4 samples a fraction (proposal 20 %) of the
+  designs uniformly inside it. Validation errors are only ever reported on the held-out speeds.

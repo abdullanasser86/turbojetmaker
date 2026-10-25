@@ -138,6 +138,33 @@ terms and a short "what we did and why".
 - **NGV / stator, rotor, total-to-static efficiency** – Turbine stator vanes accelerate and swirl the gas; the rotor
   extracts the work. η_ts counts the exit kinetic energy as lost.
 
+### Added in Phase 3
+- **Matching (engine)** – Finding the one operating point where all components agree: same shaft speed, same mass
+  flow (plus fuel), turbine power = compressor power / η_mech, and the nozzle passes the flow. Off-design performance
+  comes out of this, not out of assumed efficiencies.
+- **Design mode vs off-design mode** – Design mode *sizes* the geometry for chosen targets (PR, mass flow, TIT, speed).
+  Off-design mode keeps that geometry fixed and asks how the engine behaves at another speed or flight condition.
+- **Flow coefficient φ = Cx/U, loading coefficient ψ = Δh0/U², reaction R** – The three dimensionless numbers that
+  describe an axial turbine stage. ψ sets the work per blade speed², φ the axial speed, R the split of the expansion
+  between stator and rotor. With them, the work and the speed fix the radius: U = √(Δh0/ψ), r = U/ω.
+- **Zweifel coefficient** – A blade-loading number used to choose the blade spacing (pitch); about 0.8 is the classic
+  optimum.
+- **Gauging angle / throat** – The narrowest passage between two blades (the throat, width "opening"). cos(gauging
+  angle) = throat area / exit area. It roughly sets the exit flow angle and the choking flow.
+- **Deviation** – The exit flow doesn't follow the blade exactly. Aungier's model gives a small deviation at low Mach
+  that goes to zero at the critical Mach number.
+- **Critical Mach number** – With losses, a nozzle passes its maximum flow slightly below Mach 1. That's when a blade
+  row chokes in the TurboFlow formulation.
+- **Corrected flow W√T/P** – The mass flow normalised by inlet temperature and pressure. Components behave the same
+  at the same corrected flow and corrected speed, and duct pressure losses scale with its square.
+- **Operating line** – The path the engine's operating point follows across the compressor map as speed changes.
+- **AN²** – Annulus area × speed². It is proportional to the centrifugal stress at the turbine blade root: the classic
+  quick check on whether a turbine is too fast for its blade height.
+- **Gas-to-metal temperature allowance** – How much cooler the blade metal is than the gas (cooling, radiation, pattern
+  factor). Uncooled micro-turbine vanes see nearly the full TIT, so we use 0 K: conservative.
+- **Proxy** – A simple estimate standing in for a proper analysis (mass ~ k·D²·L, stress ~ AN²). Good for ranking
+  designs and rejecting the impossible ones; not for sign-off.
+
 ### ML and optimization (expanded from Phase 4 on)
 - **Surrogate model** – A fast ML approximation of a slow physics model. Here it runs in
   microseconds instead of seconds.
@@ -232,3 +259,28 @@ the efficiencies are right; that's what validation data is for.
 
 **Why it matters:** Phase 3 couples these maps into the cycle. Off-design behaviour (idle, flight), surge margin and
 choke now come from geometry instead of guessed efficiencies.
+
+### Phase 3 — Coupled engine model (2026-10-25)
+**What we did**
+1. Wrote our own **fast axial turbine** model: TurboFlow's equations (Benner losses, Aungier deviation,
+   critical-Mach choking) solved row by row instead of all at once. It takes ~7.5 ms per point in a sweep, against
+   ~3–20 s for TurboFlow. It matches TurboFlow to < 0.15 % on the NASA Kofskey turbine. We also verified it on 256
+   randomly sized stages (512 points) across the design space. Along the way we found that TurboFlow's code never
+   uses its intended rotor incidence sign, and that the version actually used fits the measurements better (open
+   question).
+2. **Turbine sizing** from φ, ψ, R (velocity triangles → angles, heights, pitch, throat), plus a solve that makes the
+   stage pass exactly the design flow at exactly the design work.
+3. **Compressor sizing**: a KJ-66-like wheel resized for each design (r2 for the target PR, inducer and exit width
+   from the KJ-66 flow coefficients). It uses the KJ-66 calibration as provisional defaults, now with an uncertainty
+   band.
+4. **The coupled engine**: design mode, then off-design matching (Newton on mass flow, TIT and turbine PR) with
+   continuation in speed. Failures are labelled (choke, surge, no nozzle pressure ratio, …).
+5. Mechanical proxies: material temperature limit (IN-713C default, MAR-M 247 premium), blade root stress (AN²,
+   unchecked until the allowable stress is sourced), tip speed, envelope and mass.
+6. A ~150 N baseline engine: 148 N, 494 N·s/kg, TSFC 41.5 g/(kN·s), 130 krpm, Ø115 × 298 mm (proxy). All of these
+   lie inside the database ranges for 104–193 N engines. The operating line runs 35–100 % speed, with idle at 6 %
+   thrust.
+
+**Why it matters:** The design variables now produce a full engine *with its off-design behaviour*, in seconds.
+Phase 4 can sample this model to build the training data.
+
