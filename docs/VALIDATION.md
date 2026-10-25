@@ -163,3 +163,39 @@ databases have no component data for this geometry.
 | idle (35 % speed) | 6.4 % thrust, EGT 654 °C | JetCat idle 29–33 % speed, 3.3–5.7 % thrust, EGT min 480 °C |
 The idle EGT is about 170 K hotter than JetCat's minimum EGT. Part-speed component efficiencies and the loss-scaling
 assumption are the main suspects (Phase 3 report, open issues).
+
+## Phase 4 — creep data, calibration band, speedup, dataset
+
+### NiDI No. 393 rupture data (`validation/cases/ni393_cast_rupture.csv`, `turboml/physics/creep.py`)
+- Transcription: values read from 300-dpi renders of the scanned tables (the PDF has no text layer). The ksi and
+  printed MPa columns agree within 2.5 % for every entry, except one documented misprint (713C, 1000 h, 1400 °F:
+  458 MPa printed vs 65 ksi = 448 MPa); the ksi column is used throughout (`tests/test_mechanical.py`).
+- Values marked "extrapolated" in the booklet are flagged in the CSV.
+- Interpolation reproduces every tabulated point exactly and is monotonic in temperature and life. The
+  Larson–Miller fit (used only for lives other than 100/1000 h) has a maximum error of 10 % (713C) and 7.7 %
+  (MAR-M 247) on the tabulated points.
+- Not validated: the check uses *typical* rupture data (not design minima) and a cantilever stress proxy. This is a
+  ranking tool, labelled as a proxy.
+
+### Compressor calibration band (`scripts/phase4/compressor_band_inflation.py`)
+| inflation k | held-out points inside the envelope (of 34) |
+|---|---|
+| 1 (statistical 2σ) | 14 (41 %) |
+| 2 | 28 (82 %) |
+| 2.5 | 32 (94 %) |
+| **2.75 (chosen)** | **34 (100 %)** |
+Caveat: the held-out points now set the band width, so they are no longer independent evidence for it.
+
+### Compressor speedup (verification, `scripts/phase4/profile_engine.py` → `validation/phase4/profiling.yaml`)
+- The Newton diffuser solve and the original bracketed solve give the same results: max relative output difference
+  3e-11 on the baseline engine (design + 3 off-design points) and 7e-14 over 40 compressor points, with identical
+  failure labels.
+- Speed: 3.3–4.3× faster per engine evaluation.
+
+### Dataset `phase4_v1` pilot (256 designs)
+- Reproducibility: regenerating the pilot at commit e2f2a36 gave bit-identical statuses, feasibility, convergence
+  flags and thrusts compared with the first run.
+- Cross-check (CLAUDE.md gate), coupled model vs pyCycle-CEA on a random 2 % of designed engines (2 of 92): 0 flagged;
+  max |ΔFn| 0.039 %, max |ΔTSFC| 0.067 %; gate passed. The 0-D `cycle_simple` vs pyCycle-CEA also had 0 flagged.
+- Two designs is a thin sample. The full run checks 2 % of ~700 designed engines (~14).
+- Baseline regression: the Phase 3 baseline still gives 148.286 N after the Phase 4 changes (`tests/test_engine.py`).

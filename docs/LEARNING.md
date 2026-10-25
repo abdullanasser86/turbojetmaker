@@ -161,9 +161,42 @@ terms and a short "what we did and why".
 - **AN²** – Annulus area × speed². It is proportional to the centrifugal stress at the turbine blade root: the classic
   quick check on whether a turbine is too fast for its blade height.
 - **Gas-to-metal temperature allowance** – How much cooler the blade metal is than the gas (cooling, radiation, pattern
-  factor). Uncooled micro-turbine vanes see nearly the full TIT, so we use 0 K: conservative.
+  factor). Phase 3 used 0 K; since Phase 4 there is no fixed allowance (see *metal temperature* below).
 - **Proxy** – A simple estimate standing in for a proper analysis (mass ~ k·D²·L, stress ~ AN²). Good for ranking
   designs and rejecting the impossible ones; not for sign-off.
+
+### Added in Phase 4
+- **Creep / creep rupture** – At high temperature a metal under constant load slowly stretches (creeps) and finally
+  breaks. The hotter it is, the lower the stress it can carry for a given time. Turbine blades are designed for a
+  *life*: the stress that breaks a test bar in 100 h (or 1000 h) at the blade's metal temperature is the **rupture
+  strength**. We require rupture strength ≥ 1.5 × blade stress at 100 h (both are config settings).
+- **Larson–Miller parameter** – P = T (C + log10 t), T in K, t in h, C ≈ 20. Different (temperature, life) pairs with
+  the same P give about the same rupture strength, so one curve σ(P) trades temperature against life. We use it only
+  for lives other than the tabulated 100 h / 1000 h.
+- **Metal temperature** – The blade sees the gas temperature *relative to the blade*. A rotor blade moves away from the
+  flow, so it feels the rotor-relative total temperature, which is lower than the TIT. A stator vane (NGV) is still and
+  sees the full gas temperature, including hot streaks.
+- **Pattern factor (PF)** – How non-uniform the combustor exit is: PF = (T_max − T_mean)/(T_mean − T3). The hottest vane
+  sees TIT + PF (TIT − T3). We have no sourced PF for micro combustors yet, so each design stores PF_max, the largest
+  PF its vanes would survive.
+- **Gas bending stress** – The aerodynamic force that turns the flow also bends the blade like a cantilever; the root
+  stress is the bending moment over the section modulus. Small compared with the centrifugal stress in our designs
+  (median ~2 %).
+- **Active constraint** – The check that makes a design infeasible (AN2, creep_rotor, creep_ngv, …above_material_data,
+  tip_speed). An optimizer needs to know *which* wall it hits, not just that it hit one.
+- **Hub-to-tip ratio** – Blade-root radius / blade-tip radius. A low value means long blades on a small hub: big
+  annulus, high AN², high root stress. TurboFlow recommends a range for its loss correlations; designs outside it are
+  kept with a warning.
+- **Dataset card** – A short document that ships with a dataset: how it was made (code version, seed, config), what one
+  record means, the counts of failures and their reasons, and the known limitations.
+- **Held-out test set** – Examples set aside before any model is fitted and never used for training or tuning. The
+  error on them is an honest estimate of the error on new designs. Ours is frozen in `data/splits/` before evaluation.
+- **Low-discrepancy sequence** – A deterministic point set (e.g. scrambled Sobol) that fills a box evenly. "Scrambled"
+  randomises it with a seed, so it can be used for statistics and is still reproducible.
+- **Profiling** – Measuring where a program spends its time before optimising it. Here 90 % of the compressor time was
+  in one inner loop (the diffuser continuity solve).
+- **Warm start** – Starting an iterative solver from the previous answer. Neighbouring steps of a march have nearly the
+  same solution, so Newton converges in 2–3 iterations instead of a bracketed search of ~20.
 
 ### ML and optimization (expanded from Phase 4 on)
 - **Surrogate model** – A fast ML approximation of a slow physics model. Here it runs in
@@ -283,4 +316,26 @@ choke now come from geometry instead of guessed efficiencies.
 
 **Why it matters:** The design variables now produce a full engine *with its off-design behaviour*, in seconds.
 Phase 4 can sample this model to build the training data.
+
+### Phase 4 — Training dataset, pilot (2026-10-25)
+**What we did**
+1. **Turbine creep checks** from real alloy data (NiDI No. 393 Tables 9/10, 100 h and 1000 h rupture strength of
+   IN-713C and MAR-M 247): rotor at its relative total temperature (centrifugal + gas bending stress), NGVs at TIT plus
+   a hot-streak margin. The failing check is reported as the *active constraint*. The Phase 3 baseline turned out
+   infeasible: its blade root stress is too high for either alloy (AN²).
+2. **Calibration band widened** for model-form error until all 34 held-out compressor measurements fall inside it.
+   20 % of designs sample the calibration factors from that band.
+3. **Profiling**: one inner loop dominated, so a warm-started Newton step replaced it. The engine model got 3–4× faster
+   with identical results. No rewrite.
+4. **Robust sizing and continuation**, so a design fails only when it is physically impossible, not because a solver
+   started from a bad guess.
+5. **Dataset generator**: Sobol sampling of 7 variables, frozen 15 % test split, 4 operating points per design,
+   failures recorded with reasons, resumable after a crash, parallel workers.
+6. **Pilot**: the first 256 designs. 92 engines could be designed and 3 are mechanically feasible. The binding walls are
+   turbine blade root stress (AN²) and impeller tip speed. 61 of the 92 have long turbine blades (hub/tip outside
+   TurboFlow's recommended range).
+
+**Why it matters:** The surrogate in Phase 5 learns from this data. The pilot shows that sampling the box naïvely
+wastes most runs on engines that can't exist, so the sampling has to be fixed before the full run (decision for the
+user).
 

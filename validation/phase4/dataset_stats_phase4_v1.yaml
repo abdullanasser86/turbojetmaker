@@ -57,15 +57,19 @@ split_ok_designs:
   test: 10
 calibration_sampled: 53
 time_per_design_s:
-  mean: 2.16
-  median: 0.91
-  p95: 6.07
-  max: 12.01
+  mean: 2.14
+  median: 0.88
+  p95: 6.22
+  max: 12.38
+turbine_outside_turboflow_range:
+  rotor_hub_tip: 61
+  any_warning: 64
+  feasible_with_rotor_hub_tip_warning: 0
 ngv_pf_max_in713c:
   p10: 0.043
   median: 0.238
   p90: 0.517
 last_run:
   designs_this_run: 256
-  wall_s: 188.95278549194336
+  wall_s: 187.2777225971222
   workers: 3

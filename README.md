@@ -14,12 +14,22 @@ physics models.
 > testing by qualified people before anything is built or run.
 
 ## Status
-Phase 3 (coupled engine model) complete — see `docs/PHASE3_REPORT.md` (earlier: `docs/PHASE0_REPORT.md` … `docs/PHASE2_REPORT.md`).
+Phase 4 (training dataset) — generator built and 256-design pilot run; the full 2 000-design run waits for a
+sampling decision. See `docs/PHASE4_REPORT.md` and the dataset card `docs/dataset_cards/phase4_v1.md` (earlier:
+`docs/PHASE0_REPORT.md` … `docs/PHASE3_REPORT.md`).
 
-What exists now: a 0-D cycle (plus pyCycle-CEA cross-check), meanline compressor and axial-turbine models, and a
-coupled engine model with design mode (sizing) and off-design matching. Example: the ~150 N baseline engine's design
-card is in `validation/phase3/baseline_design_card.md`. Every design card carries the scope/safety note above.
+What exists now: a 0-D cycle (plus pyCycle-CEA cross-check), meanline compressor and axial-turbine models, a coupled
+engine model with design mode (sizing) and off-design matching, turbine creep checks from NiDI No. 393 rupture data,
+and a resumable dataset generator. Example: the ~150 N baseline engine's design card is in
+`validation/phase3/baseline_design_card.md`. Every design card carries the scope/safety note above.
 The full plan is in `PROJECT_BRIEF.md`.
+
+Generate the dataset (resumable; `estimate_walltime.py` first measures how long it takes on your machine):
+```bash
+uv run python scripts/phase4/estimate_walltime.py
+uv run python scripts/phase4/generate_dataset.py
+uv run python scripts/phase4/crosscheck_dataset.py && uv run python scripts/phase4/make_dataset_card.py
+```
 
 ## Quick start
 ```bash

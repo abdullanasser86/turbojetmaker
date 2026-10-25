@@ -66,7 +66,7 @@ cells = [
         "    feas = ok[ok.feasible.astype(bool)]\n"
         "    ax.scatter(feas[x], feas[y], s=40, facecolor='none', edgecolor=SERIES[1], linewidth=1.5, label='mechanically feasible')\n"
         "    ax.set(xlabel=xl, ylabel=yl)\n"
-        "axes[1].set_xscale('log'); axes[0].legend(frameon=False, fontsize=8)\n"
+        "axes[1].set_xscale('log'); axes[0].legend(frameon=False, fontsize=8, loc='lower center', bbox_to_anchor=(1.1, 1.0), ncol=3)\n"
         "plt.tight_layout(); plt.show()"
     ),
     md(
@@ -131,13 +131,16 @@ cells = [
         "The combustor exit is not uniform: hot streaks hit some vanes at "
         "$T_{NGV} = TIT + PF\\,(TIT - T_3)$, PF = pattern factor. We found no citable PF range for micro "
         "combustors, so the dataset stores **PF_max**, the largest pattern factor each design's vanes survive. "
-        "Once PF is sourced, feasibility is recomputed from this column without re-running anything."
+        "Once PF is sourced, feasibility is recomputed from this column without re-running anything. PF_max < 0 "
+        "means the vanes fail even with a perfectly uniform combustor exit. Note: the MAR-M 247 rupture data stop "
+        "at 1900 F (1311 K), below IN-713C's 2000 F (1366 K), so above ~1311 K the 'premium' alloy cannot be "
+        "checked at all (`above_material_data`)."
     ),
     code(
         "pf = ok.creep_in713c_ngv_pf_max.astype(float)\n"
         "fig, ax = plt.subplots(figsize=(7, 3)); ax.hist(pf.dropna(), bins=20, color=SERIES[0], edgecolor='white')\n"
         "ax.set(xlabel='PF_max (IN-713C vanes, 100 h, SF 1.5)', ylabel='designs'); plt.tight_layout(); plt.show()\n"
-        "print('quantiles:', pf.quantile([0.1, 0.5, 0.9]).round(3).to_dict(), '| NaN (fail at PF = 0):', int(pf.isna().sum()))"
+        "print('quantiles:', pf.quantile([0.1, 0.5, 0.9]).round(3).to_dict(), '| PF_max < 0 (vanes fail even at PF = 0):', int((pf < 0).sum()))"
     ),
     md(
         "## 5. Off-design points\n"

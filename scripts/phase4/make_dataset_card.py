@@ -60,6 +60,14 @@ def main() -> int:
                                "converged_designed_engines": f"{int(g_ok.converged.sum())}/{len(g_ok)}",
                                "failure_reasons_designed_engines": counts(g_ok.loc[~g_ok.converged.astype(bool), "failure_reason"].fillna("")),
                                "surge_flags": counts(g_ok.surge_flag.fillna("")) if "surge_flag" in g_ok else {}}  # fmt: skip
+    warn = ok.geom_turb_sizing_warnings.fillna("")
+    stats["turbine_outside_turboflow_range"] = {
+        "rotor_hub_tip": int(warn.str.contains("rotor hub_tip_ratio").sum()),
+        "any_warning": int((warn != "").sum()),
+        "feasible_with_rotor_hub_tip_warning": int(
+            ok.feasible.astype(bool)[warn.str.contains("rotor hub_tip_ratio")].sum()
+        ),
+    }
     pfm = ok.get("creep_in713c_ngv_pf_max")
     if pfm is not None:
         stats["ngv_pf_max_in713c"] = {
@@ -145,6 +153,10 @@ def main() -> int:
           "- Compressor family is KJ-66-like (one geometry family, one calibration); vaneless diffuser model.",
           "- Turbine efficiency at micro scale unvalidated; incidence-sign convention open (D-029).",
           "- Creep check uses typical (not minimum) rupture data; blade taper factor 1 (conservative); NGV pattern factor not sourced.",
+          f"- Turbine geometry outside TurboFlow's recommended ranges (kept, warning in `geom_turb_sizing_warnings`): rotor "
+          f"hub/tip in {stats['turbine_outside_turboflow_range']['rotor_hub_tip']} of {len(ok)} designed engines "
+          f"(feasible among them: {stats['turbine_outside_turboflow_range']['feasible_with_rotor_hub_tip_warning']}); "
+          "the loss correlations are less trustworthy there.",
           "- A compressor operating on its choke line can't be resolved (labelled `choke_compressor_*`).",
           "- Design variables are sampled independently in the box: many corners are physically impossible for this "
           "engine family (labelled design failures).", ""]  # fmt: skip

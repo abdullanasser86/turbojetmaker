@@ -4,7 +4,7 @@
 
 Status: 256 of 2000 planned designs evaluated (pilot: the first designs of the Sobol sequence; the full run is started on the user's laptop after the wall-time estimate).
 
-Generated with git b3ef1f5 by `scripts/phase4/generate_dataset.py` (`turboml/data/generator.py`), config `configs/dataset_phase4.yaml`. Raw records: `datasets/<name>/designs.jsonl` (git-ignored, regenerate from seed + config).
+Generated with git e2f2a36 by `scripts/phase4/generate_dataset.py` (`turboml/data/generator.py`), config `configs/dataset_phase4.yaml`. Raw records: `datasets/<name>/designs.jsonl` (git-ignored, regenerate from seed + config).
 
 ## What one record is
 
@@ -84,13 +84,14 @@ Infeasible designed engines by active constraint(s):
 
 ## Cost
 
-Per design (one worker): mean 2.16 s, median 0.91 s, 95th percentile 6.07 s, max 12.01 s.
-Last run: 256 designs in 189 s wall on 3 workers.
+Per design (one worker): mean 2.14 s, median 0.88 s, 95th percentile 6.22 s, max 12.38 s.
+Last run: 256 designs in 187 s wall on 3 workers.
 
 ## Known limitations
 
 - Compressor family is KJ-66-like (one geometry family, one calibration); vaneless diffuser model.
 - Turbine efficiency at micro scale unvalidated; incidence-sign convention open (D-029).
 - Creep check uses typical (not minimum) rupture data; blade taper factor 1 (conservative); NGV pattern factor not sourced.
+- Turbine geometry outside TurboFlow's recommended ranges (kept, warning in `geom_turb_sizing_warnings`): rotor hub/tip in 61 of 92 designed engines (feasible among them: 0); the loss correlations are less trustworthy there.
 - A compressor operating on its choke line can't be resolved (labelled `choke_compressor_*`).
 - Design variables are sampled independently in the box: many corners are physically impossible for this engine family (labelled design failures).

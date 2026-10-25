@@ -322,3 +322,9 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
 - 15 % test split frozen before evaluation (`data/splits/phase4_v1_split.csv`).
 - Append-only resumable JSONL. Workers = physical cores − 1.
 - pyCycle-CEA cross-check on a random 2 % of designed engines.
+
+### D-043 · 2026-10-25 · Pilot dataset copied into validation/phase4 (small, for the notebook)
+- `datasets/` stays git-ignored (regenerate from seed + config). The 256-design pilot's flattened CSVs (~0.4 MB) are
+  committed as `validation/phase4/pilot_phase4_v1_*.csv`, so notebook 04 and the report numbers can be checked
+  without re-running. The pilot was regenerated at commit e2f2a36 and was bit-identical to the first run.
+- The full run waits for the sampling-parametrization decision (Phase 4 report, decision 1).
