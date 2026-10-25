@@ -1,0 +1,184 @@
+name: phase4_v4
+pilot_designs: 200
+designed_engines: 107
+feasible: 64
+feasible_fraction_of_pilot: 0.32
+feasible_fraction_of_designed: 0.5981
+min_feasible_fraction: 0.1
+stop: false
+design_failure_reasons:
+  design_turbine_no_buildable_hub_tip: 92
+  design_turbine: 1
+point_failure_reasons:
+  cruise_M05_3km:
+    design_failed: 93
+  design:
+    design_failed: 93
+  idle_35:
+    design_failed: 93
+  part_speed_80:
+    design_failed: 93
+point_converged_of_designed:
+  cruise_M05_3km: 107/107
+  design: 107/107
+  idle_35: 107/107
+  part_speed_80: 107/107
+infeasible_by_active_constraints:
+  AN2: 20
+  AN2;TIT_ngv_above_material_data: 17
+  TIT_ngv_above_material_data: 6
+active_constraint_per_infeasible_design:
+  '11': AN2;TIT_ngv_above_material_data
+  '12': AN2;TIT_ngv_above_material_data
+  '16': TIT_ngv_above_material_data
+  '18': AN2
+  '22': AN2
+  '23': TIT_ngv_above_material_data
+  '34': AN2
+  '38': AN2
+  '42': AN2;TIT_ngv_above_material_data
+  '45': AN2;TIT_ngv_above_material_data
+  '48': AN2
+  '49': TIT_ngv_above_material_data
+  '56': AN2
+  '59': AN2;TIT_ngv_above_material_data
+  '71': AN2;TIT_ngv_above_material_data
+  '72': AN2;TIT_ngv_above_material_data
+  '79': AN2;TIT_ngv_above_material_data
+  '82': AN2
+  '83': TIT_ngv_above_material_data
+  '90': AN2
+  '97': AN2
+  '98': AN2
+  '105': AN2;TIT_ngv_above_material_data
+  '106': AN2
+  '110': AN2;TIT_ngv_above_material_data
+  '112': AN2
+  '117': AN2;TIT_ngv_above_material_data
+  '120': AN2;TIT_ngv_above_material_data
+  '129': TIT_ngv_above_material_data
+  '138': AN2
+  '139': TIT_ngv_above_material_data
+  '140': AN2
+  '142': AN2
+  '144': AN2;TIT_ngv_above_material_data
+  '151': AN2;TIT_ngv_above_material_data
+  '160': AN2;TIT_ngv_above_material_data
+  '164': AN2
+  '168': AN2
+  '170': AN2;TIT_ngv_above_material_data
+  '177': AN2;TIT_ngv_above_material_data
+  '186': AN2
+  '190': AN2
+  '194': AN2
+designs_hitting_each_constraint:
+  AN2: 37
+  TIT_ngv_above_material_data: 23
+material_status:
+  ok_default: 54
+  fails_creep: 37
+  ok_premium: 10
+  unchecked_no_material_data: 6
+marm247_no_data_branch:
+  count: 6
+  tit_range_K:
+  - 1137.4
+  - 1232.1
+stored_sensitivity_feasible_counts:
+  at_ah_0.34: 85
+  pf_0.15: 69
+  pf_0.35: 53
+conservative_settings_probe:
+  default (100 h, SF 1.5, At/Ah 1, PF 0.25):
+    feasible: 64
+    fraction_of_pilot: 0.32
+    constraint_hits:
+      AN2: 37
+      TIT_ngv_above_material_data: 23
+  life 50 h:
+    feasible: 68
+    fraction_of_pilot: 0.34
+    constraint_hits:
+      AN2: 34
+      TIT_ngv_above_material_data: 20
+      creep_rotor: 2
+  SF 1.25:
+    feasible: 73
+    fraction_of_pilot: 0.365
+    constraint_hits:
+      AN2: 26
+      TIT_ngv_above_material_data: 20
+      creep_rotor: 1
+  SF 1.0:
+    feasible: 86
+    fraction_of_pilot: 0.43
+    constraint_hits:
+      TIT_ngv_above_material_data: 16
+      AN2: 13
+      creep_rotor: 1
+  At/Ah 0.34 (K 0.67):
+    feasible: 85
+    fraction_of_pilot: 0.425
+    constraint_hits:
+      TIT_ngv_above_material_data: 16
+      AN2: 13
+      creep_rotor: 2
+  PF 0.15:
+    feasible: 69
+    fraction_of_pilot: 0.345
+    constraint_hits:
+      AN2: 37
+      TIT_ngv_above_material_data: 11
+  all relaxed (50 h, SF 1.0, At/Ah 0.34, PF 0.15):
+    feasible: 98
+    fraction_of_pilot: 0.49
+    constraint_hits:
+      TIT_ngv_above_material_data: 9
+      AN2: 4
+high_tit_split:
+  tit_above_1150K:
+    designs: 30
+    designed: 15
+    feasible: 0
+    feasible_fraction_of_designs: 0.0
+    feasible_fraction_of_designed: 0.0
+  tit_at_or_below_1150K:
+    designs: 170
+    designed: 92
+    feasible: 64
+    feasible_fraction_of_designs: 0.3765
+    feasible_fraction_of_designed: 0.6957
+infeasible_high_tit_designs:
+  by_active_constraints:
+    AN2;TIT_ngv_above_material_data: 13
+    TIT_ngv_above_material_data: 2
+  by_material_status:
+    fails_creep: 13
+    unchecked_no_material_data: 2
+  per_design:
+    '12': AN2;TIT_ngv_above_material_data (fails_creep)
+    '23': TIT_ngv_above_material_data (unchecked_no_material_data)
+    '42': AN2;TIT_ngv_above_material_data (fails_creep)
+    '45': AN2;TIT_ngv_above_material_data (fails_creep)
+    '59': AN2;TIT_ngv_above_material_data (fails_creep)
+    '79': AN2;TIT_ngv_above_material_data (fails_creep)
+    '110': AN2;TIT_ngv_above_material_data (fails_creep)
+    '117': AN2;TIT_ngv_above_material_data (fails_creep)
+    '120': AN2;TIT_ngv_above_material_data (fails_creep)
+    '139': TIT_ngv_above_material_data (unchecked_no_material_data)
+    '144': AN2;TIT_ngv_above_material_data (fails_creep)
+    '151': AN2;TIT_ngv_above_material_data (fails_creep)
+    '160': AN2;TIT_ngv_above_material_data (fails_creep)
+    '170': AN2;TIT_ngv_above_material_data (fails_creep)
+    '177': AN2;TIT_ngv_above_material_data (fails_creep)
+t1_hub_tip:
+  sampled_hub_tip_min_max:
+  - 0.5003
+  - 0.7592
+  hub_tip_at_mach_limit_quantiles:
+    p10: 0.5479
+    median: 0.6654
+    p90: 0.7907
+  mach_limit_binding_(below_0.95): 107/107 designed engines
+  no_buildable_hub_tip_(mach_limit_below_0.5): 92
+check_default_probe_reproduces_dataset: true

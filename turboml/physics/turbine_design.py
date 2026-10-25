@@ -331,3 +331,42 @@ def design_stage_hub_tip(mdot_kg_s: float, T0_in_K: float, p0_in_Pa: float, omeg
             return sz, t, pt, phi
         phi *= h / h_target
     raise ValueError("hub/tip sizing did not converge")
+
+
+def max_hub_tip_for_exit_mach(mdot_kg_s: float, T0_in_K: float, p0_in_Pa: float, omega_rad_s: float,
+                              work_J_kg: float, psi: float, reaction: float, gas: GasMixture | None = None,
+                              mach_max: float = 0.5, **overrides) -> float | None:  # fmt: skip
+    """Largest rotor-exit hub/tip ratio whose absolute exit Mach number stays at or below `mach_max`
+    (Phase 4 option T1; DePaola 2020 Table 2: turbine exit Mach 0.4-0.5).
+
+    Derivation (same first-guess states as `size_axial_stage`):
+      U = sqrt(work/psi), r_m = U/omega, exit swirl C_theta3 = U (1 - R - psi/2);
+      h03 = h0 - work; p03 from the first-guess stage efficiency;
+      at the exit Mach limit C3 = M a3 with T3 = T(h03 - C3^2/2), so C_x = sqrt(C3^2 - C_theta3^2);
+      continuity A = m / (rho3 C_x) = 2 pi r_m h  ->  hub/tip = (r_m - h/2)/(r_m + h/2).
+    A higher hub/tip means a smaller annulus, a faster axial flow and a higher exit Mach number, so this is the upper
+    end of the buildable range. Returns None if the exit swirl alone reaches the Mach limit (no annulus works).
+    """
+    gas = gas or air()
+    d = {**load_design_defaults(), **overrides}
+    U = math.sqrt(work_J_kg / psi)
+    r_m = U / omega_rad_s
+    ct3 = U * (1 - reaction - psi / 2)
+    h0 = gas.h(T0_in_K)
+    h03 = h0 - work_J_kg
+    T03 = gas.T_from_h(h03, T0_in_K)
+    T03s = gas.T_from_h(h0 - work_J_kg / d["eta_stage_tt_estimate"], T03)
+    p03 = p0_in_Pa * gas.p_ratio_isentropic(T0_in_K, T03s)
+
+    def mach_residual(c3):
+        T3 = gas.T_from_h(h03 - 0.5 * c3 * c3, T03)
+        return c3 - mach_max * math.sqrt(gas.gamma(T3) * gas.R * T3)
+
+    c3 = brentq(mach_residual, 1e-3, math.sqrt(2 * (h03 - gas.h(0.5 * T03))), xtol=1e-9)
+    if abs(ct3) >= c3:
+        return None
+    cx = math.sqrt(c3 * c3 - ct3 * ct3)
+    T3 = gas.T_from_h(h03 - 0.5 * c3 * c3, T03)
+    rho3 = p03 * gas.p_ratio_isentropic(T03, T3) / (gas.R * T3)
+    h = mdot_kg_s / (rho3 * cx) / (2 * math.pi * r_m)
+    return (r_m - h / 2) / (r_m + h / 2)

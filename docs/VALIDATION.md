@@ -322,3 +322,61 @@ Conclusion on the idle-EGT question:
 - `scripts/phase4/windows_smoke_test.py` PASSES in the Linux container: a spawn pool and loky are identical to
   serial, and the generator with 2 workers writes and resumes.
 - `tests/test_windows_env.py` checks the lock and the win32 CUDA check. Not yet run on Windows itself.
+
+## Phase 4 (round 4) — Murray Chapter 5: measured KJ-66 maps and operating lines
+
+Data:
+- `validation/cases/murray2009/murray2009_ch5_maps_digitized.csv` (Figs 5.12/5.14/5.16/5.18).
+- `murray2009_ch5_operating_lines_digitized.csv` (Figs 5.1–5.3).
+- All points are digitized [MEAS] with u_dig and u_pub (D-057).
+- Script `scripts/phase4/murray_maps_validation.py` → `validation/phase4/murray2009_maps_*`, plot `murray2009_maps.png`.
+
+### Compressor (stored calibration, no refit; standard-day inlet so model flow/speed are corrected values)
+| corrected speed | set | PR error (mean) | corrected-flow offset (mean) | efficiency error (mean / rms) | within published uncertainty (PR / η) |
+|---|---|---|---|---|---|
+| 40 krpm (1 pt) | validation | −1.7 % | −4.7 % | +14.5 pts | 1/1 / 0/1 |
+| 50 | validation | −1.1 % | −3.1 % | +0.4 / 3.6 pts | 2/2 / 5/5 |
+| 60 | validation | −1.2 % | −1.5 % | −0.3 / 3.3 pts | 1/1 / 5/5 |
+| 70 | validation | −1.1 % | −0.6 % | −1.5 / 3.2 pts | 1/1 / 3/4 |
+| 80 | validation | −0.7 % | −0.3 % | −2.0 / 3.1 pts | 2/2 / 3/5 |
+| 90 | near calibration | +0.1 % | 0.0 % | −1.0 / 2.6 pts | 2/2 / 3/4 |
+| 100 | validation | +2.0 % | +0.6 % | +0.8 / 1.3 pts | 2/2 / 3/3 |
+| **110** | validation | **+4.1 %** | +4.5 % | +2.3 / 2.5 pts | **0/2** / 1/3 |
+| **120** | validation | **+7.1 %** | +6.1 % | **+6.1** / 6.1 pts | **0/2** / **0/2** |
+| all validation lines | | +1.4 % (rms 3.4) | +0.7 % (rms 3.7) | +0.7 / 4.3 pts | 9/13 / 20/28 |
+
+- The corrected-flow offset is the closest approach of the model speed line to the measured point, with distances
+  scaled by the published uncertainties. Inverting PR(m) is ill-conditioned where the model's speed lines are flat.
+- **Contradiction with the calibration at 110–120 krpm** (D-058): a systematic over-prediction of PR and efficiency
+  beyond the published uncertainty. Reported; NOT refitted.
+- The single 40 krpm point (η 0.60 ± 0.09) is far below the model's 0.74. Murray notes low-speed efficiencies vary by
+  ~10 % from run to run.
+
+### Turbine (INDICATIVE: assumed replica stages, φ 0.7, R 0.5; KJ-66 geometry unknown)
+| replica ψ | corrected flow error mean / rms | per speed line (20 → 68 krpm) | efficiency error mean / rms |
+|---|---|---|---|
+| 1.0 | +6.3 / 8.4 % | +19 % → +1 % | +12.3 / 12.8 pts |
+| 1.5 | +5.4 / 7.2 % | +18 % → +1 % | +11.6 / 12.2 pts |
+| 2.0 | +5.2 / 7.1 % | +18 % → +1 % | +9.9 / 10.5 pts |
+- The shape of the flow-capacity curve and the choking at high PR are reproduced; the error grows at low PR.
+- The efficiency is ~10–12 pts above Murray's derived values at every speed line (published uncertainty ±0.08–0.34).
+- This agrees with round 3: the meanline turbine looks optimistic at KJ-66 size, but it is not conclusive with an
+  assumed geometry.
+
+### Engine operating lines and idle check (turbojet replicas from round 3, TIT fitted at 120 krpm only)
+| ψ | PR vs all-run envelope (Fig 5.1) | corrected flow vs envelope (Fig 5.2) | TIT vs the same nozzle run (Fig 5.3), all / below 60 krpm |
+|---|---|---|---|
+| 1.0 | −0.016 mean (rms 0.018) | −4.7 % (rms 5.4) | +40 K (rms 47) / +64 K |
+| 1.5 | −0.015 (rms 0.017) | −5.0 % (rms 5.7) | +23 K (rms 29) / +39 K |
+| 2.0 | −0.015 (rms 0.017) | −5.2 % (rms 5.9) | +25 K (rms 31) / +41 K |
+
+Idle check against Fig 5.3:
+- Murray's turbojet TIT rises from 780–820 K at 48 krpm to 920–940 K at 119 krpm (+100–140 K).
+- The model's TIT is flat at 840–860 K below ~70 krpm and rises only ~60–70 K.
+- So the model's low-speed TIT is 25–65 K too high. This is the same size as the low-speed EGT over-prediction of
+  round 3 (+40–80 K), so the excess heat is in the matched TIT, not in the EGT reading.
+- The engine runs slightly to the left of the measured operating line (−5 % corrected flow, −0.015 PR). The
+  compressor speed lines are within ~1–2 % in that region, so this points to the hot-section matching at low PR.
+- The indicative turbine check also shows the model's low-PR turbine characteristic departing from the measured one
+  (+18 % flow capacity at PR < 1.12). How that maps onto the engine depends on the real turbine geometry, which is
+  unknown, so the turbine/nozzle low-PR behaviour remains the prime suspect rather than a proven cause.

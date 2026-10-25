@@ -14,10 +14,10 @@ physics models.
 > testing by qualified people before anything is built or run.
 
 ## Status
-Phase 4 (training dataset), round 3: the option-A pilot (`phase4_v3`) was STOPPED by the agreed stop rule
-(8.5 % feasible < 10 %; the compressor is now always buildable, the turbine hub/tip choice is the limit). The KJ-66
-model was validated against Murray's measured data. See `docs/PHASE4_REPORT.md` and the dataset cards in
-`docs/dataset_cards/` (earlier: `docs/PHASE0_REPORT.md` … `docs/PHASE3_REPORT.md`).
+Phase 4 (training dataset) complete: `phase4_v4`, 2000 designs (option-A compressor, buildable-range turbine, 15 %
+high-TIT), 625 feasible, all off-design points converged, pyCycle cross-check passed. The KJ-66 model was validated
+against Murray's measured maps; one calibration question is open. See `docs/PHASE4_REPORT.md` and
+`docs/dataset_cards/phase4_v4.md` (earlier: `docs/PHASE0_REPORT.md` … `docs/PHASE3_REPORT.md`).
 
 What exists now: a 0-D cycle (plus pyCycle-CEA cross-check), meanline compressor and axial-turbine models, a coupled
 engine model with design mode (sizing) and off-design matching, turbine creep checks from NiDI No. 393 rupture data,

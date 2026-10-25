@@ -131,6 +131,32 @@ def main() -> int:
         probes[name] = {"feasible": n_feas, "fraction_of_pilot": round(n_feas / len(D), 4),
                         "constraint_hits": dict(sorted(counts.items(), key=lambda kv: -kv[1]))}  # fmt: skip
     res["conservative_settings_probe"] = probes
+    thr = cfg.get("high_tit_threshold_K")
+    if thr is not None:  # user decision 2026-10-25: feasibility inside / outside the high-TIT band
+        hi_all, hi_ok = D.in_tit_K > thr, ok.in_tit_K > thr
+        band = {}
+        for lab, mall, mok in (("tit_above", hi_all, hi_ok), ("tit_at_or_below", ~hi_all, ~hi_ok)):
+            n_all, n_ok = int(mall.sum()), int(mok.sum())
+            n_f = int(feas[mok].sum())
+            band[f"{lab}_{thr:g}K"] = {"designs": n_all, "designed": n_ok, "feasible": n_f,
+                                       "feasible_fraction_of_designs": round(n_f / max(n_all, 1), 4),
+                                       "feasible_fraction_of_designed": round(n_f / max(n_ok, 1), 4)}  # fmt: skip
+        res["high_tit_split"] = band
+        inf_hi = ok[hi_ok & ~feas]
+        res["infeasible_high_tit_designs"] = {
+            "by_active_constraints": {str(k): int(v) for k, v in inf_hi.active_constraints.fillna("").value_counts().items()},
+            "by_material_status": {str(k): int(v) for k, v in inf_hi.get("material_status", pd.Series(dtype=str)).value_counts().items()},
+            "per_design": {int(r.design_id): f"{r.active_constraints} ({getattr(r, 'material_status', '')})" for r in inf_hi.itertuples()},
+        }  # fmt: skip
+    if "derived_turb_hub_tip_mach_binding" in ok:  # option T1 statistics
+        mb = ok.derived_turb_hub_tip_mach_binding.astype(float)
+        res["t1_hub_tip"] = {
+            "sampled_hub_tip_min_max": [round(float(ok.derived_turb_hub_tip.min()), 4), round(float(ok.derived_turb_hub_tip.max()), 4)],
+            "hub_tip_at_mach_limit_quantiles": {q: round(float(ok.derived_turb_hub_tip_max_mach.quantile(qq)), 4)
+                                                for q, qq in (("p10", 0.1), ("median", 0.5), ("p90", 0.9))},
+            "mach_limit_binding_(below_0.95)": f"{int(mb.sum())}/{len(ok)} designed engines",
+            "no_buildable_hub_tip_(mach_limit_below_0.5)": int(D.failure_reason.fillna("").str.startswith("design_turbine_no_buildable_hub_tip").sum()),
+        }  # fmt: skip
     res["check_default_probe_reproduces_dataset"] = probes[next(iter(PROBES))]["feasible"] == int(
         feas.sum()
     )

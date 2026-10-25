@@ -18,6 +18,8 @@ committed (copyright); parsers in `scripts/data/` regenerate the CSVs from them.
 | `combustor_pattern_factor.csv` | Combustor exit pattern factor | Fear 1972 NASA TM X-2476 (MEAS); US Patent 5,265,425 (ASSUM) | MEAS / ASSUM |
 | `murray2009/murray2009_appD_running_data.csv` | KJ-66 running data, 15 steady points 48–120 krpm (exhaust-diffuser rig): station pressures/temperatures, mass flow, compressor/turbine PR and efficiency, fuel flow, with Murray's uncertainties | Murray (2009) MSc thesis, Appendix D Figs D.1–D.15 (pp. 132–146); TRANSCRIBED from the tables | MEAS / calculated from MEAS (T04 and turbine efficiency from an energy balance) |
 | `murray2009/murray2009_runplot_plateaus_digitized.csv` | Steady plateaus of the run plots: T5 thermocouple reading, P03, bellmouth head; 3 turbojet (nozzle) runs 28–120 krpm + the Appendix D run | Murray (2009) Appendix C Figs C.4–C.7 (pp. 128–131); DIGITIZED by `scripts/data/digitize_murray_runplots.py` (error vs Appendix D: T5 ±5.8 °C rms) | digitized [MEAS] |
+| `murray2009/murray2009_ch5_maps_digitized.csv` | Measured compressor (PR, efficiency vs corrected flow) and turbine (corrected flow, efficiency vs PR) maps at constant corrected speed, with digitizing and published uncertainties | Murray (2009) Figs 5.12/5.14/5.16/5.18 (pp. 88–92); DIGITIZED by `scripts/data/digitize_murray_ch5.py` | digitized [MEAS] (turbine efficiency derived by Murray) |
+| `murray2009/murray2009_ch5_operating_lines_digitized.csv` | Engine PR and corrected mass flow vs corrected speed (all-run envelope), turbine inlet temperature per run | Murray (2009) Figs 5.1–5.3 (pp. 76–77); DIGITIZED (Fig 5.3 checked vs Appendix D: 1.2 K rms) | digitized [MEAS] (TIT calculated by Murray) |
 | `kj66_compressor_geometry.yaml` | KJ-66 impeller and diffuser geometry (per-field sources; unknowns `null`) | [X16], [L07] | geometry |
 
 ## Known inconsistencies in the sources
@@ -40,5 +42,5 @@ Validation error floor against MFR data: same-make, same-model engines differ by
   efficiencies and TIT (Ch. 4, figures only) are NOT available.
 - Xiang NTU PhD thesis (KJ-66 compressor design details, Appendix A-I).
 - JetCat P20/P80/P100/P220/P400 product-page specs (P20-SX, P80-SE, P100-RX, P220-RXi are in the review table).
-- Murray (2009): Appendix D tables and Appendix C run plots are in (`murray2009/`). Chapter 5 (Figs 5.1-5.3, measured
-  turbomachinery maps Figs 5.12-5.19) was not in the uploaded extract (thesis pp. 121-171).
+- Murray (2009): Appendix C/D and Chapter 5 (Figs 5.1-5.3, 5.12-5.19) are in (`murray2009/`). Still missing: the KJ-66
+  turbine geometry (blade count, radii, angles) for a direct turbine-model validation.

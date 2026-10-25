@@ -44,7 +44,11 @@ from turboml.physics import cycle_simple as cs
 from turboml.physics import mechanical
 from turboml.physics.atmosphere import isa
 from turboml.physics.compressor import CentrifugalCompressor, CentrifugalCompressorGeometry
-from turboml.physics.turbine_design import design_stage, design_stage_hub_tip
+from turboml.physics.turbine_design import (
+    design_stage,
+    design_stage_hub_tip,
+    max_hub_tip_for_exit_mach,
+)
 from turboml.physics.turbine_meanline import AxialStageGeometry, AxialTurbineMeanline
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -826,6 +830,12 @@ def _comp_label(reason: str) -> str:
 # Design mode
 # ======================================================================================
 _REF_CACHE: dict = {}
+# Option T1 (user decision 2026-10-25): hub/tip range [TurboFlow lower limit, min(TurboFlow upper limit, exit-Mach limit)]
+T1_HUB_TIP_RANGE = (
+    0.5,
+    0.95,
+)  # TurboFlow recommended range (configs/bounds.yaml turb_hub_tip_ratio)
+T1_EXIT_MACH_MAX = 0.5  # DePaola 2020 Table 2, turbine exit Mach 0.4-0.5 (upper end)
 
 
 def _cached_reference(cfg: dict) -> CompressorReference:
@@ -880,10 +890,25 @@ def design_engine(
         raise EngineFailure(str(e)) from e
     work = (cpt.power_W + L.power_offtake_W) / L.eta_mech / s4.W
     omega = N * math.pi / 30
+    if "turb_hub_tip_frac" in x:  # Phase 4 option T1: hub/tip sampled inside its buildable range
+        try:
+            lam_max = max_hub_tip_for_exit_mach(s4.W, tit, s4.Pt, omega, work, x["turb_psi"], x["turb_reaction"],
+                                                gas=s4.gas, mach_max=T1_EXIT_MACH_MAX)  # fmt: skip
+        except ValueError as e:
+            raise EngineFailure(f"design_turbine: {e}") from e
+        lam_hi = None if lam_max is None else min(T1_HUB_TIP_RANGE[1], lam_max)
+        x["turb_hub_tip_max_mach"] = float("nan") if lam_max is None else lam_max
+        if lam_hi is None or lam_hi <= T1_HUB_TIP_RANGE[0]:
+            raise EngineFailure("design_turbine_no_buildable_hub_tip: exit Mach above the limit even at the lowest "
+                                "hub/tip")  # fmt: skip
+        x["turb_hub_tip_mach_binding"] = float(lam_max < T1_HUB_TIP_RANGE[1])
+        x["turb_hub_tip"] = T1_HUB_TIP_RANGE[0] + x["turb_hub_tip_frac"] * (
+            lam_hi - T1_HUB_TIP_RANGE[0]
+        )
     try:
         if (
             "turb_hub_tip" in x
-        ):  # Phase 4 option C: rotor-exit hub/tip prescribed, flow coefficient derived
+        ):  # option C / T1: rotor-exit hub/tip prescribed, flow coefficient derived
             sz, turb, tpt, x["turb_phi"] = design_stage_hub_tip(s4.W, tit, s4.Pt, omega, work, x["turb_hub_tip"],
                                                                 x["turb_psi"], x["turb_reaction"], gas=s4.gas,
                                                                 incidence_sign=cfg["turbine_design"]["incidence_sign"])  # fmt: skip

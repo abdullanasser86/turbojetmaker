@@ -61,6 +61,10 @@ bounds:
     lower: 0.5
     upper: 0.95
     source: "user decision 2026-10-25: rotor-exit hub/tip ratio inside TurboFlow's recommended range [0.5, 0.95] (turboflow geometry_model check_turbine_geometry)"
+  turb_hub_tip_fraction:
+    lower: 0.0
+    upper: 1.0
+    source: "Phase 4 option T1 (user decision 2026-10-25): position inside the per-design buildable hub/tip range [0.5, min(0.95, hub/tip at turbine exit Mach 0.5)]; 0.5/0.95 = TurboFlow recommended range, Mach 0.5 = upper end of DePaola 2020 Table 2 (exit Mach 0.4-0.5). turboml.physics.turbine_design.max_hub_tip_for_exit_mach"
   comp_specific_speed:
     lower: 0.35
     upper: 0.90

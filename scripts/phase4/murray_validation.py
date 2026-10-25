@@ -271,7 +271,7 @@ def plots(cd: pd.DataFrame, ed: pd.DataFrame) -> None:
     plt.close(fig)
     fig, axes = plt.subplots(1, 2, figsize=(9, 3.6))
     for ax, (mcol, ucol, qcol, lab) in zip(axes, [("meas_PR", "u_meas_PR", "model_PR", "pressure ratio"),
-                                                ("meas_eta", "u_meas_eta", "model_eta", "efficiency (tt)")]):  # fmt: skip
+                                                ("meas_eta", "u_meas_eta", "model_eta", "efficiency (tt)")], strict=True):  # fmt: skip
         for s_, c in (("validation", series[0]), ("near_calibration", series[1])):
             g = cd[cd.set == s_]
             ax.errorbar(

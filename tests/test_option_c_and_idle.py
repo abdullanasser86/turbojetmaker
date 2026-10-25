@@ -89,3 +89,32 @@ def test_v3_split_frozen_and_no_pr_variable():
     )
     r = sample_designs(spec)[0]["inputs"]
     assert "pr_c" not in r and "n_rpm" not in r and "comp_specific_speed" in r
+
+
+def test_t1_hub_tip_range_hits_exit_mach_limit():
+    """Option T1: at the top of the buildable range (fraction 1) the sized turbine's exit Mach is ~0.5 (first-guess
+    states, so within a few %), lower fractions give lower exit Mach; the range is recorded on the design.
+    """
+    x = {k: v for k, v in BASE.items() if k != "turb_phi"}
+    machs = []
+    for f in (0.0, 1.0):
+        d = E.design_engine({**x, "turb_hub_tip_frac": f}, CFG)
+        machs.append(d.mechanical.checks["turbine_exit"]["mach"])
+        assert 0.5 <= d.inputs["turb_hub_tip"] <= d.inputs["turb_hub_tip_max_mach"] + 1e-12
+    assert machs[0] < machs[1] and machs[1] == pytest.approx(0.5, abs=0.03)
+
+
+def test_t1_no_buildable_range_is_labelled():
+    x = {k: v for k, v in BASE.items() if k != "turb_phi"}
+    with pytest.raises(E.EngineFailure, match="design_turbine_no_buildable_hub_tip"):
+        E.design_engine({**x, "turb_psi": 2.2, "turb_hub_tip_frac": 0.5, "W_air_kg_s": 0.6}, CFG)
+
+
+def test_v4_high_tit_share_and_frozen_split():
+    spec = DatasetSpec.load("configs/dataset_phase4_v4.yaml")
+    t = np.array([r["inputs"]["tit_K"] for r in sample_designs(spec)])
+    assert abs((t > 1150).mean() - 0.15) < 0.01 and t.min() >= 1000 and t.max() <= 1350
+    f = pd.read_csv("data/splits/phase4_v4_split.csv")
+    assert np.array_equal(
+        f.split.eq("test").to_numpy(), make_test_split(2000, 0.15, spec.cfg["seed"])
+    )

@@ -78,6 +78,29 @@ def main() -> int:
             q: round(float(np.nanquantile(pfm.astype(float), qq)), 3)
             for q, qq in (("p10", 0.1), ("median", 0.5), ("p90", 0.9))
         }
+    thr = dcfg.get("high_tit_threshold_K")
+    if thr is not None:  # user decision 2026-10-25: feasibility inside / outside the high-TIT band
+        split_tit = {}
+        for lab, mall in (
+            (f"TIT > {thr:g} K", D.in_tit_K > thr),
+            (f"TIT <= {thr:g} K", D.in_tit_K <= thr),
+        ):
+            sel = ok[mall[D.status == "ok"].values] if len(ok) else ok
+            nf = int(sel.feasible.astype(bool).sum())
+            split_tit[lab] = {"designs": int(mall.sum()), "designed": len(sel), "feasible": nf,
+                              "feasible_%_of_designs": round(100 * nf / max(int(mall.sum()), 1), 1),
+                              "feasible_%_of_designed": round(100 * nf / max(len(sel), 1), 1)}  # fmt: skip
+        stats["high_tit_split"] = split_tit
+        hi_inf = ok[(ok.in_tit_K > thr) & ~ok.feasible.astype(bool)]
+        stats["infeasible_high_tit_by_constraint"] = counts(
+            hi_inf.active_constraints.fillna("") + " (" + hi_inf.material_status.fillna("") + ")"
+        )
+    if "derived_turb_hub_tip_mach_binding" in ok:
+        stats["t1_hub_tip"] = {
+            "sampled_hub_tip_range": [round(float(ok.derived_turb_hub_tip.min()), 3), round(float(ok.derived_turb_hub_tip.max()), 3)],
+            "mach_limit_binding": f"{int(ok.derived_turb_hub_tip_mach_binding.astype(float).sum())}/{len(ok)}",
+            "no_buildable_hub_tip_designs": int(D.failure_reason.fillna("").str.startswith("design_turbine_no_buildable_hub_tip").sum()),
+        }  # fmt: skip
     if "material_status" in ok:  # dataset versions >= v2
         stats["material_status"] = counts(ok.material_status.fillna(""))
         flags = ok.turbine_design_range_flags.fillna("")
@@ -148,6 +171,22 @@ def main() -> int:
     L += [f"Mechanically feasible (selected material passes creep; tip speed OK): **{stats['feasible_designs']}** of "
           f"{len(ok)} designed engines; premium material required: {stats['premium_material_required']}.", "",
           "Infeasible designed engines by active constraint(s):", ""] + md_table(stats["infeasible_designs_by_active_constraint"], "active constraints") + [""]  # fmt: skip
+    if "high_tit_split" in stats:
+        L += ["High-TIT band (~15 % of the samples by design, D-056): feasibility inside and outside it:", "",
+              "| band | designs | designed | feasible | % of designs | % of designed |", "|---|---|---|---|---|---|"]  # fmt: skip
+        for k, v in stats["high_tit_split"].items():
+            L.append(
+                f"| {k} | {v['designs']} | {v['designed']} | {v['feasible']} | {v['feasible_%_of_designs']} | {v['feasible_%_of_designed']} |"
+            )
+        L += ["", "Infeasible high-TIT designs by active constraint (material status):", ""]
+        L += md_table(
+            stats["infeasible_high_tit_by_constraint"], "active constraints (material status)"
+        ) + [""]
+    if "t1_hub_tip" in stats:
+        t = stats["t1_hub_tip"]
+        L += [f"Turbine hub/tip (option T1, D-055): sampled {t['sampled_hub_tip_range'][0]} – {t['sampled_hub_tip_range'][1]}; "
+              f"the exit-Mach-0.5 limit was the binding upper bound for {t['mach_limit_binding']} designed engines; "
+              f"{t['no_buildable_hub_tip_designs']} designs had no buildable hub/tip (exit Mach > 0.5 even at 0.5).", ""]  # fmt: skip
     if "material_status" in stats:
         L += (
             ["Material status (designed engines):", ""]

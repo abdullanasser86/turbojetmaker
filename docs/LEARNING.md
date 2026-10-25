@@ -228,6 +228,18 @@ terms and a short "what we did and why".
 - **Code page / UTF-8 mode** – How text is turned into bytes. Windows' default (cp1252) can't write characters like
   "Δσ" or "²"; Python's UTF-8 mode (`PYTHONUTF8=1`) and explicit `encoding="utf-8"` avoid that.
 
+- **Corrected speed / corrected mass flow** – N√(T_ref/T0) and m√(T0/T_ref)·p_ref/p0. They remove the effect of the day's
+  inlet temperature and pressure, so a compressor map measured on a warm day applies on a cold one.
+- **Speed line** – How pressure ratio and efficiency vary with mass flow at one corrected speed. A *flat* speed line
+  means the pressure ratio hardly changes with flow, so a small pressure error corresponds to a large flow error.
+  That is why we compare flows by the closest approach to the line, not by inverting it.
+- **Buildable range** – The range of a design variable for which a physical geometry exists at all. Sampling only
+  inside it (as for the compressor wheel and the turbine hub/tip ratio) stops the dataset from filling up with
+  impossible engines.
+- **Calibration vs extrapolation** – A model fitted on 70–110 krpm data is a calibration there and an extrapolation
+  above it. The measured 120 krpm line showed the extrapolation is optimistic, a reason not to trust a model far
+  beyond its data.
+
 ### ML and optimization (expanded from Phase 4 on)
 - **Surrogate model** – A fast ML approximation of a slow physics model. Here it runs in
   microseconds instead of seconds.
@@ -402,4 +414,19 @@ point hides.
 
 **Why it matters:** Measured data turned a vague worry ("idle too hot") into a quantified model error with a likely
 cause. The same "make it buildable by construction" step that fixed the compressor is now needed for the turbine.
+
+### Phase 4, round 4 — Measured maps, buildable turbines, the v4 dataset (2026-10-25)
+**What we did**
+1. Digitized Murray's measured KJ-66 maps and operating lines, checking the digitizing against his tables (TIT within
+   ~1 K).
+2. Compared our compressor model with the measured maps. It is good at 50–100 krpm (pressure ratio within ~2 %,
+   inside the measurement uncertainty) but too optimistic at 110–120 krpm. We reported that instead of refitting.
+3. Confirmed the idle question with measured turbine inlet temperatures: the model's low-speed TIT is 25–65 K too
+   high, which explains its hot idle EGT.
+4. Made the turbine buildable by construction: the hub/tip ratio is sampled only where the exit Mach number stays
+   ≤ 0.5. High-TIT designs were limited to 15 % of the dataset.
+5. The v4 pilot reached 32 % feasible, so the full 2,000-design run went ahead.
+
+**Why it matters:** The dataset now mostly contains engines that could exist, and we know where the model is trustworthy
+(KJ-66-like speeds) and where it is optimistic (high tip speed, low-speed turbine).
 

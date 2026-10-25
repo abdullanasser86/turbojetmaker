@@ -348,3 +348,81 @@ What limits feasibility now:
 3. **Murray Ch. 5 pages** (Figs 5.1–5.3, 5.12–5.19) if you want the measured maps as well; the Appendix D tables
    already give the operating points.
 4. "Go" for the chosen turbine option → new pilot (`phase4_v4`) → full run if ≥ 10 %.
+
+---
+
+# Phase 4, round 4 (2026-10-25): T1 turbine sampling, high-TIT share, Murray Chapter 5, full v4 dataset
+
+## What was done, item by item
+| # | Your instruction | Done |
+|---|---|---|
+| 1 | T1: hub/tip sampled only inside its buildable range, upper limit at turbine exit Mach 0.5; range computed per design before sampling; derivation in DECISIONS; report the sampled range and how often Mach 0.5 binds | `turbine_design.max_hub_tip_for_exit_mach`, D-055. Sampled hub/tip **0.50–0.84**. The Mach-0.5 limit was the binding upper bound for **1090/1090** designed engines (it is always below 0.95). **905/2000** designs have no buildable hub/tip (exit Mach > 0.5 even at hub/tip 0.5; high ψ → small mean radius) and are labelled |
+| 2 | Keep TIT > 1150 K at ~15 %; feasibility inside/outside the band; flag infeasible high-TIT designs by active constraint; open item for higher-temperature rupture data | Piecewise Sobol map → exactly 15.0 % (300/2000), D-056. Split and constraints below; open item recorded |
+| 3 | Digitize Ch. 5 into `validation/cases/murray2009/` (digitized [MEAS], uncertainty, published bands); validate compressor and turbine maps with calibration/validation separated; PR, efficiency and corrected-flow errors per speed line; idle check against Fig 5.3; tell before recalibrating | Done (D-057, D-058). **The maps contradict the calibration at 110–120 krpm. Not refitted; decision below** |
+| 4 | v4 pilot → full run if ≥ 10 % | Pilot **32 %** feasible → full 2000 run done (964 s on 3 workers) |
+
+## Dataset card and feasibility / failure statistics: `phase4_v4` (2000 designs, full run)
+Card: `docs/dataset_cards/phase4_v4.md`. Pilot analysis: `validation/phase4/pilot_analysis_phase4_v4.yaml`.
+
+| | count |
+|---|---|
+| designs | 2000 (train/val 1700, test 300, frozen before evaluation) |
+| design failed | 910: no buildable hub/tip 905, other turbine sizing 5; **compressor 0** |
+| designed engines | 1090 (PR 1.71–3.29, 21–268 krpm, design thrust 16–804 N among the feasible) |
+| **feasible** | **625 (31.3 % of all designs, 57 % of designed engines)**; test split: 92 |
+| infeasible designed engines | AN²: 213; AN² + NGV above material data: 194; NGV above material data: 47; rotor creep (± NGV): 11 |
+| material status (designed) | IN-713C 509, MAR-M 247 116, fails creep 418, no material data 47 |
+| sensitivity (feasible) | At/Ah 0.34: 874; PF 0.15: 668; PF 0.35: 485 |
+| off-design convergence (designed) | design, M0.5/3 km, 80 %, idle: **1090/1090 each** |
+| cross-check vs pyCycle-CEA | 22 checked (2 %), **0 flagged** (max ΔFn 0.026 %, ΔTSFC 0.10 %) |
+
+**High-TIT split** (TIT > 1150 K = 15 % of samples):
+| band | designs | designed | feasible | % of designs |
+|---|---|---|---|---|
+| TIT > 1150 K | 300 | 160 | **3** | 1.0 % |
+| TIT ≤ 1150 K | 1700 | 930 | 622 | 36.6 % |
+
+Infeasible high-TIT designs by active constraint (material status):
+- AN² + NGV above material data (fails creep): 139;
+- NGV above material data only (unchecked, no material data): 16;
+- rotor creep + NGV above data: 2.
+
+So every infeasible high-TIT design hits the missing high-temperature rupture data (open item, D-056); most also fail
+AN².
+
+## Murray validation results
+- **Compressor maps (Figs 5.12/5.14, stored calibration):**
+  - **50–100 krpm:** PR −1.2 … +2.0 % (within the published uncertainty), corrected-flow offset −3.1 … +0.6 %,
+    efficiency ±3 pts rms.
+  - **110 krpm:** PR +4.1 %; **120 krpm:** PR +7.1 % and efficiency +6.1 pts. Both are outside the published
+    uncertainty on every point (`validation/phase4/murray2009_maps.png`).
+- **Turbine maps (Figs 5.16/5.18, indicative replica, geometry unknown):** the flow-capacity shape and choke are
+  reproduced (+1 % at 68 krpm, growing to +18 % at the lowest PR). Efficiency is +10 … +12 pts above Murray's derived
+  values on every speed line.
+- **Operating lines (Figs 5.1/5.2):** the turbojet replicas lie within −0.015 PR and −5 % corrected flow of the
+  all-run envelope.
+
+## Idle-EGT check against Fig 5.3 and the low-speed points
+- Murray's turbojet TIT (calculated by him from the exhaust temperature and the compressor work) is 780–820 K at 48
+  krpm and 920–940 K at 119 krpm.
+- Our replicas (TIT fitted at 120 krpm only) stay at 840–860 K below ~70 krpm, so they are **25–65 K too hot at low
+  speed** (ψ 1.5: +39 K mean below 60 krpm).
+- That matches the low-speed EGT over-prediction found with the run plots (+40–80 K, thermocouple reading with
+  r = 0.68).
+- The extra heat is in the matched TIT, and the compressor is right there (±1–2 %). So the turbine/nozzle behaviour at
+  low pressure ratio is the prime suspect; the indicative turbine map points the same way. Not tuned.
+
+## Decisions I need from you
+1. **Compressor calibration at 110–120 krpm** (you asked to be told before any recalibration). The measured maps show
+   the model ~4–7 % optimistic in PR above ~110 krpm (U2 ≳ 380 m/s). This matters for the dataset: **54 % of the
+   designed v4 engines (42 % of the feasible ones) have U2 > 415 m/s**, beyond the measured 120 krpm line.
+   - **R1 (recommended):** refit Δσ and Cf on several measured lines (e.g. 70, 90, 110 krpm), keeping 50/60/80/100/120
+     for validation, then regenerate v4 as v5.
+   - **R2:** keep the calibration, add a tip-speed / inducer-Mach loss term (a model change that needs a source).
+   - **R3:** keep everything and flag designs above U2 ≈ 415 m/s as "compressor beyond validated range" (cheapest; the
+     surrogate learns an optimistic compressor there).
+2. **Turbine at low PR / idle**: the model is 25–65 K hot at idle. Do you want this pursued now (it needs the KJ-66
+   turbine geometry: blade count, radii, blade angles) or tracked as an open item?
+3. **Higher-temperature rupture data** (open item): any source for MAR-M 247 above 1900 °F, or another cast alloy,
+   would open TIT > 1150 K, which currently has 1 % feasible.
+4. "Go" for Phase 5 (surrogates) on `phase4_v4`, or after R1 on a v5.

@@ -1,0 +1,52 @@
+# Phase 4 dataset v4 (user decisions 2026-10-25): option A compressor (tip speed U2 and tip-speed specific speed
+# n_s,U sampled; shaft speed and PR derived) + option T1 turbine (rotor-exit hub/tip sampled as a FRACTION of its
+# buildable range [0.5, min(0.95, hub/tip at exit Mach 0.5)], computed per design before sizing) + TIT sampling with
+# ~15 % of designs above 1150 K (piecewise map of the Sobol coordinate). v1-v3 are kept unchanged.
+# 2000 designs, 4 operating points each; 200-design pilot first (stop rule below).
+# Generator: turboml/data/generator.py, run with scripts/phase4/generate_dataset.py (resumable, parallel).
+
+name: phase4_v4
+n_designs: 2000
+seed: 20261028            # new version, new seed (own Sobol scramble and own frozen test split)
+sampler: sobol_scrambled  # scipy.stats.qmc.Sobol(scramble=True, seed); first n_designs points of a 2^11 sequence
+
+# Design variables: bounds from configs/bounds.yaml (each with its source there). Scale: how a unit Sobol
+# coordinate maps to the bound ("log" for mass flow, which spans a factor ~24).
+design_variables:
+  air_mass_flow_kg_s:   {key: W_air_kg_s, scale: log}
+  impeller_tip_speed_m_s: {key: impeller_tip_speed_m_s, scale: linear}
+  comp_specific_speed:    {key: comp_specific_speed, scale: linear}
+  tit_K:                {key: tit_K, scale: piecewise, knots: [[0.85, 1150.0]]}  # 15 % of samples in 1150-1350 K
+  turb_hub_tip_fraction:    {key: turb_hub_tip_frac, scale: linear}
+  turb_loading_coefficient: {key: turb_psi, scale: linear}
+  turb_reaction:            {key: turb_reaction, scale: linear}
+
+# Pilot and stop rule (user decision 2026-10-25): run `pilot_designs` first; if fewer than `min_feasible_fraction`
+# of them are mechanically feasible, STOP and report (dominant constraints, effect of the conservative settings)
+# before any feasibility-guided sampling. Otherwise continue to n_designs.
+pilot_designs: 200
+high_tit_threshold_K: 1150.0   # feasibility reported inside / outside this band (user decision 2026-10-25)
+min_feasible_fraction: 0.10
+
+# Design point flight condition (sea-level static, ISA).
+design_condition: {alt_m: 0.0, mach: 0.0, dT_isa_K: 0.0}
+
+# Stored operating points per design (user decision 2026-10-25). n_frac = fraction of design shaft speed.
+points:
+  - {name: design,         n_frac: 1.0,  alt_m: 0.0,    mach: 0.0}
+  - {name: cruise_M05_3km, n_frac: 1.0,  alt_m: 3000.0, mach: 0.5}
+  - {name: part_speed_80,  n_frac: 0.8,  alt_m: 0.0,    mach: 0.0}
+  - {name: idle_35,        n_frac: 0.35, alt_m: 0.0,    mach: 0.0}
+
+# Compressor calibration uncertainty (configs/components/kj66_compressor_calibration.yaml `phase4_sampling`):
+# this fraction of designs gets (delta_sigma, diffuser_cf) uniform in the inflated band; the rest the nominal values.
+calibration_sampling: configs/components/kj66_compressor_calibration.yaml
+
+# Frozen held-out test set (user decision 2026-10-25): fraction of design ids, chosen once from the seed and
+# written to data/splits/phase4_v4_split.csv before any surrogate work. Never used for training or tuning.
+test_fraction: 0.15
+
+# pyCycle-CEA cross-check (CLAUDE.md rules): random fraction of the successfully designed engines, at the design point.
+crosscheck_fraction: 0.02
+
+output_dir: datasets/phase4_v4   # git-ignored; the dataset card and split are committed

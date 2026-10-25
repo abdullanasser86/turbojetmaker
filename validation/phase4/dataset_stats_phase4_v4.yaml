@@ -1,0 +1,120 @@
+name: phase4_v4
+designs_evaluated: 2000
+designs_planned: 2000
+design_status:
+  ok: 1090
+  design_failed: 910
+design_failure_reasons:
+  design_turbine_no_buildable_hub_tip: 905
+  design_turbine: 5
+feasible_designs: 625
+infeasible_designs_by_active_constraint:
+  AN2: 213
+  AN2;TIT_ngv_above_material_data: 194
+  TIT_ngv_above_material_data: 47
+  creep_rotor: 7
+  creep_rotor;TIT_ngv_above_material_data: 4
+premium_material_required: 116
+points:
+  cruise_M05_3km:
+    converged_all_designs: 1090/2000
+    converged_designed_engines: 1090/1090
+    failure_reasons_designed_engines: {}
+    surge_flags:
+      ? ''
+      : 1090
+  design:
+    converged_all_designs: 1090/2000
+    converged_designed_engines: 1090/1090
+    failure_reasons_designed_engines: {}
+    surge_flags:
+      ? ''
+      : 1090
+  idle_35:
+    converged_all_designs: 1090/2000
+    converged_designed_engines: 1090/1090
+    failure_reasons_designed_engines: {}
+    surge_flags:
+      ? ''
+      : 1090
+  part_speed_80:
+    converged_all_designs: 1090/2000
+    converged_designed_engines: 1090/1090
+    failure_reasons_designed_engines: {}
+    surge_flags:
+      ? ''
+      : 1090
+split:
+  train_val: 1700
+  test: 300
+split_ok_designs:
+  train_val: 930
+  test: 160
+calibration_sampled: 405
+time_per_design_s:
+  mean: 1.6
+  median: 2.32
+  p95: 3.43
+  max: 5.29
+turbine_outside_turboflow_range:
+  rotor_hub_tip: 0
+  any_warning: 73
+  feasible_with_rotor_hub_tip_warning: 0
+ngv_pf_max_in713c:
+  p10: 0.189
+  median: 0.405
+  p90: 0.563
+high_tit_split:
+  TIT > 1150 K:
+    designs: 300
+    designed: 160
+    feasible: 3
+    feasible_%_of_designs: 1.0
+    feasible_%_of_designed: 1.9
+  TIT <= 1150 K:
+    designs: 1700
+    designed: 930
+    feasible: 622
+    feasible_%_of_designs: 36.6
+    feasible_%_of_designed: 66.9
+infeasible_high_tit_by_constraint:
+  AN2;TIT_ngv_above_material_data (fails_creep): 139
+  TIT_ngv_above_material_data (unchecked_no_material_data): 16
+  creep_rotor;TIT_ngv_above_material_data (fails_creep): 2
+t1_hub_tip:
+  sampled_hub_tip_range:
+  - 0.5
+  - 0.839
+  mach_limit_binding: 1090/1090
+  no_buildable_hub_tip_designs: 905
+material_status:
+  ok_default: 509
+  fails_creep: 418
+  ok_premium: 116
+  unchecked_no_material_data: 47
+depaola_table2_flags:
+  an2_m2_rpm2: 233
+  loading_coefficient: 665
+  exit_mach: 686
+  exit_swirl_deg: 9
+sensitivity_feasible:
+  at_ah_0.34: 874
+  pf_0.15: 668
+  pf_0.35: 485
+derived_ranges:
+  derived_n_rpm:
+  - 20750.451
+  - 268002.079
+  derived_turb_phi:
+  - 0.183
+  - 1.6
+  derived_pr_c:
+  - 1.712
+  - 3.294
+  derived_comp_specific_speed_conventional:
+  - 0.698
+  - 1.47
+last_run:
+  designs_this_run: 1800
+  wall_s: 964.457281589508
+  workers: 3

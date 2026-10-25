@@ -77,7 +77,19 @@ def sample_designs(spec: DatasetSpec) -> list[dict]:
         x = {}
         for j, name in enumerate(names):
             lo, hi, scale, key = spec.bounds[name]
-            x[key] = lo * (hi / lo) ** u[i, j] if scale == "log" else lo + (hi - lo) * u[i, j]
+            if (
+                scale == "piecewise"
+            ):  # piecewise-linear map of the Sobol coordinate (e.g. 15 % of samples above a knot)
+                knots = spec.cfg["design_variables"][name]["knots"]
+                x[key] = float(
+                    np.interp(
+                        u[i, j],
+                        [0.0, *[k[0] for k in knots], 1.0],
+                        [lo, *[k[1] for k in knots], hi],
+                    )
+                )
+            else:
+                x[key] = lo * (hi / lo) ** u[i, j] if scale == "log" else lo + (hi - lo) * u[i, j]
         x.update({k: float(v) for k, v in spec.cfg["design_condition"].items()})
         out.append({"design_id": i, "inputs": x, "calibration_sampled": bool(sampled[i]),
                     "delta_sigma": float(ds[i]), "diffuser_cf": float(cf[i])})  # fmt: skip
@@ -161,7 +173,9 @@ def evaluate_design(rec: dict, engine_cfg: dict, points: list[dict]) -> dict:
     out["derived"] = {"n_rpm": _plain(d.inputs["n_rpm"]), "turb_phi": _plain(d.inputs["turb_phi"]),
                       "turb_hub_tip": _plain(tg.radius_hub_out[1] / tg.radius_tip_out[1]),
                       "impeller_tip_speed_m_s": _plain(d.design_point.compressor_tip_speed_m_s),
-                      "pr_c": _plain(d.design_point.pr_c), "comp_specific_speed_conventional": _plain(conventional_ns(d))}  # fmt: skip
+                      "pr_c": _plain(d.design_point.pr_c), "comp_specific_speed_conventional": _plain(conventional_ns(d)),
+                      "turb_hub_tip_max_mach": _plain(d.inputs.get("turb_hub_tip_max_mach", float("nan"))),
+                      "turb_hub_tip_mach_binding": _plain(d.inputs.get("turb_hub_tip_mach_binding", float("nan")))}  # fmt: skip
     out["points"]["design"] = _point_dict(d.design_point)
     try:
         eng = Engine(d, engine_cfg)

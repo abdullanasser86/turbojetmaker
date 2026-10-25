@@ -465,3 +465,62 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
   above TIT ≈ 1145 K; IN-713C data end at 1366 K) and AN² (29).
 - Relaxing all creep settings gives 16.5 %; a single setting gives at most 10.5 %.
 - The full run was not started.
+
+### D-055 · 2026-10-25 · Option T1: turbine hub/tip sampled inside its buildable range (user decision)
+- The sampled variable is the position f ∈ [0, 1] in the per-design range [0.5, min(0.95, λ_M)], i.e.
+  hub/tip = 0.5 + f (λ_hi − 0.5). 0.5 and 0.95 are TurboFlow's recommended limits. λ_M is the hub/tip at which the
+  rotor-exit absolute Mach number reaches 0.5, the upper end of DePaola 2020 Table 2 (exit Mach 0.4–0.5).
+- Derivation (`turbine_design.max_hub_tip_for_exit_mach`, computed per design before sizing, with the same first-guess
+  states as `size_axial_stage`):
+  1. U = √(Δh0/ψ), r_m = U/ω, exit swirl C_θ3 = U(1 − R − ψ/2).
+  2. h03 = h04 − Δh0; p03 comes from the first-guess stage efficiency.
+  3. At the limit, C3 = 0.5 a3 with T3 = T(h03 − C3²/2); C_x = √(C3² − C_θ3²).
+  4. Continuity: A = m/(ρ3 C_x) = 2π r_m h.
+  5. λ = (r_m − h/2)/(r_m + h/2).
+
+  A higher hub/tip gives a smaller annulus, a faster flow and a higher exit Mach number, so λ_M is the upper end of
+  the range.
+- If even hub/tip 0.5 exceeds Mach 0.5 (high ψ: small mean radius), the range is empty. The design fails with
+  `design_turbine_no_buildable_hub_tip` (labelled, kept).
+- Check: at f = 1 the converged stage's exit Mach number is 0.49 (baseline; test ±0.03), because the first-guess
+  density differs slightly from the converged one.
+- DePaola's LOWER exit-Mach bound (0.4) is not imposed; it stays a sanity flag (user instruction: upper limit only).
+
+### D-056 · 2026-10-25 · High-TIT designs limited to ~15 % of each dataset (user decision)
+- TIT stays sampled over 1000–1350 K, so the feasibility classifier learns the material boundary. The Sobol coordinate
+  is mapped piecewise-linearly: u ∈ [0, 0.85] → 1000–1150 K, u ∈ [0.85, 1] → 1150–1350 K. The design gets exactly
+  15.0 % above 1150 K, in the pilot and in the full set.
+- Reporting: feasibility inside and outside the band, and every infeasible high-TIT design with its active constraint
+  and material status (`pilot_feasibility_analysis.py`, dataset card).
+- **OPEN ITEM: higher-temperature rupture data needed.** With PF 0.25 the hottest NGV exceeds IN-713C's data
+  (1366 K) above TIT ≈ 1150–1190 K, and MAR-M 247's data stop at 1311 K. Data for MAR-M 247 above 1900 °F, or another
+  cast alloy, would open this range.
+
+### D-057 · 2026-10-25 · Murray Chapter 5 digitized (Figs 5.1–5.3, 5.12–5.19)
+- Scatter maps: marker centroids from pixel components (`scripts/data/digitize_murray_ch5.py`).
+  - Axes are calibrated from the x-tick marks and the gridlines (40-krpm marker check: 0.0576 / 1.1305 vs 0.058 / 1.13
+    read by eye).
+  - Overlapping markers merge into one cluster centroid (n_markers_est).
+  - Speed class: Murray interpolated the points to constant corrected speed (p. 87). Compressor classes are
+    separated by PR band; efficiency points are matched to the PR map by corrected flow; turbine classes by PR band.
+  - Uncertainty: u_dig = half the marker/cluster size + 1 px. u_pub = Murray's propagated uncertainty, from Appendix D
+    at the nearest corrected speed. It matches the plotted bands of Figs 5.13/5.15/5.17/5.19 in spot checks (e.g.
+    compressor η ±0.10 at 50 krpm, turbine η ±0.25 at 32 krpm).
+- Line plots:
+  - Figs 5.1/5.2: the 7 runs overlap within the line width, so the all-run envelope (min/max) is stored.
+  - Fig 5.3: vertices were read by eye and snapped to the curve pixels. Check against Appendix D (vaneless run 3 =
+    same run): rms 1.2 K, max 2.5 K. The stated uncertainty is 5 K.
+  - The line charts have no right frame and no x ticks, so x is calibrated from the y axis and the end of the
+    gridlines. The legend can cut the top gridline, so the longest gridline run is used.
+
+### D-058 · 2026-10-25 · Measured KJ-66 maps vs the compressor calibration: contradiction at 110–120 krpm, NOT refitted
+- The stored calibration (Δσ, Cf fitted on the measured 90 krpm line) is unchanged (user instruction: tell before
+  recalibrating).
+- **50–100 krpm** (validation): PR within −1.2 … +2.0 % (within Murray's published uncertainty), flow offset −3 … +0.6
+  %, efficiency ±3 pts rms.
+- **110 and 120 krpm**: the model over-predicts PR by +4.1 % and +7.1 %, beyond the published uncertainty on every
+  point, and efficiency by +2.3 / +6.1 pts. 120 krpm (U2 ≈ 415 m/s) lies beyond the 70–110 krpm data the calibration
+  was built on. **This contradicts the calibration at high tip speed.**
+- Consequence for the datasets: designs with U2 above ~380–415 m/s (sampled up to 500 m/s) use a compressor model
+  that is optimistic in PR and efficiency there.
+- Options for the user (Phase 4 report): refit on more speed lines, add a high-Mach loss, or flag/limit high tip speed.
