@@ -78,6 +78,17 @@ def main() -> int:
             q: round(float(np.nanquantile(pfm.astype(float), qq)), 3)
             for q, qq in (("p10", 0.1), ("median", 0.5), ("p90", 0.9))
         }
+    if "material_status" in ok:  # dataset versions >= v2
+        stats["material_status"] = counts(ok.material_status.fillna(""))
+        flags = ok.turbine_design_range_flags.fillna("")
+        stats["depaola_table2_flags"] = {k: int(flags.str.contains(f"turbine {k} ").sum())
+                                         for k in ("an2_m2_rpm2", "loading_coefficient", "exit_mach", "exit_swirl_deg")}  # fmt: skip
+        stats["sensitivity_feasible"] = {c[5:-9]: int(ok[c].astype(bool).sum()) for c in ok.columns
+                                         if c.startswith("sens_") and c.endswith("_feasible")}  # fmt: skip
+        stats["derived_ranges"] = {c: [round(float(ok[c].min()), 3), round(float(ok[c].max()), 3)]
+                                   for c in ("derived_n_rpm", "derived_turb_phi") if c in ok}  # fmt: skip
+    pa = ROOT / "validation" / "phase4" / f"pilot_analysis_{name}.yaml"
+    pilot_analysis = yaml.safe_load(pa.read_text()) if pa.exists() else None
     timing = sorted((ROOT / "runs").glob(f"*_dataset_{name}/timing.json"))
     if timing:
         t = json.loads(timing[-1].read_text())
@@ -88,10 +99,20 @@ def main() -> int:
 
     pilot = n_done < n_total
     L = [f"# Dataset card: `{name}`{' (PILOT)' if pilot else ''}", "", f"> **{SAFETY_NOTE}**", "",
-         f"Status: {n_done} of {n_total} planned designs evaluated" + (" (pilot: the first designs of the Sobol sequence; the full run "
-         "is started on the user's laptop after the wall-time estimate)." if pilot else "."), "",
+         f"Status: {n_done} of {n_total} planned designs evaluated" + (" (pilot: the first designs of the Sobol sequence)." if pilot else "."), ""]  # fmt: skip
+    if pilot_analysis and pilot_analysis.get("stop"):
+        L += [f"**STOPPED by the pilot stop rule:** {pilot_analysis['feasible']} of {pilot_analysis['pilot_designs']} pilot designs "
+              f"feasible ({100 * pilot_analysis['feasible_fraction_of_pilot']:.1f} % < {100 * pilot_analysis['min_feasible_fraction']:.0f} %). "
+              f"The full run was not started. Analysis: `validation/phase4/pilot_analysis_{name}.yaml`.", ""]  # fmt: skip
+    mcfg = yaml.safe_load((ROOT / "configs" / "materials.yaml").read_text())
+    life, sf = mcfg["design_life_h"]["value"], mcfg["stress_safety_factor"]["value"]
+    at_ah, pf = (
+        mcfg["blade_tip_to_hub_area_ratio"]["value"],
+        mcfg["combustor_pattern_factor"]["value"],
+    )
+    L += [
          f"Generated with git {git} by `scripts/phase4/generate_dataset.py` (`turboml/data/generator.py`), config "
-         f"`{Path(args.config).relative_to(ROOT)}`. Raw records: `datasets/<name>/designs.jsonl` (git-ignored, regenerate from seed + config).", "",
+         f"`{Path(args.config).resolve().relative_to(ROOT)}`. Raw records: `datasets/<name>/designs.jsonl` (git-ignored, regenerate from seed + config).", "",
          "## What one record is", "",
          "One **design** = cycle design variables + turbine stage choices, sized by the coupled physics model (design mode), "
          "checked mechanically (creep, AN², tip speed), then evaluated at 4 **points**: design (SLS), M0.5 at 3 km (design "
@@ -110,7 +131,8 @@ def main() -> int:
           "inflated band (configs/components/kj66_compressor_calibration.yaml); the others use the nominal values.", "",
           "Fixed assumptions: component losses `configs/engine_baseline.yaml` (DePaola values as summarised by the user, "
           "off-design loss scaling with corrected flow²); materials and creep settings `configs/materials.yaml` "
-          "(life 100 h, safety factor 1.5, taper factor 1.0, pattern factor NOT sourced → NGV PF_max stored).", "",
+          f"(life {life:g} h, safety factor {sf}, blade taper At/Ah {at_ah} (K = {0.5 * (1 + at_ah):.2f}), pattern factor {pf}; "
+          "NGV PF_max stored per design).", "",
           "## Held-out test set (frozen)", "",
           f"`data/splits/{name}_split.csv`: {int(round(dcfg['test_fraction'] * 100))} % of design ids, seeded permutation, written before "
           "any design was evaluated. Never used for training or tuning.", ""]  # fmt: skip
@@ -124,6 +146,25 @@ def main() -> int:
     L += [f"Mechanically feasible (selected material passes creep; tip speed OK): **{stats['feasible_designs']}** of "
           f"{len(ok)} designed engines; premium material required: {stats['premium_material_required']}.", "",
           "Infeasible designed engines by active constraint(s):", ""] + md_table(stats["infeasible_designs_by_active_constraint"], "active constraints") + [""]  # fmt: skip
+    if "material_status" in stats:
+        L += (
+            ["Material status (designed engines):", ""]
+            + md_table(stats["material_status"], "status")
+            + [""]
+        )
+        L += [
+            "Sensitivity (feasibility recomputed with one setting changed; the defaults above decide feasibility):",
+            "",
+        ]
+        L += md_table(stats["sensitivity_feasible"], "setting", "feasible designs") + [""]
+        L += [
+            "Turbine outside DePaola 2020 Table 2 typical ranges (sanity flags only, not infeasible):",
+            "",
+        ]
+        L += md_table(stats["depaola_table2_flags"], "quantity", "designs flagged") + [""]
+        if stats["derived_ranges"]:
+            L += ["Derived by the sizing (option C): " + "; ".join(f"{k.removeprefix('derived_')} {v[0]:g} – {v[1]:g}"
+                                                                     for k, v in stats["derived_ranges"].items()), ""]  # fmt: skip
     L += [
         "## Point-level outcome (designed engines)",
         "",
@@ -156,7 +197,7 @@ def main() -> int:
     L += ["", "## Known limitations", "",
           "- Compressor family is KJ-66-like (one geometry family, one calibration); vaneless diffuser model.",
           "- Turbine efficiency at micro scale unvalidated; incidence-sign convention open (D-029).",
-          "- Creep check uses typical (not minimum) rupture data; blade taper factor 1 (conservative); NGV pattern factor not sourced.",
+          "- Creep check uses typical (not minimum) rupture data; untapered blades (At/Ah = 1, conservative); MAR-M 247 data stop at 1311 K.",
           f"- Turbine geometry outside TurboFlow's recommended ranges (kept, warning in `geom_turb_sizing_warnings`): rotor "
           f"hub/tip in {stats['turbine_outside_turboflow_range']['rotor_hub_tip']} of {len(ok)} designed engines "
           f"(feasible among them: {stats['turbine_outside_turboflow_range']['feasible_with_rotor_hub_tip_warning']}); "

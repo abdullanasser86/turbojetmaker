@@ -1,7 +1,7 @@
 """Generate the Phase 4 engine dataset (resumable, parallel). See turboml/data/generator.py for what is computed.
 
 Usage (laptop or container):
-    uv run python scripts/phase4/generate_dataset.py                  # all designs in configs/dataset_phase4.yaml
+    uv run python scripts/phase4/generate_dataset.py                  # all designs in configs/dataset_phase4_v2.yaml (--config for v1)
     uv run python scripts/phase4/generate_dataset.py --limit 160      # pilot: the first 160 Sobol designs
     TURBOML_N_WORKERS=8 uv run python scripts/phase4/generate_dataset.py
 Interrupt any time (Ctrl-C, sleep, crash) and run the same command again: finished designs are skipped.

@@ -328,3 +328,72 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
   committed as `validation/phase4/pilot_phase4_v1_*.csv`, so notebook 04 and the report numbers can be checked
   without re-running. The pilot was regenerated at commit e2f2a36 and was bit-identical to the first run.
 - The full run waits for the sampling-parametrization decision (Phase 4 report, decision 1).
+
+### D-044 · 2026-10-25 · Reference data from the user's extracts, tagged by data type (user decision)
+- The PDFs could not be uploaded; the user extracted the numbers. They are in `validation/cases/` with citations:
+  - `kj66_engine_specs.csv`: Xiang 2017 / thesis Table A-i.1 and Murray 2009 Table 1.2;
+  - `microturbine_reference_assumptions.csv`: DePaola 2020 and Murray 2009 assumptions, DePaola Table 2 ranges and
+    eq. 58;
+  - `jetcat_specs_user_2026.csv`;
+  - `combustor_pattern_factor.csv`.
+- Every value carries MEAS / CFD / MFR / ASSUM. Weighting MEAS > CFD > MFR > ASSUM. The error floor against MFR
+  data is 10 % (same-model spread, DePaola, MEAS).
+- The component values in `configs/engine_baseline.yaml` are unchanged and now carry data types:
+  - DePaola's η_b 0.95, η_m 0.99 and the inlet/nozzle ratios are kept; Murray's 0.90 / 0.995 are recorded but not
+    used.
+  - The burner Δp of 10 % is tagged CFD (Gieras & Stańkowski via DePaola).
+- The KJ-66 builds of Xiang (75 N, 117 krpm, PR 2.2) and Murray (92.3 N, 128 krpm, PR ~2.54) are treated as a spread,
+  not a contradiction.
+
+### D-045 · 2026-10-25 · Pattern factor, blade taper as At/Ah, MAR-M 247 no-data status, DePaola sanity flags
+- Pattern factor PF = 0.25 for feasibility (never lower), sensitivity 0.15–0.35. Sources: Fear 1972 (MEAS < 0.24) and
+  US 5,265,425 (0.25–0.30). PF_max is still stored.
+- Taper: DePaola eq. 58 (Mattingly), AN² = 3600 σ / (π ρ (1 + At/Ah)), is our σc = K ρ ω² A / 2π with
+  K = (1 + At/Ah)/2. Default At/Ah = 1 (K = 1). Sensitivity At/Ah = 0.34 (K = 0.67).
+- MAR-M 247 gap: if IN-713C fails and MAR-M 247's rupture data don't reach its metal temperature (> 1311 K), and nothing
+  the data cover fails, the status is `unchecked_no_material_data` → infeasible. No extrapolation.
+- DePaola Table 2 (AN² ≤ 5e10 in² rpm² = 3.2258e7 m² rpm², ψ 1.4–2.0, exit Mach 0.4–0.5, exit swirl 0–40°) are
+  SANITY FLAGS on every design. They don't make a design infeasible.
+- Effect on the Phase 3 baseline: the NGV metal temperature is now 1330 K. IN-713C passes there (data to 1366 K);
+  MAR-M 247 has no data. The baseline remains infeasible on AN².
+
+### D-046 · 2026-10-25 · Option C implemented as approved: tip speed and turbine hub/tip prescribed (dataset phase4_v2)
+- Compressor (`engine.size_compressor_tip_speed`):
+  - At fixed (W, PR) the sized wheel's tip speed falls as N rises (higher specific speed, better efficiency), until r2
+    would drop below the inducer. N is found so that U2(N) = U2_target.
+  - Labels: `design_compressor_tip_speed_too_low_for_pr` / `_too_high_for_pr`. A warm start of r2 was tried; it
+    changed one result (path dependence near choke), so it was reverted.
+- Turbine (`turbine_design.design_stage_hub_tip`): φ is found by the fixed point φ ← φ·h/h_target on the converged
+  stage. An axial velocity at or above the exit stagnation sound speed is rejected with a label.
+- Bounds:
+  - U2 350–500 m/s. The upper limit is the user's; the lower limit is DERIVED from a sizing scan (PR 2.0 needs
+    ≥ ~355 m/s in this family).
+  - Rotor hub/tip 0.5–0.95 (TurboFlow range).
+- Dataset `phase4_v2`: seed 20261026, own frozen split, pilot 200 with a stop rule at 10 % feasible. v1 is kept
+  unchanged.
+
+### D-047 · 2026-10-25 · KJ-66 compressor "rebuild": nothing to remove (same geometry already used)
+- The user's Xiang 2017 values (r2 33 mm, hub 6.25 mm, shroud 22.5 mm, 10 blades) are exactly the geometry used since
+  Phase 2. It came from the online-first version of the same paper, doi:10.1177/0954410016644632.
+- No calibration factor is removed:
+  - Δσ stands in for the unpublished blade exit angle / backsweep;
+  - Cf stands in for the 15-vane wedge diffuser and 90° turn, whose vane geometry is unpublished.
+- Recalibration on the 90 krpm measured points with the current code reproduces Δσ −0.1041 and Cf 0.0937
+  (`scripts/phase4/kj66_rebuild_check.py`).
+- The Xiang CFD efficiency drop (0.73 → 0.55, 80 → 117 krpm) is not reproduced. The model stays at 0.76–0.77, in line
+  with the MEASURED 0.77 → 0.75 (70–110 krpm). Under the MEAS > CFD weighting the model is kept.
+
+### D-048 · 2026-10-25 · Idle-EGT investigation: diagnostic hook only, no model change
+- `Engine.diag_eta_delta` (diagnostic, default None) shifts a component efficiency at unchanged PR and flow
+  capacity. `EnginePoint` gains `T05_static_K` and `turbine_exit_mach` for the thermocouple reading. With the hook
+  off, results are bit-identical (test).
+- Findings: `docs/VALIDATION.md` and the Phase 4 report. None of the four suspects explains the idle EGT. Nothing was
+  tuned.
+
+### D-049 · 2026-10-25 · Pilot v2 stopped by the stop rule (5.5 % feasible < 10 %)
+- 185 of 200 designs fail in design mode: 161 `tip_speed_too_low_for_pr`, 20 turbine, 4 `too_high_for_pr`.
+- 11 of the 15 designed engines are feasible. Relaxing all creep settings together gives 13, so the conservative
+  settings are NOT the cause.
+- Cause: in this KJ-66-like compressor family, PR and U2 are tied (no design above PR ~3.2 can be built at
+  ≤ 500 m/s), and the reachable U2 band at a given PR is only ~50 m/s wide. Independent sampling of PR and U2 misses it.
+- The full run was not started; the next step is the user's decision (Phase 4 report).

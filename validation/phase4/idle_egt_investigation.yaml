@@ -1,0 +1,130 @@
+thermocouple_recovery_factor: 0.68
+kj66_xiang_replica:
+  W_kg_s: 0.22
+  pr_c: 2.2
+  n_rpm: 117000
+  Fn_N: 75.0
+  TSFC_kg_N_h: 0.1785
+  tit_K: 995.7
+  eta_c: 0.764
+  eta_t_ts: 0.737
+  EGT_total_K: 914.0
+  EGT_tc_K: 907.7
+  impeller_r2_mm: 32.21
+  spec_EGT_K: 843.0
+  EGT_tc_minus_spec_K: 64.7
+kj66_murray_replica:
+  W_kg_s: 0.2596
+  pr_c: 2.54
+  n_rpm: 128000
+  Fn_N: 92.3
+  TSFC_kg_N_h: 0.154
+  tit_K: 956.8
+  eta_c: 0.765
+  eta_t_ts: 0.741
+  EGT_total_K: 856.8
+  EGT_tc_K: 849.2
+  impeller_r2_mm: 32.35
+  spec_EGT_K: 863.15
+  EGT_tc_minus_spec_K: -13.9
+baseline_phase3:
+  W_kg_s: 0.3
+  pr_c: 3.0
+  n_rpm: 130000
+  Fn_N: 148.29
+  TSFC_kg_N_h: 0.1496
+  tit_K: 1150.0
+  eta_c: 0.751
+  eta_t_ts: 0.742
+  EGT_total_K: 1032.5
+  EGT_tc_K: 1023.6
+  impeller_r2_mm: 35.39
+operating_lines_summary:
+  baseline_phase3:
+    lowest_converged_speed_frac: 0.28
+    EGT_tc_design_K: 1023.6
+    EGT_tc_35pct_K: 926.2
+    EGT_tc_lowest_K: 934.2
+    thrust_frac_lowest: 0.0399
+    idle_over_design_EGT_tc_K_ratio: 0.913
+    eta_c_design_lowest:
+    - 0.751
+    - 0.698
+    eta_t_design_lowest:
+    - 0.742
+    - 0.721
+    tit_design_lowest_K:
+    - 1150.0
+    - 944.0
+  kj66_murray:
+    lowest_converged_speed_frac: 0.28
+    EGT_tc_design_K: 849.2
+    EGT_tc_35pct_K: 847.2
+    EGT_tc_lowest_K: 854.2
+    thrust_frac_lowest: 0.0474
+    idle_over_design_EGT_tc_K_ratio: 1.006
+    eta_c_design_lowest:
+    - 0.765
+    - 0.729
+    eta_t_design_lowest:
+    - 0.741
+    - 0.722
+    tit_design_lowest_K:
+    - 956.8
+    - 862.5
+  kj66_xiang:
+    lowest_converged_speed_frac: 0.28
+    EGT_tc_design_K: 907.7
+    EGT_tc_35pct_K: 886.9
+    EGT_tc_lowest_K: 892.5
+    thrust_frac_lowest: 0.0495
+    idle_over_design_EGT_tc_K_ratio: 0.983
+    eta_c_design_lowest:
+    - 0.764
+    - 0.734
+    eta_t_design_lowest:
+    - 0.737
+    - 0.723
+    tit_design_lowest_K:
+    - 995.7
+    - 899.3
+step1_idle_eta_sensitivity_baseline_35pct_EGT_tc_K:
+  compressor_-0.02: 947.6
+  compressor_+0.02: 906.2
+  turbine_-0.02: 947.1
+  turbine_+0.02: 906.6
+  nominal: 926.2
+step1_dEGT_per_point_eta_K:
+  compressor: -10.35
+  turbine: -10.12
+step2_thermocouple_correction_K:
+  baseline_phase3:
+    design: 8.9
+    35pct: 1.0
+  kj66_murray:
+    design: 7.6
+    35pct: 0.8
+  kj66_xiang:
+    design: 6.3
+    35pct: 0.7
+step3_combustion_efficiency_at_idle_baseline_35pct:
+  eta_b_0.95:
+    EGT_tc_K: 926.25
+    tit_K: 941.64
+    Wf_g_s: 1.3278
+    design_check_Fn_N: 148.286
+  eta_b_0.9:
+    EGT_tc_K: 925.18
+    tit_K: 940.54
+    Wf_g_s: 1.4017
+    design_check_Fn_N: 148.286
+  eta_b_0.8:
+    EGT_tc_K: 922.66
+    tit_K: 937.94
+    Wf_g_s: 1.5773
+    design_check_Fn_N: 148.286
+step4_reynolds_ratio_idle_over_design_baseline:
+  compressor (inlet, same T01): 0.256
+  turbine (exit): 0.273
+  direction: lower Re at idle -> higher loss -> LOWER idle efficiencies -> HIGHER
+    idle EGT (step 1 sensitivity)

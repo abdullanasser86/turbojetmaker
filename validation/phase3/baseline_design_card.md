@@ -43,14 +43,16 @@ Creep (NiDI No. 393 rupture data; life and safety factor from configs/materials.
 
 | material | rotor T_metal (T0,rel) | rotor stress centrifugal + gas bending | allowable | rotor | NGV gas bending | NGV PF_max | NGV |
 |---|---|---|---|---|---|---|---|
-| in713c | 1088 K | 557 + 17 MPa (x SF 1.5) | 415 MPa | AN2 | 22 MPa | 0.30 | unchecked_pattern_factor_missing |
-| marm247 | 1088 K | 601 + 17 MPa (x SF 1.5) | 557 MPa | AN2 | 22 MPa | 0.22 | unchecked_pattern_factor_missing |
+| in713c | 1088 K | 557 + 17 MPa (x SF 1.5) | 415 MPa | AN2 | 22 MPa | 0.30 | ok |
+| marm247 | 1088 K | 601 + 17 MPa (x SF 1.5) | 557 MPa | AN2 | 22 MPa | 0.22 | above_material_data |
 
 - selected material: NONE (infeasible)
 - impeller tip speed 482 m/s (limit 500)
 - AN^2 = 4.03e+07 m2 rpm2
-- feasible: False (active constraints: AN2)
-- tags: turbine efficiency at micro scale unvalidated (Kofskey validation turbine is 0.24 m), NGV creep unchecked: pattern factor not sourced (vanes survive PF <= 0.30)
+- feasible: False (active constraints: AN2, TIT_ngv_above_material_data)
+- material status: fails_creep
+- turbine design-range flags (DePaola 2020 Table 2, sanity only): turbine an2_m2_rpm2 = 4.03e+07 outside DePaola Table 2 range [None, 32258000.0]; turbine loading_coefficient = 1 outside DePaola Table 2 range [1.4, 2.0]
+- tags: turbine efficiency at micro scale unvalidated (Kofskey validation turbine is 0.24 m), turbine an2_m2_rpm2 = 4.03e+07 outside DePaola Table 2 range [None, 32258000.0], turbine loading_coefficient = 1 outside DePaola Table 2 range [1.4, 2.0]
 
 ## Off-design (physics-evaluated, speed-controlled)
 

@@ -1,0 +1,91 @@
+name: phase4_v2
+designs_evaluated: 200
+designs_planned: 2000
+design_status:
+  design_failed: 185
+  ok: 15
+design_failure_reasons:
+  design_compressor_tip_speed_too_low_for_pr: 161
+  design_turbine: 20
+  design_compressor_tip_speed_too_high_for_pr: 4
+feasible_designs: 11
+infeasible_designs_by_active_constraint:
+  AN2;TIT_ngv_above_material_data: 2
+  AN2: 1
+  TIT_ngv_above_material_data: 1
+premium_material_required: 2
+points:
+  cruise_M05_3km:
+    converged_all_designs: 14/200
+    converged_designed_engines: 14/15
+    failure_reasons_designed_engines:
+      'no_convergence: max iterations': 1
+    surge_flags:
+      ? ''
+      : 15
+  design:
+    converged_all_designs: 15/200
+    converged_designed_engines: 15/15
+    failure_reasons_designed_engines: {}
+    surge_flags:
+      ? ''
+      : 15
+  idle_35:
+    converged_all_designs: 15/200
+    converged_designed_engines: 15/15
+    failure_reasons_designed_engines: {}
+    surge_flags:
+      ? ''
+      : 15
+  part_speed_80:
+    converged_all_designs: 15/200
+    converged_designed_engines: 15/15
+    failure_reasons_designed_engines: {}
+    surge_flags:
+      ? ''
+      : 15
+split:
+  train_val: 166
+  test: 34
+split_ok_designs:
+  train_val: 14
+  test: 1
+calibration_sampled: 43
+time_per_design_s:
+  mean: 6.11
+  median: 5.12
+  p95: 10.49
+  max: 73.8
+turbine_outside_turboflow_range:
+  rotor_hub_tip: 0
+  any_warning: 2
+  feasible_with_rotor_hub_tip_warning: 0
+ngv_pf_max_in713c:
+  p10: 0.156
+  median: 0.427
+  p90: 0.584
+material_status:
+  ok_default: 9
+  fails_creep: 3
+  ok_premium: 2
+  unchecked_no_material_data: 1
+depaola_table2_flags:
+  an2_m2_rpm2: 1
+  loading_coefficient: 6
+  exit_mach: 10
+  exit_swirl_deg: 0
+sensitivity_feasible:
+  at_ah_0.34: 11
+  pf_0.15: 11
+  pf_0.35: 8
+derived_ranges:
+  derived_n_rpm:
+  - 28671.797
+  - 166759.898
+  derived_turb_phi:
+  - 0.268
+  - 1.327
+last_run:
+  designs_this_run: 200
+  wall_s: 413.1109449863434
+  workers: 3

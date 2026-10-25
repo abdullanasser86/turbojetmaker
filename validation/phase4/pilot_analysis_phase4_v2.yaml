@@ -1,0 +1,98 @@
+name: phase4_v2
+pilot_designs: 200
+designed_engines: 15
+feasible: 11
+feasible_fraction_of_pilot: 0.055
+feasible_fraction_of_designed: 0.7333
+min_feasible_fraction: 0.1
+stop: true
+design_failure_reasons:
+  design_compressor_tip_speed_too_low_for_pr: 161
+  design_turbine: 20
+  design_compressor_tip_speed_too_high_for_pr: 4
+point_failure_reasons:
+  cruise_M05_3km:
+    design_failed: 185
+    'no_convergence: max iterations': 1
+  design:
+    design_failed: 185
+  idle_35:
+    design_failed: 185
+  part_speed_80:
+    design_failed: 185
+point_converged_of_designed:
+  cruise_M05_3km: 14/15
+  design: 15/15
+  idle_35: 15/15
+  part_speed_80: 15/15
+infeasible_by_active_constraints:
+  AN2;TIT_ngv_above_material_data: 2
+  AN2: 1
+  TIT_ngv_above_material_data: 1
+active_constraint_per_infeasible_design:
+  '30': AN2
+  '81': AN2;TIT_ngv_above_material_data
+  '105': AN2;TIT_ngv_above_material_data
+  '110': TIT_ngv_above_material_data
+designs_hitting_each_constraint:
+  AN2: 3
+  TIT_ngv_above_material_data: 3
+material_status:
+  ok_default: 9
+  fails_creep: 3
+  ok_premium: 2
+  unchecked_no_material_data: 1
+marm247_no_data_branch:
+  count: 1
+  tit_range_K:
+  - 1273.7
+  - 1273.7
+stored_sensitivity_feasible_counts:
+  at_ah_0.34: 11
+  pf_0.15: 11
+  pf_0.35: 8
+conservative_settings_probe:
+  default (100 h, SF 1.5, At/Ah 1, PF 0.25):
+    feasible: 11
+    fraction_of_pilot: 0.055
+    constraint_hits:
+      AN2: 3
+      TIT_ngv_above_material_data: 3
+  life 50 h:
+    feasible: 11
+    fraction_of_pilot: 0.055
+    constraint_hits:
+      AN2: 3
+      TIT_ngv_above_material_data: 3
+  SF 1.25:
+    feasible: 11
+    fraction_of_pilot: 0.055
+    constraint_hits:
+      AN2: 3
+      TIT_ngv_above_material_data: 3
+  SF 1.0:
+    feasible: 11
+    fraction_of_pilot: 0.055
+    constraint_hits:
+      TIT_ngv_above_material_data: 3
+      creep_rotor: 1
+      AN2: 1
+  At/Ah 0.34 (K 0.67):
+    feasible: 11
+    fraction_of_pilot: 0.055
+    constraint_hits:
+      TIT_ngv_above_material_data: 3
+      creep_rotor: 1
+      AN2: 1
+  PF 0.15:
+    feasible: 11
+    fraction_of_pilot: 0.055
+    constraint_hits:
+      AN2: 3
+      TIT_ngv_above_material_data: 2
+  all relaxed (50 h, SF 1.0, At/Ah 0.34, PF 0.15):
+    feasible: 13
+    fraction_of_pilot: 0.065
+    constraint_hits:
+      TIT_ngv_above_material_data: 2
+check_default_probe_reproduces_dataset: true

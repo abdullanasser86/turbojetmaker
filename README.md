@@ -14,9 +14,9 @@ physics models.
 > testing by qualified people before anything is built or run.
 
 ## Status
-Phase 4 (training dataset) — generator built and 256-design pilot run; the full 2 000-design run waits for a
-sampling decision. See `docs/PHASE4_REPORT.md` and the dataset card `docs/dataset_cards/phase4_v1.md` (earlier:
-`docs/PHASE0_REPORT.md` … `docs/PHASE3_REPORT.md`).
+Phase 4 (training dataset), round 2: the option-C pilot (`phase4_v2`) was STOPPED by the agreed stop rule
+(5.5 % feasible < 10 %); the full run waits for a sampling decision. See `docs/PHASE4_REPORT.md` and the dataset cards
+`docs/dataset_cards/phase4_v1.md`, `phase4_v2.md` (earlier: `docs/PHASE0_REPORT.md` … `docs/PHASE3_REPORT.md`).
 
 What exists now: a 0-D cycle (plus pyCycle-CEA cross-check), meanline compressor and axial-turbine models, a coupled
 engine model with design mode (sizing) and off-design matching, turbine creep checks from NiDI No. 393 rupture data,

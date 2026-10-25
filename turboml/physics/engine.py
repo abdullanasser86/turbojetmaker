@@ -420,6 +420,10 @@ class EnginePoint:
     p03_Pa: float = float("nan")
     p04_Pa: float = float("nan")
     T05_K: float = float("nan")  # turbine exit total temperature = EGT
+    T05_static_K: float = float(
+        "nan"
+    )  # turbine exit static temperature (thermocouple-reading correction)
+    turbine_exit_mach: float = float("nan")  # absolute Mach number at the rotor exit
     p05_Pa: float = float("nan")
     V9_m_s: float = float("nan")
     nozzle_choked: bool = False
@@ -484,6 +488,10 @@ class Engine:
             cfg["components"].get("off_design_loss_scaling", "corrected_flow_squared")
         )
         self._last = {}  # (alt, mach, dT) -> list of (n_rpm, x)
+        # DIAGNOSTIC ONLY (idle-EGT study): {"compressor": d_eta, "turbine": d_eta} shifts that component's
+        # efficiency at unchanged pressure ratio and flow capacity (work rescaled by eta/(eta + d_eta) for the
+        # compressor, (eta + d_eta)/eta for the turbine). None = the physics model as is.
+        self.diag_eta_delta: dict | None = None
 
     # ---------------------------------------------------------------- one evaluation
     def _residuals(self, x, n_rpm, ctx):
@@ -506,8 +514,14 @@ class Engine:
         if not cp.converged:
             raise EngineFailure(_comp_label(cp.failure_reason))
         air = thermo.air()
-        s3 = cs.FlowState(cp.T03_K, cp.pr_tt * p02, m, air, air.h(cp.T03_K))
-        dp_b = loss("burner", L.dp_burner_frac, m * math.sqrt(cp.T03_K) / s3.Pt)
+        diag = self.diag_eta_delta or {}
+        T03, P_c = cp.T03_K, cp.power_W
+        if "compressor" in diag:
+            h01 = air.h(ctx["T02"])
+            dh = (air.h(T03) - h01) * cp.eta_tt / (cp.eta_tt + diag["compressor"])
+            T03, P_c = air.T_from_h(h01 + dh, T03), m * dh
+        s3 = cs.FlowState(T03, cp.pr_tt * p02, m, air, air.h(T03))
+        dp_b = loss("burner", L.dp_burner_frac, m * math.sqrt(T03) / s3.Pt)
         try:
             s4 = cs.combustor(s3, tit, dp_b, L.eta_burner, L.lhv_J_kg)
         except cs._Infeasible as e:
@@ -521,17 +535,22 @@ class Engine:
         if not tp.converged:
             raise EngineFailure(f"turbine_{tp.failure_reason}")
         m4 = s4.W
+        T05, P_t, T5s = tp.T0_out_K, tp.power_W, tp.T_out_K
+        if "turbine" in diag:
+            w = tp.work_J_kg * (tp.eta_ts + diag["turbine"]) / tp.eta_ts
+            T05 = gas.T_from_h(gas.h(tit) - w, T05)
+            T5s, P_t = T5s + (T05 - tp.T0_out_K), tp.mass_flow_kg_s * w
         Pt9 = tp.p0_out_Pa * (
-            1 - loss("nozzle", L.dp_nozzle_frac, m4 * math.sqrt(tp.T0_out_K) / tp.p0_out_Pa)
+            1 - loss("nozzle", L.dp_nozzle_frac, m4 * math.sqrt(T05) / tp.p0_out_Pa)
         )
         if Pt9 <= ctx["Ps0"]:
             raise EngineFailure("no_nozzle_pressure_ratio")
-        m9, V9, Ps9, choked9 = nozzle_mass_flow(gas, tp.T0_out_K, Pt9, self.A9, ctx["Ps0"])
-        P_c = cp.power_W
+        m9, V9, Ps9, choked9 = nozzle_mass_flow(gas, T05, Pt9, self.A9, ctx["Ps0"])
         r = [tp.mass_flow_kg_s / m4 - 1.0,
-             (L.eta_mech * tp.power_W - P_c - L.power_offtake_W) / max(P_c, 1.0),
+             (L.eta_mech * P_t - P_c - L.power_offtake_W) / max(P_c, 1.0),
              m9 / m4 - 1.0]  # fmt: skip
-        state = dict(cp=cp, s4=s4, tp=tp, m4=m4, m9=m9, V9=V9, Ps9=Ps9, choked9=choked9, gas=gas)
+        state = dict(cp=cp, s4=s4, tp=tp, m4=m4, m9=m9, V9=V9, Ps9=Ps9, choked9=choked9, gas=gas,
+                     T03=T03, P_c=P_c, T05=T05, P_t=P_t, T5s=T5s)  # fmt: skip
         return r, state
 
     def _point(self, x, state, n_rpm, ctx, it, rmax, t0):
@@ -541,11 +560,15 @@ class Engine:
         Fg = L.nozzle_cv * state["m4"] * state["V9"] + self.A9 * (state["Ps9"] - ctx["Ps0"])
         Fn = Fg - m * ctx["V0"]
         Wf = m * s4.far
+        diag = self.diag_eta_delta or {}
+        eta_c = cp.eta_tt + diag.get("compressor", 0.0)
+        eta_t = tp.eta_ts + diag.get("turbine", 0.0)
         pt = EnginePoint(n_rpm=n_rpm, alt_m=ctx["alt_m"], mach=ctx["mach"], converged=True, W_air_kg_s=m, far=s4.far,
                          Wf_kg_s=Wf, Fn_N=Fn, Fg_N=Fg, TSFC_kg_N_s=Wf / Fn if Fn > 0 else float("nan"), pr_c=cp.pr_tt,
-                         eta_c=cp.eta_tt, P_comp_W=cp.power_W, tit_K=s4.Tt, pr_t_ts=tp.pr_ts, eta_t_ts=tp.eta_ts,
-                         P_turb_W=tp.power_W, turbine_choked=tp.choked, T02_K=ctx["T02"], p02_Pa=ctx["p02"],
-                         T03_K=cp.T03_K, p03_Pa=cp.pr_tt * ctx["p02"], p04_Pa=s4.Pt, T05_K=tp.T0_out_K,
+                         eta_c=eta_c, P_comp_W=state["P_c"], tit_K=s4.Tt, pr_t_ts=tp.pr_ts, eta_t_ts=eta_t,
+                         P_turb_W=state["P_t"], turbine_choked=tp.choked, T02_K=ctx["T02"], p02_Pa=ctx["p02"],
+                         T03_K=state["T03"], p03_Pa=cp.pr_tt * ctx["p02"], p04_Pa=s4.Pt, T05_K=state["T05"],
+                         T05_static_K=state["T5s"], turbine_exit_mach=tp.exit_mach,
                          p05_Pa=tp.p0_out_Pa, V9_m_s=state["V9"], nozzle_choked=state["choked9"],
                          compressor_tip_speed_m_s=cp.tip_speed_m_s, t0_rel_rotor_K=tp.T0_rel_rotor_in_K,
                          iterations=it, max_residual=rmax, time_s=time.perf_counter() - t0)  # fmt: skip
@@ -798,7 +821,8 @@ def design_engine(
                      Fg_N=noz.Fg, TSFC_kg_N_s=Wf / Fn if Fn > 0 else float("nan"), pr_c=cpt.pr_tt, eta_c=cpt.eta_tt,
                      P_comp_W=cpt.power_W, tit_K=tit, pr_t_ts=tpt.pr_ts, eta_t_ts=tpt.eta_ts, P_turb_W=tpt.power_W,
                      turbine_choked=tpt.choked, T02_K=T02, p02_Pa=p02, T03_K=cpt.T03_K, p03_Pa=s3.Pt, p04_Pa=s4.Pt,
-                     T05_K=tpt.T0_out_K, p05_Pa=tpt.p0_out_Pa, V9_m_s=noz.V, nozzle_choked=noz.choked,
+                     T05_K=tpt.T0_out_K, T05_static_K=tpt.T_out_K, turbine_exit_mach=tpt.exit_mach,
+                     p05_Pa=tpt.p0_out_Pa, V9_m_s=noz.V, nozzle_choked=noz.choked,
                      compressor_tip_speed_m_s=cpt.tip_speed_m_s, t0_rel_rotor_K=tpt.T0_rel_rotor_in_K)  # fmt: skip
     mats = mechanical.MaterialSet.from_yaml()
     from turboml.config import load_config

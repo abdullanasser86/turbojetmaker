@@ -199,3 +199,63 @@ Caveat: the held-out points now set the band width, so they are no longer indepe
   max |ΔFn| 0.039 %, max |ΔTSFC| 0.067 %; gate passed. The 0-D `cycle_simple` vs pyCycle-CEA also had 0 flagged.
 - Two designs is a thin sample. The full run checks 2 % of ~700 designed engines (~14).
 - Baseline regression: the Phase 3 baseline still gives 148.286 N after the Phase 4 changes (`tests/test_engine.py`).
+
+## Phase 4 (round 2) — KJ-66 rebuild check, idle EGT, dataset v2 pilot
+
+### KJ-66 compressor (`scripts/phase4/kj66_rebuild_check.py` → `validation/phase4/kj66_rebuild_check.yaml`)
+Geometry: the user's Xiang 2017 extract matches the model exactly; no calibration factor can be removed (D-047).
+Recalibration on the 90 krpm measured points reproduces Δσ = −0.1041, Cf = 0.0937.
+
+| speed | model peak η | measured max η (MEAS) | Xiang CFD peak η | model PR at peak η | measured max PR | Xiang CFD peak PR |
+|---|---|---|---|---|---|---|
+| 70 krpm | 0.754 | 0.770 | – | 1.365 | 1.392 | – |
+| 80 krpm | 0.757 | 0.770 | 0.73 | 1.495 | 1.520 | 1.54 |
+| 90 krpm | 0.761 | 0.768 | – | 1.658 | 1.695 | – |
+| 100 krpm | 0.765 | 0.767 | 0.63 | 1.855 | 1.865 | 1.76 |
+| 110 krpm | 0.768 | 0.752 | – | 2.097 | 2.075 | – |
+| 117 krpm | 0.770 | – | 0.55 | 2.293 | – | 1.96 |
+
+- Manufacturer points (MFR; error floor 10 %):
+  - Xiang design PR 2.2 at 0.22 kg/s, 117 krpm → model 2.341 (+6.4 %).
+  - Murray PR ≈ 2.54 at 128 krpm → model 2.67 at the peak-efficiency flow (+5 %; extrapolated beyond the 110 krpm
+    data).
+- Above 100 krpm the model's speed lines have no interior PR peak above 0.05 kg/s, so the surge side is not resolved
+  there.
+
+### Idle EGT (`scripts/phase4/idle_egt_investigation.py` → `validation/phase4/idle_egt_investigation.yaml`)
+EGT is compared as a bare-wire thermocouple reading, T_s + 0.68 (T_t − T_s) (Murray, ASSUM), at the turbine exit.
+KJ-66 replicas use the KJ-66 compressor family; the turbine stage choices (φ 0.7, ψ 1.0, R 0.5) are an ASSUMPTION
+because the KJ-66 turbine geometry is not available.
+
+| engine | matched to (MFR) | TIT | EGT reading, full power | spec EGT | EGT at 35 % / 28 % speed |
+|---|---|---|---|---|---|
+| KJ-66 Xiang build | 75 N at 0.22 kg/s, PR 2.2, 117 krpm | 996 K | 908 K (635 °C) | 843 K | 887 / 893 K |
+| KJ-66 Murray build | 92.3 N and SFC 0.154 kg/(N h), PR 2.54, 128 krpm (W solved 0.260 kg/s) | 957 K | 849 K (576 °C) | 863 K (590 °C) | 847 / 854 K |
+| Phase 3 baseline | – | 1150 K | 1024 K | – | 926 / 934 K |
+
+Step by step, for the baseline at 35 % speed:
+1. **Efficiencies:** idle η_c 0.70 (design 0.75), η_t,ts 0.72 (0.74). Sensitivity: −10.4 K idle EGT per +1 pt of
+   η_c, −10.1 K per +1 pt of η_t.
+2. **Thermocouple:** the reading is 6–9 K below the total temperature at full power and ≤ 1 K below it at idle.
+3. **Combustion efficiency at idle** 0.95 → 0.90 → 0.80: EGT −1.1 / −3.6 K, fuel flow +5.6 / +18.8 %. In a
+   power-balanced, speed-controlled engine the turbine sets the TIT, so η_b changes the fuel flow, not the
+   temperatures.
+4. **Reynolds number** at idle is 0.26 (compressor) and 0.27 (turbine) of design. A Reynolds correction LOWERS idle
+   efficiencies, so it would RAISE idle EGT; it is the wrong direction. No correlation was applied (none cited).
+
+What this shows:
+- The original comparison (baseline idle 654 °C vs KJ-66 full-power 590 °C) mixed two engines.
+- On KJ-66 replicas, full-power EGT is within −14 to +65 K of the manufacturer values.
+- But the model's EGT hardly falls between full power and idle (ratio 0.98–1.01 on the replicas). JetCat's idle-to-max
+  EGT bands are 190–330 K wide (P20 210, P80-SE 190, P220 330, P300–P550 270 K). These are operating bands, not idle
+  values (MFR), but they indicate a much cooler low end.
+- None of steps 1–4 closes a gap of that size: the efficiencies would need about +10 pts each at idle.
+- The remaining suspect is the low-speed matching: compressor flow/PR at 28–35 % speed, which lies below the 70 krpm
+  calibration data, and turbine flow capacity at PR ≈ 1.1. Testing it needs Murray's measured 48–64 krpm PR, mass flow
+  and TIT (Figs 5.1–5.3, figures only).
+
+### Dataset `phase4_v2` pilot (`scripts/phase4/pilot_feasibility_analysis.py`)
+- 200 designs: 15 designed, **11 feasible (5.5 % < 10 %): stopped** (D-049).
+- Cross-check: 1 of 15 designed engines checked, 0 flagged (ΔFn 0.010 %, ΔTSFC 0.054 %).
+- The pilot ran from the working tree that was committed as af26454. The later diagnostic hook does not change
+  results (test `test_diag_hook_off_is_identical_and_on_moves_egt_the_right_way`; Phase 3 baseline outputs unchanged).

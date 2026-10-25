@@ -198,6 +198,19 @@ terms and a short "what we did and why".
 - **Warm start** – Starting an iterative solver from the previous answer. Neighbouring steps of a march have nearly the
   same solution, so Newton converges in 2–3 iterations instead of a bracketed search of ~20.
 
+- **Data types (MEAS / CFD / MFR / ASSUM)** – Where a number comes from: measured, simulated (CFD), a manufacturer's
+  claim, or a modelling assumption recommended by a source. When sources disagree we trust them in that order. Two
+  engines of the same make and model can differ by up to 10 %, so a model can't be validated more tightly than that
+  against catalogue data.
+- **Specific speed** – N √Q / Δh^0.75: one number for the "shape" of a compressor. A high-specific-speed wheel has a big
+  inlet compared with its outer diameter. For a given pressure ratio, the specific speed decides how much tip speed is
+  needed. That is why PR and tip speed are tied together in one compressor family.
+- **Thermocouple recovery factor** – A bare thermocouple in a gas stream reads between the static and the total
+  temperature: T_s + r (T_t − T_s), with r ≈ 0.68 for a bare wire across the flow (Murray). The difference is small
+  when the gas is slow (≈ 1 K at idle).
+- **Stop rule** – A pass/fail criterion fixed *before* a run (here: ≥ 10 % feasible in the pilot), so the decision
+  isn't bent by the result.
+
 ### ML and optimization (expanded from Phase 4 on)
 - **Surrogate model** – A fast ML approximation of a slow physics model. Here it runs in
   microseconds instead of seconds.
@@ -338,4 +351,20 @@ Phase 4 can sample this model to build the training data.
 **Why it matters:** The surrogate in Phase 5 learns from this data. The pilot shows that sampling the box naïvely
 wastes most runs on engines that can't exist, so the sampling has to be fixed before the full run (decision for the
 user).
+
+### Phase 4, round 2 — Reference data, option C pilot, idle EGT (2026-10-25)
+**What we did**
+1. Took in the user's extracts of the KJ-66, DePaola, Murray and JetCat documents, each value tagged by data type.
+2. Checked the KJ-66 compressor against Xiang's geometry. It was already the same geometry, so the calibration stays.
+   The model follows the *measured* efficiency, not the CFD one.
+3. Sampled impeller tip speed and turbine hub/tip ratio instead of shaft speed and flow coefficient (option C). The
+   pilot stopped at 5.5 % feasible: with this compressor family, pressure ratio and tip speed are tied, so most random
+   (PR, tip speed) pairs can't be built at all.
+4. Investigated the idle EGT. The model gets the KJ-66 full-power EGT about right, but its EGT barely drops towards
+   idle. Efficiencies, thermocouple reading, combustion efficiency and Reynolds number can't explain that. The
+   low-speed matching is the next suspect, and Murray's low-speed measurements would test it.
+
+**Why it matters:** Sampling must respect the physics of the component family, or the dataset fills up with
+impossible engines. Validating the *shape* of a trend (EGT vs speed) can reveal model problems that a single design
+point hides.
 

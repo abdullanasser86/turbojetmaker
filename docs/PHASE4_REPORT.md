@@ -148,3 +148,106 @@ are clean.
 5. **Documents** (not received): DePaola 2020, Murray 2009, Xiang 2015 App. A–I, JetCat spec pages, Benner 1997.
 6. **Upstream issues:** the drafts are in `docs/upstream_issues.md`; posting them is your call.
 7. "Go" for the full run (after decision 1), then Phase 5.
+
+---
+
+# Phase 4, round 2 (2026-10-25): reference data, KJ-66 rebuild, idle EGT, option-C pilot
+
+## What was done, item by item
+| # | Your instruction | Done |
+|---|---|---|
+| 0 | Ingest the extracted reference data, tagged MEAS/CFD/MFR/ASSUM, weight MEAS > CFD > MFR > ASSUM | Four new files in `validation/cases/` plus citations in `configs/` (D-044). The 10 % same-model spread is recorded as the error floor for MFR comparisons |
+| A | Rebuild the KJ-66 compressor from Xiang's geometry | Same geometry was already in use, so **no calibration parameter is removed**: Δσ still stands in for the unpublished blade angles/backsweep, Cf for the unpublished 15-vane diffuser. Recalibration reproduces Δσ −0.1041 / Cf 0.0937 (D-047) |
+| B | Idle-EGT investigation in your order | Done, no tuning; findings below (D-048) |
+| C | DePaola assumptions, Table 2 ranges, eq. 58 | Component values unchanged (now tagged). Table 2 ranges are sanity flags on every design. Taper expressed as At/Ah, default 1 (D-045) |
+| D | JetCat specs | `validation/cases/jetcat_specs_user_2026.csv`. Matches the committed catalogue within ≤ 2 % except P220 max EGT 720 vs 750 °C |
+| 1 | Option C sampling, new version, 200-design pilot, stop rule | `phase4_v2` with its own frozen split. **Pilot 5.5 % feasible → stopped**; analysis below (D-046, D-049) |
+| 2 | Taper At/Ah = 1 default, 0.34 as a sensitivity column | Done; counts below |
+| 3 | Pattern factor 0.25 (0.15–0.35) | Done; PF_max still stored |
+| 4 | MAR-M 247 gap → "unchecked, infeasible (no material data)" | `material_status = unchecked_no_material_data`; counts below |
+| 5 | OS / PyTorch index | OS field is still the placeholder. download.pytorch.org is now reachable (HTTP 200), so I can add the CUDA 12.x index as soon as you confirm Windows |
+| 6 | Upstream issues stay drafts | Unchanged in `docs/upstream_issues.md` |
+
+## Calibration changes
+**None.** The recalibration with the current code reproduces the stored factors exactly. Model vs reference data
+(`validation/phase4/kj66_rebuild_check.yaml`):
+- **MEAS** (Murray, 70–110 krpm): model peak efficiency 0.754–0.768 vs measured 0.75–0.77. PR at peak efficiency
+  within −2.2 … +1.1 % of the measured maxima.
+- **CFD** (Xiang, 80/100/117 krpm): the CFD's efficiency drop 0.73 → 0.63 → 0.55 is **not** reproduced; the model
+  stays at 0.76–0.77. The measurements stay at 0.77 → 0.75, so under MEAS > CFD the model is kept. Xiang's own text
+  says the CFD under-predicts the measured PR at speed.
+- **MFR**: PR 2.2 at 0.22 kg/s and 117 krpm → model 2.34 (+6.4 %). PR ≈ 2.54 at 128 krpm (Murray) → model 2.67
+  (+5 %, extrapolated). Both are inside the 10 % same-model spread.
+
+## Idle-EGT findings
+1. **The original comparison mixed engines.** The 654 °C idle EGT belongs to our ~150 N baseline (TIT 1150 K, EGT
+   759 °C at full power), not to a KJ-66.
+2. **KJ-66 replicas at full power are close.** Compared as a thermocouple reading:
+   - Murray build, matched to 92.3 N and SFC 0.154: 576 °C vs 590 °C spec (−14 K).
+   - Xiang build, matched to 75 N at 0.22 kg/s: 635 °C vs 570 °C (+65 K).
+3. **But the model's EGT hardly falls towards idle.** On the replicas, idle EGT (28–35 % speed) is 574–620 °C, about
+   the same as full power. JetCat's idle-to-max EGT bands are 190–330 K wide. That is the real symptom: the trend's
+   shape, not one number.
+4. **Your four suspects, in order:**
+   1. Idle efficiencies (η_c 0.70, η_t 0.72): each point of efficiency is worth only ~10 K, so both would need about
+      +10 pts.
+   2. Static vs total EGT: ≤ 1 K at idle (6–9 K at full power).
+   3. Combustion efficiency at idle 0.90 / 0.80: −1 / −4 K. In a speed-controlled, power-balanced engine the turbine
+      sets the TIT; η_b only changes the fuel flow (+6 / +19 %).
+   4. Reynolds number at idle is ~0.27 of design. A correction lowers efficiencies, so idle would get *hotter*: wrong
+      direction.
+5. **Next suspect: the low-speed matching.** Idle sits at 28–35 % speed, well below the 70 krpm compressor calibration
+   data; the turbine and nozzle flow capacity at PR ≈ 1.1 also matters. Murray's measured 48–64 krpm PR, mass flow and
+   TIT (Figs 5.1–5.3) would test this directly.
+
+## Option-C pilot (`phase4_v2`, 200 designs): STOPPED (5.5 % < 10 %)
+Dataset card: `docs/dataset_cards/phase4_v2.md`. Analysis: `validation/phase4/pilot_analysis_phase4_v2.yaml`.
+
+| | count |
+|---|---|
+| design mode failed | 185 |
+| — compressor: tip speed too low for the PR | 161 |
+| — turbine sizing (limit loading, no convergence, axial Mach ≥ 1 at high hub/tip) | 20 |
+| — compressor: tip speed too high for the PR | 4 |
+| designed engines | 15 |
+| **feasible** | **11** (5.5 % of the pilot, 73 % of designed engines) |
+| infeasible, active constraints | AN2 + TIT_ngv_above_material_data: 2; AN2: 1; TIT_ngv_above_material_data: 1 |
+| material status | ok_default 9, ok_premium 2, fails_creep 3, **unchecked_no_material_data 1** (TIT 1274 K) |
+| sensitivity: feasible at At/Ah 0.34 / PF 0.15 / PF 0.35 | 11 / 11 / 8 |
+| off-design convergence (designed) | design 15/15, cruise 14/15 (1 no_convergence), 80 % 15/15, idle 15/15 |
+| DePaola Table 2 flags | exit Mach 10, ψ 6, AN² 1, exit swirl 0 |
+| cross-check vs pyCycle-CEA | 1 checked, 0 flagged (ΔFn 0.010 %) |
+
+**Are the conservative settings the cause? No.** Feasibility recomputed from the stored stresses and temperatures:
+
+| setting | feasible / 200 |
+|---|---|
+| default (100 h, SF 1.5, At/Ah 1, PF 0.25) | 11 |
+| life 50 h / SF 1.25 / SF 1.0 / At/Ah 0.34 / PF 0.15 (one at a time) | 11 each |
+| all relaxed together | 13 (6.5 %) |
+
+**The cause is the PR–tip-speed coupling of this compressor family.**
+- With a fixed KJ-66-like wheel shape, the pressure ratio is set mainly by the tip speed. Better efficiency at higher
+  specific speed buys only ~50 m/s of range at a given PR.
+- No design above PR ~3.2 can be built at ≤ 500 m/s; 60 % of the PR box (3–5) is unreachable.
+- Even for PR 2–3, an independently drawn tip speed misses the narrow reachable band about half the time.
+- The MAR-M 247 gap affected 1 designed engine. Capping that branch at 1311 K would change nothing in this pilot, so I
+  don't propose it yet.
+
+## Decisions I need from you
+1. **How to sample before the full run** (feasibility-guided proposals, as you asked):
+   - **A. Make PR a result, not an input (recommended).** Sample tip speed U2 (350–500 m/s), the compressor's
+     specific speed (or shaft speed), W, TIT, turbine hub/tip, ψ and R. The compressor is then sized directly, with no
+     root search, and PR comes out wherever this family puts it (roughly 1.9–3.3). Every sample is a real wheel, the tip-speed
+     limit holds by construction, and it is faster. The PR range is what this family can reach, which is the honest
+     answer. The specific-speed bounds would be derived from a sizing scan, like the U2 lower bound.
+   - **B. Keep (PR, U2) but cap PR at ~3.2.** Minimal change, but the narrow U2 band still wastes ~half the samples;
+     I'd expect roughly 15–20 % feasible.
+   - **C. Sample PR within its reachable band at each U2.** This needs two extra sizings per design to find the band
+     edges (about +10 s per design).
+   - **D. Widen the compressor family** (backsweep / work coefficient as a variable) to reach PR 3–5 below 500 m/s.
+     This needs blade-angle data we don't have; a longer-term option.
+2. **Murray's low-speed data:** images of Figs 5.1–5.3 / App. D pages, so I can digitize the 48–64 krpm points
+   (labelled digitized). This is the most direct test of the idle-EGT problem.
+3. **OS** (Windows 11 or Linux) for the PyTorch CUDA index.
+4. "Go" for the chosen sampling, then the full run.

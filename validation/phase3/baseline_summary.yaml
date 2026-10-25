@@ -1,16 +1,17 @@
 design_inputs: {W_air_kg_s: 0.3, pr_c: 3.0, tit_K: 1150.0, n_rpm: 130000.0, turb_phi: 0.7,
   turb_psi: 1.0, turb_reaction: 0.5, alt_m: 0.0, mach: 0.0, dT_isa_K: 0.0, Ps0_Pa: 101325.0}
-design_time_s: 3.7
+design_time_s: 3.9
 design_point: {n_rpm: 130000.0, alt_m: 0.0, mach: 0.0, converged: true, failure_reason: '',
   W_air_kg_s: 0.3, far: 0.02054, Wf_kg_s: 0.00616, Fn_N: 148.28578, Fg_N: 148.28578,
   TSFC_kg_N_s: 4.0e-05, pr_c: 3.0, eta_c: 0.75098, P_comp_W: 42632.88199, tit_K: 1150.0,
   pr_t_ts: 1.85488, eta_t_ts: 0.74203, P_turb_W: 43063.49121, turbine_choked: '',
   T02_K: 288.15, p02_Pa: 99298.5, T03_K: 428.91341, p03_Pa: 297895.5, p04_Pa: 268105.95,
-  T05_K: 1032.52415, p05_Pa: 161708.52255, V9_m_s: 484.33904, nozzle_choked: false,
-  surge_flag: '', compressor_tip_speed_m_s: 481.84929, t0_rel_rotor_K: 1088.11002,
-  tags: 'turbine efficiency at micro scale unvalidated (Kofskey validation turbine
-    is 0.24 m); NGV creep unchecked: pattern factor not sourced (vanes survive PF
-    <= 0.30)', specific_thrust_N_s_kg: 494.28592, TSFC_g_kN_s: 41.54888}
+  T05_K: 1032.52415, T05_static_K: 1004.78684, turbine_exit_mach: 0.41498, p05_Pa: 161708.52255,
+  V9_m_s: 484.33904, nozzle_choked: false, surge_flag: '', compressor_tip_speed_m_s: 481.84929,
+  t0_rel_rotor_K: 1088.11002, tags: 'turbine efficiency at micro scale unvalidated
+    (Kofskey validation turbine is 0.24 m); turbine an2_m2_rpm2 = 4.03e+07 outside
+    DePaola Table 2 range [None, 32258000.0]; turbine loading_coefficient = 1 outside
+    DePaola Table 2 range [1.4, 2.0]', specific_thrust_N_s_kg: 494.28592, TSFC_g_kN_s: 41.54888}
 turbine_sizing:
   r_mean_mm: 27.55
   U_m_s: 375.0
@@ -22,24 +23,23 @@ mechanical:
   material: null
   premium_material_required: false
   tags: [turbine efficiency at micro scale unvalidated (Kofskey validation turbine
-      is 0.24 m), 'NGV creep unchecked: pattern factor not sourced (vanes survive
-      PF <= 0.30)']
-  infeasible_reasons: [AN2]
+      is 0.24 m)]
+  infeasible_reasons: [AN2, TIT_ngv_above_material_data]
 off_design:
   design_check: {converged: true, failure_reason: '', Fn_N: 148.29, TSFC_g_kN_s: 41.55,
     W_air_kg_s: 0.3, pr_c: 3.0, tit_K: 1150.0, EGT_K: 1032.5, surge_flag: '', time_s: 0.13,
     iterations: 2}
   cruise_M05_3km: {converged: true, failure_reason: '', Fn_N: 99.47, TSFC_g_kN_s: 48.37,
     W_air_kg_s: 0.2574, pr_c: 3.052, tit_K: 1086.5, EGT_K: 967.6, surge_flag: '',
-    time_s: 0.93, iterations: 1}
+    time_s: 0.9, iterations: 1}
   part_speed_80: {converged: true, failure_reason: '', Fn_N: 72.28, TSFC_g_kN_s: 51.99,
     W_air_kg_s: 0.2158, pr_c: 2.047, tit_K: 1007.2, EGT_K: 931.3, surge_flag: '',
-    time_s: 0.61, iterations: 8}
+    time_s: 0.69, iterations: 8}
   part_speed_60: {converged: true, failure_reason: '', Fn_N: 33.31, TSFC_g_kN_s: 73.78,
-    W_air_kg_s: 0.1461, pr_c: 1.503, tit_K: 954.3, EGT_K: 911.8, surge_flag: '', time_s: 0.38,
+    W_air_kg_s: 0.1461, pr_c: 1.503, tit_K: 954.3, EGT_K: 911.8, surge_flag: '', time_s: 0.61,
     iterations: 7}
   idle_35: {converged: true, failure_reason: '', Fn_N: 9.54, TSFC_g_kN_s: 139.11,
-    W_air_kg_s: 0.0768, pr_c: 1.15, tit_K: 941.6, EGT_K: 927.3, surge_flag: '', time_s: 0.51,
+    W_air_kg_s: 0.0768, pr_c: 1.15, tit_K: 941.6, EGT_K: 927.3, surge_flag: '', time_s: 0.77,
     iterations: 6}
 operating_line_converged: 15/15
 operating_line_failures: []
