@@ -28,7 +28,7 @@ cells = [
     code(
         "import os, warnings\n"
         "from pathlib import Path\n"
-        "import numpy as np, pandas as pd, matplotlib.pyplot as plt, yaml\n"
+        "import pandas as pd, matplotlib.pyplot as plt, yaml\n"
         "from IPython.display import Markdown, display\n"
         "ROOT = Path.cwd().parent if Path.cwd().name == 'notebooks' else Path.cwd(); os.chdir(ROOT)\n"
         "warnings.filterwarnings('ignore')\n"

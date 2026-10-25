@@ -113,7 +113,22 @@ Source and file: `configs/components/kj66_compressor_calibration.yaml`, `scripts
 | `rotor_plus` (TurboFlow's intended rotor sign) | 1.7 % | 4.3 pts | 7.5 % |
 Benner loss port vs TurboFlow's own function: equal to 1e-9 (`tests/test_turbine_meanline.py`).
 
-SOBOL_SECTION
+**Verification across the design space vs TurboFlow** (`scripts/phase3/turbine_port_verification.py`; 256 scrambled
+Sobol samples, seed 20261024, each sized from φ 0.35–0.9, ψ 0.9–2.2, R 0.2–0.6, AR 0.8–2.0, clearance 0.5–5 %,
+work 80–250 kJ/kg, mass flow 0.08–1.9 kg/s, speed from the database trend ×0.75–1.3, T0 1000–1350 K, p0 1.9–4.8 bar;
+evaluated at the estimated design point and at one off-design point (speed 60–110 %, PR ×0.7–1.5)). Air in both
+models. Acceptance: η_ts ±2 pts, mass flow ±2 %, work ±2 %.
+| | mean abs | 95th pct abs | max abs | outside acceptance |
+|---|---|---|---|---|
+| η_ts | 0.050 pts | 0.109 pts | 0.471 pts | 0 |
+| mass flow | 0.048 % | 0.108 % | 0.151 % | 0 |
+| specific work | 0.043 % | 0.109 % | 0.651 % | 0 |
+454 points compared (229 samples). 27 samples gave no geometry (hub radius ≤ 0: flow coefficient too low for the flow
+and speed), recorded as `sizing_failed`. 4 points failed in TurboFlow only. **Accepted.**
+Worst cases: all at off-design part speed (63–82 %) with a choked stator and positive rotor incidence (8–23°). They are
+mostly at high φ (0.6–0.9) and low reaction (0.2–0.4), i.e. where the inner loss iteration has to work hardest.
+TurboFlow takes 18.8 s per point (median). The fast model takes 34 ms per cold point while 3 TurboFlow processes run on
+the same 4 cores (~17 ms uncontended, 7.5 ms in sweeps).
 
 **Validation vs Kofskey MEASURED data (untuned)**
 | mode | η_ts mean / max abs | mass flow mean / max abs | torque mean / max abs |

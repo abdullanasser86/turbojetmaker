@@ -103,7 +103,9 @@ class AxialTurbine:
             row = {"p0_in_Pa": op["p0_in"], "T0_in_K": op["T0_in"], "pr_ts": op["p0_in"] / op["p_out"],
                    "omega_rad_s": op["omega"], "speed_frac": op["omega"] / self.design_point["omega"]}  # fmt: skip
             if s is None or not getattr(s, "success", False):
-                rows.append({**row, "converged": False, "failure_reason": error or "no_convergence"})
+                rows.append(
+                    {**row, "converged": False, "failure_reason": error or "no_convergence"}
+                )
                 continue
             r = s.problem.results
             o = r["overall"]

@@ -1,0 +1,184 @@
+samples: 256
+seed: 20261024
+points: 458
+sizing_failed: 27
+status_counts:
+  compared: 454
+  'sizing_failed: blade height exceeds the mean diameter (hub radius <= 0): flow coefficient too low': 27
+  tf_failed: 4
+acceptance:
+  eta_ts_pts: 2.0
+  mass_flow_pct: 2.0
+  work_pct: 2.0
+runtime_s: 2984.2
+fast_time_ms_median_cold: 34.2
+tf_time_s_median: 18.76
+errors:
+  eta_ts_pts:
+    mean: 0.0478
+    mean_abs: 0.0498
+    p95_abs: 0.1091
+    max_abs: 0.4714
+    n_outside_acceptance: 0
+  mass_flow_pct:
+    mean: 0.0419
+    mean_abs: 0.0483
+    p95_abs: 0.1077
+    max_abs: 0.1512
+    n_outside_acceptance: 0
+  work_pct:
+    mean: -0.0015
+    mean_abs: 0.0431
+    p95_abs: 0.1087
+    max_abs: 0.651
+    n_outside_acceptance: 0
+worst_cases:
+- sample: 235
+  point: off_design
+  score: 0.3255
+  d_eta_ts_pts: 0.4714
+  d_mdot_pct: 0.0482
+  d_work_pct: 0.651
+  phi: 0.8763
+  psi: 1.2746
+  reaction: 0.2691
+  mdot_design_kg_s: 0.3383
+  rpm_design: 108938.0476
+  T0_in_K: 1047.717
+  pr_ts_eval: 2.3419
+  speed_frac_eval: 0.7087
+  hub_tip_min: 0.8072
+  fast_choked: stator
+  fast_rotor_incidence_deg: 12.2368
+  n_warnings: 0.0
+- sample: 11
+  point: off_design
+  score: 0.2068
+  d_eta_ts_pts: 0.2495
+  d_mdot_pct: 0.0445
+  d_work_pct: 0.4136
+  phi: 0.89
+  psi: 0.9859
+  reaction: 0.239
+  mdot_design_kg_s: 1.2524
+  rpm_design: 99072.4518
+  T0_in_K: 1167.9566
+  pr_ts_eval: 2.4413
+  speed_frac_eval: 0.6503
+  hub_tip_min: 0.3054
+  fast_choked: stator
+  fast_rotor_incidence_deg: 16.1003
+  n_warnings: 2.0
+- sample: 79
+  point: off_design
+  score: 0.1678
+  d_eta_ts_pts: 0.2663
+  d_mdot_pct: 0.0441
+  d_work_pct: 0.3356
+  phi: 0.6253
+  psi: 1.0075
+  reaction: 0.3068
+  mdot_design_kg_s: 0.1335
+  rpm_design: 146898.7404
+  T0_in_K: 1050.9772
+  pr_ts_eval: 2.9128
+  speed_frac_eval: 0.6269
+  hub_tip_min: 0.8677
+  fast_choked: stator
+  fast_rotor_incidence_deg: 22.8259
+  n_warnings: 0.0
+- sample: 11
+  point: design
+  score: 0.1098
+  d_eta_ts_pts: 0.1531
+  d_mdot_pct: 0.0445
+  d_work_pct: 0.2195
+  phi: 0.89
+  psi: 0.9859
+  reaction: 0.239
+  mdot_design_kg_s: 1.2524
+  rpm_design: 99072.4518
+  T0_in_K: 1167.9566
+  pr_ts_eval: 2.6638
+  speed_frac_eval: 1.0
+  hub_tip_min: 0.3054
+  fast_choked: stator
+  fast_rotor_incidence_deg: -3.5174
+  n_warnings: 2.0
+- sample: 107
+  point: design
+  score: 0.1063
+  d_eta_ts_pts: 0.1756
+  d_mdot_pct: -0.0026
+  d_work_pct: 0.2125
+  phi: 0.8801
+  psi: 1.2183
+  reaction: 0.3265
+  mdot_design_kg_s: 0.5309
+  rpm_design: 100432.9761
+  T0_in_K: 1070.9758
+  pr_ts_eval: 2.1974
+  speed_frac_eval: 1.0
+  hub_tip_min: 0.5149
+  fast_choked: ''
+  fast_rotor_incidence_deg: -0.6204
+  n_warnings: 0.0
+- sample: 231
+  point: off_design
+  score: 0.0972
+  d_eta_ts_pts: -0.1091
+  d_mdot_pct: 0.025
+  d_work_pct: -0.1943
+  phi: 0.7342
+  psi: 1.525
+  reaction: 0.3138
+  mdot_design_kg_s: 0.3039
+  rpm_design: 117899.85
+  T0_in_K: 1086.6432
+  pr_ts_eval: 3.1698
+  speed_frac_eval: 0.8193
+  hub_tip_min: 0.5705
+  fast_choked: stator
+  fast_rotor_incidence_deg: 8.592
+  n_warnings: 0.0
+- sample: 7
+  point: off_design
+  score: 0.0971
+  d_eta_ts_pts: 0.1942
+  d_mdot_pct: 0.0405
+  d_work_pct: 0.1702
+  phi: 0.7571
+  psi: 1.0739
+  reaction: 0.3939
+  mdot_design_kg_s: 0.8715
+  rpm_design: 109107.222
+  T0_in_K: 1141.3355
+  pr_ts_eval: 2.2863
+  speed_frac_eval: 0.7843
+  hub_tip_min: 0.6555
+  fast_choked: stator
+  fast_rotor_incidence_deg: 15.698
+  n_warnings: 0.0
+- sample: 202
+  point: off_design
+  score: 0.0917
+  d_eta_ts_pts: 0.1808
+  d_mdot_pct: 0.0543
+  d_work_pct: 0.1835
+  phi: 0.5934
+  psi: 1.9947
+  reaction: 0.2039
+  mdot_design_kg_s: 0.1156
+  rpm_design: 174267.0624
+  T0_in_K: 1101.9179
+  pr_ts_eval: 2.6747
+  speed_frac_eval: 0.9173
+  hub_tip_min: 0.4958
+  fast_choked: stator
+  fast_rotor_incidence_deg: 1.3554
+  n_warnings: 1.0
+accepted: true
+rotor_plus_minus_turboflow_sign:
+  eta_ts_pts_mean: 0.036
+  eta_ts_pts_min: -4.291
+  eta_ts_pts_max: 47.082
