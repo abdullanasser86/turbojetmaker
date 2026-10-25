@@ -15,20 +15,30 @@ premium_turbine_material: marm247
 # PRELIMINARY-DESIGN CHOICES (user decision 2026-10-25), not requirements from a standard:
 design_life_h:        {value: 100.0, kind: preliminary_design_choice, source: "user decision 2026-10-25"}
 stress_safety_factor: {value: 1.5,   kind: preliminary_design_choice, source: "user decision 2026-10-25 (on stress)"}
-blade_taper_factor:
+# Blade taper as the tip-to-hub blade cross-section AREA ratio At/Ah (DePaola 2020 eq. 58, from Mattingly):
+#   AN^2 = 3600 / (pi (1 + At/Ah)) * sigma/rho      [A in m^2, N in rpm, sigma in Pa, rho in kg/m^3]
+# which is sigma_c = rho omega^2 A (1 + At/Ah) / (4 pi) for a linearly tapered blade. Our constant-section
+# form sigma_c = K rho omega^2 A / (2 pi) is the same with K = (1 + At/Ah) / 2:  At/Ah = 1 <-> K = 1 (no taper),
+# At/Ah = 0.34 <-> K = 0.67 (the Phase 4 what-if value).
+blade_tip_to_hub_area_ratio:
   value: 1.0
-  kind: assumption
-  source: "K in sigma_c = K rho omega^2 A / 2 pi; 1 = untapered constant-section blade (conservative upper bound). Dataset stores sigma_c per unit K, so feasibility can be recomputed with a sourced K."
+  data_type: ASSUM
+  kind: preliminary_design_choice
+  source: "user decision 2026-10-25: At/Ah = 1 (untapered, conservative) for feasibility decisions; mapping to K from DePaola 2020 eq. 58 (Mattingly)"
+  sensitivity: 0.34     # K = 0.67: feasibility stored as a sensitivity column (user decision 2026-10-25)
 
 # Nozzle-guide-vane hot streak: T_metal = TIT + PF (TIT - T3), PF = combustor exit pattern factor
-# (definition: DePaola 2020 Sec. 2.5.2, per user; Lefebvre & Ballal, Gas Turbine Combustion).
-# NOT SOURCED YET: no verifiable typical range was found (web search 2026-10-25 found definitions and single
-# examples only). Until it is, the NGV check reports PF_max = the largest pattern factor the vanes survive;
-# designs failing even at PF = 0 are infeasible.
+# (definition: DePaola 2020 Sec. 2.5.2; Lefebvre & Ballal, Gas Turbine Combustion).
+# User decision 2026-10-25: default 0.25, sensitivity 0.15-0.35, never below 0.25 for feasibility decisions
+# (micro vaporizer combustors are probably no better than the sources below). PF_max (the largest PF the vanes
+# survive) is still stored per design. Source values: validation/cases/combustor_pattern_factor.csv.
 combustor_pattern_factor:
-  value: null
-  kind: missing
-  source: "NEEDED: cited range for small annular combustors (DePaola 2020 Sec. 2.5.2; Lefebvre & Ballal)"
+  value: 0.25
+  data_type: ASSUM
+  kind: preliminary_design_choice
+  sensitivity: [0.15, 0.35]
+  minimum_for_feasibility: 0.25
+  source: "Fear 1972, NASA TM X-2476: small annular combustor for a 4448 N low-cost turbojet, measured exit pattern factor < 0.24 at cruise and sea-level take-off [MEAS]; US Patent 5,265,425: 0.25-0.30 typical for high-performance combustors [ASSUM]; values provided by the user 2026-10-25"
 
 materials:
   in713c:

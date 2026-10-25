@@ -8,6 +8,7 @@ Output: validation/phase4/crosscheck_<name>.csv / .yaml
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
 from pathlib import Path
@@ -34,7 +35,10 @@ def cycle_inputs(p: dict, L: ComponentLosses) -> CycleInputs:
 
 
 def main() -> int:
-    dcfg = yaml.safe_load((ROOT / "configs" / "dataset_phase4.yaml").read_text())
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--config", default=str(ROOT / "configs" / "dataset_phase4_v2.yaml"))
+    args = ap.parse_args()
+    dcfg = yaml.safe_load(Path(args.config).read_text())
     recs = [
         json.loads(ln)
         for ln in (ROOT / dcfg["output_dir"] / "designs.jsonl").read_text().splitlines()

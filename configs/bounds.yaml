@@ -51,6 +51,16 @@ bounds:
     lower: 0.2
     upper: 0.6
     source: "[T] PROVISIONAL, as above; verified range of the fast turbine model"
+  # Phase 4 option C (user decision 2026-10-25): sampled instead of shaft_speed_rpm / turb_flow_coefficient in
+  # dataset phase4_v2; shaft speed and flow coefficient are then derived by the sizing.
+  impeller_tip_speed_m_s:
+    lower: 350.0
+    upper: 500.0
+    source: "upper: user decision 2026-10-25 (<= 500 m/s, inside the 400-550 m/s structural range for turbocharger-type impellers, DePaola 2020 Sec. 2.4.3 [ASSUM]). lower: DERIVED from the Phase 4 sizing scan of the KJ-66-like family: the most efficient wheel reaches PR 2.0 (lowest sampled PR) at ~355-360 m/s (PR 1.8 at 327 m/s, PR 2.2 at 386 m/s, W = 0.1 kg/s); 350 m/s keeps the whole PR >= 2 band reachable"
+  turb_hub_tip_ratio:
+    lower: 0.5
+    upper: 0.95
+    source: "user decision 2026-10-25: rotor-exit hub/tip ratio inside TurboFlow's recommended range [0.5, 0.95] (turboflow geometry_model check_turbine_geometry)"
   # Phase 4 candidates (bounds still to be set with sources): impeller blade count, backsweep, diffuser
   # radius ratio, tip clearance, turbine aspect ratio and tip clearance.
   imp_blade_count: {integer: true}

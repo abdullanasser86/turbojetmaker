@@ -148,6 +148,19 @@ def evaluate_design(rec: dict, engine_cfg: dict, points: list[dict]) -> dict:
                          "impeller_tip_speed_m_s": mech.checks["impeller_tip_speed"]["value_m_s"],
                          "an2_m2_rpm2": mech.checks["an2_m2_rpm2"], "creep": creep,
                          "diameter_m": env["diameter_m"], "length_m": env["length_m"], "dry_mass_kg": env["dry_mass_kg"]}  # fmt: skip
+    out["mechanical"].update(
+        {
+            "material_status": mech.material_status,
+            "turbine_design_range_flags": list(mech.checks["turbine_design_range_flags"]),
+            "turbine_exit_mach": _plain(mech.checks["turbine_exit"]["mach"]),
+            "turbine_exit_swirl_deg": _plain(mech.checks["turbine_exit"]["swirl_deg"]),
+            "sensitivity": sensitivities(d),
+        }
+    )
+    # variables derived by the sizing when the sampled set prescribes their counterparts (option C)
+    out["derived"] = {"n_rpm": _plain(d.inputs["n_rpm"]), "turb_phi": _plain(d.inputs["turb_phi"]),
+                      "turb_hub_tip": _plain(tg.radius_hub_out[1] / tg.radius_tip_out[1]),
+                      "impeller_tip_speed_m_s": _plain(d.design_point.compressor_tip_speed_m_s)}  # fmt: skip
     out["points"]["design"] = _point_dict(d.design_point)
     try:
         eng = Engine(d, engine_cfg)
@@ -166,6 +179,29 @@ def evaluate_design(rec: dict, engine_cfg: dict, points: list[dict]) -> dict:
                 },
             )
     out["time_s"] = time.perf_counter() - t0
+    return out
+
+
+def sensitivities(d) -> dict:
+    """Feasibility of one design under the sensitivity settings of configs/materials.yaml (user decision
+    2026-10-25): blade taper At/Ah = 0.34 (K = 0.67) and pattern factor at the ends of its range. The default
+    settings (At/Ah = 1, PF = 0.25) decide feasibility; these columns only show how much the decision depends
+    on them."""
+    from turboml.physics import mechanical
+
+    cfg = yaml.safe_load(mechanical.MATERIALS.read_text())
+    cases = {f"at_ah_{cfg['blade_tip_to_hub_area_ratio']['sensitivity']}": {
+                 "tip_to_hub_area_ratio": float(cfg["blade_tip_to_hub_area_ratio"]["sensitivity"])}}  # fmt: skip
+    for pf in cfg["combustor_pattern_factor"]["sensitivity"]:
+        cases[f"pf_{pf}"] = {"pattern_factor": float(pf)}
+    out = {}
+    for name, ov in cases.items():
+        r = mechanical.evaluate(**d.mech_inputs, mats=mechanical.MaterialSet.from_yaml(**ov))
+        out[name] = {
+            "feasible": r.feasible,
+            "material": r.material,
+            "active": list(r.infeasible_reasons),
+        }
     return out
 
 

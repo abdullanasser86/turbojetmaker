@@ -77,12 +77,23 @@ def flatten(jsonl: Path, out_dir: Path, split_csv: Path) -> tuple[pd.DataFrame, 
                 **{f"in_{k}": v for k, v in r["inputs"].items()}}  # fmt: skip
         g = r.get("geometry", {})
         m = r.get("mechanical", {})
-        row = {**base, **{f"geom_{k}": v for k, v in g.items()}}
+        row = {
+            **base,
+            **{f"geom_{k}": v for k, v in g.items()},
+            **{f"derived_{k}": v for k, v in r.get("derived", {}).items()},
+        }
         if m:
             row.update({"feasible": m["feasible"], "material": m["material"], "premium_material_required": m["premium_material_required"],
                         "active_constraints": ";".join(m["active_constraints"]), "impeller_tip_speed_m_s": m["impeller_tip_speed_m_s"],
                         "an2_m2_rpm2": m["an2_m2_rpm2"], "diameter_m": m["diameter_m"], "length_m": m["length_m"],
                         "dry_mass_kg": m["dry_mass_kg"]})  # fmt: skip
+            if "material_status" in m:
+                row.update({"material_status": m["material_status"],
+                            "turbine_design_range_flags": "; ".join(m["turbine_design_range_flags"]),
+                            "turbine_exit_mach": m["turbine_exit_mach"], "turbine_exit_swirl_deg": m["turbine_exit_swirl_deg"]})  # fmt: skip
+                for case, sv in m["sensitivity"].items():
+                    row[f"sens_{case}_feasible"] = sv["feasible"]
+                    row[f"sens_{case}_active"] = ";".join(sv["active"])
             for mat, c in m["creep"].items():
                 for k in ("rotor_metal_T_K", "rotor_stress_centrifugal_Pa", "rotor_stress_gas_bending_Pa", "rotor_allowable_Pa",
                           "rotor_status", "ngv_stress_gas_bending_Pa", "ngv_allowable_T_K", "ngv_pf_max", "ngv_status", "feasible"):  # fmt: skip
@@ -100,7 +111,7 @@ def flatten(jsonl: Path, out_dir: Path, split_csv: Path) -> tuple[pd.DataFrame, 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--config", default=str(ROOT / "configs" / "dataset_phase4.yaml"))
+    ap.add_argument("--config", default=str(ROOT / "configs" / "dataset_phase4_v2.yaml"))
     ap.add_argument(
         "--limit", type=int, default=None, help="evaluate only the first N designs (pilot)"
     )

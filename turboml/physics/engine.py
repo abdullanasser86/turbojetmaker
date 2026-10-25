@@ -44,7 +44,7 @@ from turboml.physics import cycle_simple as cs
 from turboml.physics import mechanical
 from turboml.physics.atmosphere import isa
 from turboml.physics.compressor import CentrifugalCompressor, CentrifugalCompressorGeometry
-from turboml.physics.turbine_design import design_stage
+from turboml.physics.turbine_design import design_stage, design_stage_hub_tip
 from turboml.physics.turbine_meanline import AxialStageGeometry, AxialTurbineMeanline
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -310,6 +310,84 @@ def size_compressor(ref: CompressorReference, mdot: float, n_rpm: float, pr_targ
     if q is None or abs(q.pr_tt / pr_target - 1) > 1e-5:
         raise EngineFailure("design_compressor_no_convergence")
     return gq, q
+
+
+def size_compressor_tip_speed(ref: CompressorReference, mdot: float, u2_target: float, pr_target: float, T01: float,
+                              p01: float, tol: float = 1e-5):  # fmt: skip
+    """KJ-66-like compressor for (mdot, PR) at a prescribed impeller tip speed U2 (Phase 4 option C).
+
+    At fixed mass flow and PR, `size_compressor` gives one wheel per shaft speed N; its tip speed falls as N
+    rises (a higher-specific-speed wheel has a bigger inducer relative to r2 and is more efficient, so it
+    needs less tip speed for the same PR), until the wheel would be smaller than its own inducer. N is found
+    so that U2(N) = U2_target. Failure labels:
+      design_compressor_tip_speed_too_low_for_pr  -- even the highest-speed working wheel (just before r2 would
+                                                     drop below the inducer) needs more U2 than the target;
+      design_compressor_tip_speed_too_high_for_pr -- even the lowest-speed working wheel (just before choke)
+                                                     reaches the PR with less U2 than the target.
+    Returns (geometry, CompressorPoint, n_rpm)."""
+    air = thermo.air()
+    cp = air.cp(T01)
+    # first guess: same specific speed N sqrt(Q)/dh^0.75 as the KJ-66 reference point (110 krpm, 0.235 kg/s, PR 2.1)
+    dh = cp * T01 * (pr_target ** (air.R / cp) - 1)
+    dh_ref = cp * 288.15 * (2.097 ** (air.R / cp) - 1)
+    q, q_ref = mdot * air.R * T01 / p01, 0.235 * air.R * 288.15 / 101325.0
+    n0 = 110000.0 * (dh / dh_ref) ** 0.75 * math.sqrt(q_ref / q)
+    cache: dict = {}
+
+    def f(log_n):
+        if log_n not in cache:
+            n = math.exp(log_n)
+            try:
+                g, pt = size_compressor(ref, mdot, n, pr_target, T01, p01)
+                cache[log_n] = (math.log(pt.tip_speed_m_s / u2_target), g, pt, "")
+            except EngineFailure as e:
+                cache[log_n] = (None, None, None, str(e))
+        return cache[log_n]
+
+    def side(why):  # which edge of the working speed range a failure belongs to
+        return "high" if "r2_below_inducer" in why else "low"
+
+    step = math.log(1.25)
+    x = math.log(n0)
+    v, *_, why = f(x)
+    k = 0
+    while v is None:  # first guess outside the working speed range: walk towards it
+        x += step if side(why) == "low" else -step
+        v, *_, why = f(x)
+        k += 1
+        if k > 12:
+            raise EngineFailure(f"design_compressor_{why.removeprefix('design_compressor_')}")
+    # U2 falls with N: v > 0 -> raise N, v < 0 -> lower N
+    direction = 1.0 if v > 0 else -1.0
+    a, va = x, v
+    for _ in range(16):
+        b = a + direction * step
+        vb, *_, why_b = f(b)
+        if vb is None:  # edge of the working range between a and b: bisect towards it
+            lo_, hi_ = a, b
+            for _ in range(8):
+                m = 0.5 * (lo_ + hi_)
+                vm, *_ = f(m)
+                if vm is None:
+                    hi_ = m
+                else:
+                    lo_ = m
+                    if (vm > 0) != (va > 0):
+                        b, vb = m, vm
+                        break
+            else:
+                label = "too_low_for_pr" if va > 0 else "too_high_for_pr"
+                raise EngineFailure(f"design_compressor_tip_speed_{label}")
+        if (vb > 0) != (va > 0):
+            break
+        a, va = b, vb
+    else:
+        raise EngineFailure("design_compressor_tip_speed_no_bracket")
+    xs = brentq(lambda z: f(z)[0], min(a, b), max(a, b), xtol=1e-7)
+    v, g, pt, _ = f(xs)
+    if v is None or abs(v) > tol:
+        raise EngineFailure("design_compressor_tip_speed_no_convergence")
+    return g, pt, math.exp(xs)
 
 
 # ======================================================================================
@@ -679,8 +757,15 @@ def design_engine(
         # sampled calibration factors (Phase 4 uncertainty): same sizing rules (reference flow coefficients from
         # the nominal calibration), different compressor performance in sizing and off-design
         ref = replace(ref, delta_sigma=float(calibration[0]), diffuser_cf=float(calibration[1]))
-    m, N, tit = x["W_air_kg_s"], x["n_rpm"], x["tit_K"]
-    cg, cpt = size_compressor(ref, m, N, x["pr_c"], T02, p02)
+    m, tit = x["W_air_kg_s"], x["tit_K"]
+    if "impeller_tip_speed_m_s" in x:  # Phase 4 option C: tip speed prescribed, shaft speed derived
+        cg, cpt, N = size_compressor_tip_speed(
+            ref, m, x["impeller_tip_speed_m_s"], x["pr_c"], T02, p02
+        )
+        x["n_rpm"] = N
+    else:
+        N = x["n_rpm"]
+        cg, cpt = size_compressor(ref, m, N, x["pr_c"], T02, p02)
     air = thermo.air()
     s3 = cs.FlowState(cpt.T03_K, cpt.pr_tt * p02, m, air, air.h(cpt.T03_K))
     try:
@@ -690,8 +775,15 @@ def design_engine(
     work = (cpt.power_W + L.power_offtake_W) / L.eta_mech / s4.W
     omega = N * math.pi / 30
     try:
-        sz, turb, tpt = design_stage(s4.W, tit, s4.Pt, omega, work, x["turb_phi"], x["turb_psi"], x["turb_reaction"],
-                                     gas=s4.gas, incidence_sign=cfg["turbine_design"]["incidence_sign"])  # fmt: skip
+        if (
+            "turb_hub_tip" in x
+        ):  # Phase 4 option C: rotor-exit hub/tip prescribed, flow coefficient derived
+            sz, turb, tpt, x["turb_phi"] = design_stage_hub_tip(s4.W, tit, s4.Pt, omega, work, x["turb_hub_tip"],
+                                                                x["turb_psi"], x["turb_reaction"], gas=s4.gas,
+                                                                incidence_sign=cfg["turbine_design"]["incidence_sign"])  # fmt: skip
+        else:
+            sz, turb, tpt = design_stage(s4.W, tit, s4.Pt, omega, work, x["turb_phi"], x["turb_psi"], x["turb_reaction"],
+                                         gas=s4.gas, incidence_sign=cfg["turbine_design"]["incidence_sign"])  # fmt: skip
     except ValueError as e:
         raise EngineFailure(f"design_turbine: {e}") from e
     Pt9 = tpt.p0_out_Pa * (1 - L.dp_nozzle_frac)
@@ -713,13 +805,22 @@ def design_engine(
 
     tip_limit = load_config().constraints.max_impeller_tip_speed_m_s
     gb = mechanical.turbine_gas_bending(tpt, sz.geometry, s4.W)
-    mech = mechanical.evaluate(tit, cpt.T03_K, omega, cg.radius_out_m, sz.geometry.rotor_annulus_area_m2, tip_limit,
-                               tpt.T0_rel_rotor_in_K, gb["rotor"], gb["ngv"], mats)  # fmt: skip
-    dp.tags.extend(mech.tags)
+    mech_inputs = dict(tit_K=tit, T3_K=cpt.T03_K, omega_rad_s=omega, impeller_tip_radius_m=cg.radius_out_m,
+                       rotor_annulus_area_m2=sz.geometry.rotor_annulus_area_m2, max_impeller_tip_speed_m_s=tip_limit,
+                       t0_rel_rotor_K=tpt.T0_rel_rotor_in_K, sigma_gb_rotor_Pa=gb["rotor"], sigma_gb_ngv_Pa=gb["ngv"])  # fmt: skip
+    mech = mechanical.evaluate(**mech_inputs, mats=mats)
+    mech.checks["turbine_design_range_flags"] = mechanical.turbine_design_range_flags(
+        mech.checks["an2_m2_rpm2"], x["turb_psi"], tpt.exit_mach, tpt.exit_flow_angle_deg
+    )
+    mech.checks["turbine_exit"] = {"mach": tpt.exit_mach, "swirl_deg": tpt.exit_flow_angle_deg}
+    dp.tags.extend(mech.tags + mech.checks["turbine_design_range_flags"])
     design = EngineDesign(inputs={**x, "Ps0_Pa": amb.p_Pa}, compressor_geometry=cg, turbine_geometry=sz.geometry,
                           A9_m2=noz.A, design_point=dp, mechanical=mech, turbine_sizing=sz,
                           notes=list(sz.warnings))  # fmt: skip
     design._ref = ref
+    design.mech_inputs = (
+        mech_inputs  # to re-run the mechanical checks with other settings (sensitivities)
+    )
     return design
 
 
@@ -784,6 +885,8 @@ def design_card(
               f"- impeller tip speed {mech.checks['impeller_tip_speed']['value_m_s']:.0f} m/s (limit {mech.checks['impeller_tip_speed']['limit_m_s']:.0f})",
               f"- AN^2 = {mech.checks['an2_m2_rpm2']:.3g} m2 rpm2",
               f"- feasible: {mech.feasible}" + (f" (active constraints: {', '.join(mech.infeasible_reasons)})" if mech.infeasible_reasons else ""),
+              f"- material status: {mech.material_status}",
+              f"- turbine design-range flags (DePaola 2020 Table 2, sanity only): {'; '.join(mech.checks.get('turbine_design_range_flags', [])) or 'none'}",
               f"- tags: {', '.join(p.tags) or 'none'}", ""]  # fmt: skip
     if d.notes:
         lines += ["Sizing warnings: " + "; ".join(d.notes), ""]

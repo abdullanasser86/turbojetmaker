@@ -1,0 +1,16 @@
+# JetCat specifications (MFR: manufacturer claims) from jetcat.de product pages and datasheets, values provided by the
+# user 2026-10-25. Empty = not given. egt_min/max: idle-to-max OPERATING BAND, not idle values (user note).
+# Cross-check against the committed JetCat sources (jetcat_pro_catalog_2024.csv, jetcat_datasheets_p500_p550_2023.csv,
+# review_engine_table.csv), checked by hand 2026-10-25: identical where both give a value except the differences listed
+# in the `note` column (all <= 2 %, except P220 max EGT 720 vs 750 C).
+# Stock JetCat P90 (CU Boulder student project, per user): PR ~ 2.35, ~100 N at 130000 rpm (row P90, data_type MFR/other).
+model,max_rpm,thrust_max_N,sfc_kg_N_h,egt_min_C,egt_max_C,mass_flow_kg_s,diameter_mm,mass_g,idle_rpm,idle_thrust_N,pressure_ratio,data_type,note
+P20-SX,245000,24,0.188,480,690,,,350,85000,,,MFR,
+P80-SE,125000,97,,510,700,,,,35000,,,MFR,
+P90,130000,100,,,,,,,,,2.35,MFR,"stock P90, CU Boulder student project (PR ~2.35, ~100 N at 130 krpm); source type as given by the user"
+P100-RX,,100,0.187,,,,,,,,,MFR,"~100 N"
+P220,117000,220,0.158,390,720,,117,1850,35000,9,,MFR,"review table: max EGT 750 C"
+P300-PRO,105000,300,0.157,480,750,,,,35000,,,MFR,"catalog 2024: 106000 rpm"
+P400-PRO,98000,425,0.157,480,750,,,,30000,14,,MFR,
+P500-PRO,80000,500,0.151,480,750,0.90,175,4900,26000,28,,MFR,"thrust 492-500 N (catalog GL/GH 492, datasheet 500); catalog diameter 178.6 mm"
+P550-PRO,83000,550,0.144,480,750,0.93,,,,,,MFR,

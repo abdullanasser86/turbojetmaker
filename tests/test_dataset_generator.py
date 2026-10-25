@@ -91,7 +91,8 @@ def test_baseline_like_design_all_points():
     r = evaluate_design(rec, cfg, SPEC.cfg["points"])
     assert r["status"] == "ok"
     assert all(p["converged"] for p in r["points"].values())
-    assert r["mechanical"]["active_constraints"] == ["AN2"]  # K = 1, SF 1.5, 100 h: see D-037
+    # At/Ah = 1, SF 1.5, 100 h, PF 0.25 (NGV 1330 K, above the MAR-M 247 data): see D-037, D-044
+    assert r["mechanical"]["active_constraints"] == ["AN2", "TIT_ngv_above_material_data"]
     json.dumps(r)  # serialisable
 
 

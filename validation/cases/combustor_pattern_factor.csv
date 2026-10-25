@@ -1,0 +1,5 @@
+# Combustor exit pattern factor PF = (T_max - T_mean)/(T_mean - T3), values provided by the user 2026-10-25.
+# Used for configs/materials.yaml combustor_pattern_factor (default 0.25, sensitivity 0.15-0.35, >= 0.25 for feasibility).
+source,quantity,value_low,value_high,data_type,note
+"Fear 1972, NASA TM X-2476","exit pattern factor, small annular combustor of a 4448 N low-cost turbojet, cruise and sea-level take-off",,0.24,MEAS,"measured PF < 0.24"
+"US Patent 5,265,425","typical exit pattern factor, high-performance combustors",0.25,0.30,ASSUM,"patent statement of typical values"

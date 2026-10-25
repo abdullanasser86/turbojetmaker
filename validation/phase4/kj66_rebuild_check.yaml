@@ -1,0 +1,190 @@
+geometry_check:
+  radius_out_m:
+    model: 0.033
+    xiang_user_extract: 0.033
+    match: true
+  radius_hub_in_m:
+    model: 0.00625
+    xiang_user_extract: 0.00625
+    match: true
+  radius_tip_in_m:
+    model: 0.0225
+    xiang_user_extract: 0.0225
+    match: true
+  number_of_blades:
+    model: 10
+    xiang_user_extract: 10
+    match: true
+  diffuser: 15 wedge vanes (Xiang); vane geometry NOT published -> modelled as a vaneless
+    diffuser with an effective friction factor Cf (calibrated)
+model_inputs_by_origin:
+  radius_hub_in_m: 'measured: [X16] p.3; [L07]'
+  radius_tip_in_m: 'measured: [X16] p.3; [L07]'
+  radius_out_m: 'measured: [X16] p.3; [L07] (66 mm wheel)'
+  width_out_m: 'measured: [L07] p.964 (blade tip height 6 mm)'
+  number_of_blades: 'measured: [X16] Table 1'
+  tip_clearance_m: 'measured: [L07] p.962 (value used in their CFD model)'
+  leading_edge_angle_deg: 'digitized: [L07] Fig. 2 midspan inlet blade angle ~-42
+    deg (from meridional), +/-3; TurboFlow sign convention positive'
+  trailing_edge_angle_deg: 'digitized: [L07] Fig. 2 midspan last point ~-21 deg; hub/shroud
+    -13/-35; UNCERTAIN whether these are trailing-edge values'
+  length_meridional_m: 'digitized: [L07] Fig. 2 meridional-length axis: hub ~40, shroud
+    ~20 (units assumed mm) -> mean ~30 mm'
+  length_axial_m: 'assumption: not published; ~0.6 x tip radius, same ratio as TurboFlow''s
+    example impeller (45/71.5)'
+  area_throat_ratio: 'assumption: not published; estimate A_throat ~ A_inducer*cos(beta1b,mid=42
+    deg)*(1-0.05 blade blockage) = 0.70. Used only by the throat-choke criterion'
+calibration_parameters_removed: []
+calibration_parameters_still_needed:
+  delta_sigma: absorbs the unpublished blade exit angle / backsweep (slip); Xiang
+    gives no blade angles
+  diffuser_cf: absorbs the unmodelled 15-vane wedge diffuser and 90-degree turn; vane
+    geometry not published
+recalibration_90krpm:
+  delta_sigma: -0.1041
+  diffuser_cf: 0.0937
+  stored_delta_sigma: -0.1041
+  stored_diffuser_cf: 0.0937
+  reproduced: true
+model_peaks_calibrated:
+  '70000':
+    peak_pr: 1.386
+    at_kg_s: 0.065
+    interior_pr_peak: true
+    peak_eta: 0.754
+    eta_at_kg_s: 0.125
+    pr_at_peak_eta: 1.365
+    max_converged_flow_kg_s: 0.26
+  '80000':
+    peak_pr: 1.527
+    at_kg_s: 0.075
+    interior_pr_peak: true
+    peak_eta: 0.757
+    eta_at_kg_s: 0.15
+    pr_at_peak_eta: 1.495
+    max_converged_flow_kg_s: 0.265
+  '90000':
+    peak_pr: 1.7
+    at_kg_s: 0.085
+    interior_pr_peak: true
+    peak_eta: 0.761
+    eta_at_kg_s: 0.175
+    pr_at_peak_eta: 1.658
+    max_converged_flow_kg_s: 0.27
+  '100000':
+    peak_pr: 1.918
+    at_kg_s: 0.05
+    interior_pr_peak: false
+    peak_eta: 0.765
+    eta_at_kg_s: 0.205
+    pr_at_peak_eta: 1.855
+    max_converged_flow_kg_s: 0.275
+  '110000':
+    peak_pr: 2.193
+    at_kg_s: 0.05
+    interior_pr_peak: false
+    peak_eta: 0.768
+    eta_at_kg_s: 0.235
+    pr_at_peak_eta: 2.097
+    max_converged_flow_kg_s: 0.28
+  '117000':
+    peak_pr: 2.424
+    at_kg_s: 0.05
+    interior_pr_peak: false
+    peak_eta: 0.77
+    eta_at_kg_s: 0.26
+    pr_at_peak_eta: 2.293
+    max_converged_flow_kg_s: 0.285
+  '128000':
+    peak_pr: 2.868
+    at_kg_s: 0.05
+    interior_pr_peak: false
+    peak_eta: 0.771
+    eta_at_kg_s: 0.295
+    pr_at_peak_eta: 2.67
+    max_converged_flow_kg_s: 0.295
+comparison_peaks:
+- speed_rpm: 70000
+  model_pr_at_peak_eta: 1.365
+  model_peak_eta: 0.754
+  model_peak_pr: 1.386
+  meas_max_pr: 1.392
+  meas_max_eta: 0.77
+- speed_rpm: 80000
+  model_pr_at_peak_eta: 1.495
+  model_peak_eta: 0.757
+  model_peak_pr: 1.527
+  meas_max_pr: 1.52
+  meas_max_eta: 0.77
+  cfd_xiang_peak_pr: 1.54
+  cfd_xiang_peak_eta: 0.73
+  cfd_ling_peak_pr: 1.54
+  cfd_ling_peak_eta: 0.83
+- speed_rpm: 90000
+  model_pr_at_peak_eta: 1.658
+  model_peak_eta: 0.761
+  model_peak_pr: 1.7
+  meas_max_pr: 1.695
+  meas_max_eta: 0.768
+- speed_rpm: 100000
+  model_pr_at_peak_eta: 1.855
+  model_peak_eta: 0.765
+  model_peak_pr: no interior peak above 0.05 kg/s
+  meas_max_pr: 1.865
+  meas_max_eta: 0.767
+  cfd_xiang_peak_pr: 1.76
+  cfd_xiang_peak_eta: 0.63
+  cfd_ling_peak_pr: 1.88
+  cfd_ling_peak_eta: 0.8
+- speed_rpm: 110000
+  model_pr_at_peak_eta: 2.097
+  model_peak_eta: 0.768
+  model_peak_pr: no interior peak above 0.05 kg/s
+  meas_max_pr: 2.075
+  meas_max_eta: 0.752
+- speed_rpm: 117000
+  model_pr_at_peak_eta: 2.293
+  model_peak_eta: 0.77
+  model_peak_pr: no interior peak above 0.05 kg/s
+  cfd_xiang_peak_pr: 1.96
+  cfd_xiang_peak_eta: 0.55
+  cfd_ling_peak_pr: 2.25
+  cfd_ling_peak_eta: 0.755
+- speed_rpm: 128000
+  model_pr_at_peak_eta: 2.67
+  model_peak_eta: 0.771
+  model_peak_pr: no interior peak above 0.05 kg/s
+mfr_design_point_117krpm_0.22kg_s:
+  spec_pr: 2.2
+  model_pr: 2.341
+  model_eta: 0.765
+  status: ok
+  data_type: MFR
+mfr_murray_128krpm:
+  spec_pr: 2.54
+  model_pr_at_peak_eta_128krpm: 2.67
+  model_flow_at_peak_eta_kg_s: 0.295
+  data_type: MFR
+  note: 'mass flow not given in Murray Table 1.2; compared with the PR at the line''s
+    peak-efficiency flow (128 krpm is beyond the measured 70-110 krpm: extrapolation)'
+eta_trend_80_to_117krpm:
+  model_peak_eta:
+  - 0.757
+  - 0.765
+  - 0.77
+  xiang_cfd_peak_eta:
+  - 0.73
+  - 0.63
+  - 0.55
+  measured_max_eta_80_100_110:
+  - 0.77
+  - 0.767
+  - 0.752
+  model_pr_at_peak_eta:
+  - 1.495
+  - 1.855
+  - 2.293
+  xiang_cfd_peak_pr:
+  - 1.54
+  - 1.76
+  - 1.96

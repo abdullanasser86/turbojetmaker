@@ -72,10 +72,36 @@ def test_creep_feasibility_and_labels():
     # NGV hotter than any tabulated data even at PF = 0
     r = mech.evaluate(1420.0, 450.0, 10000.0, 0.03, 5e-4, 500.0, 1050.0, 10e6, 10e6, MATS)
     assert not r.feasible and any(c.startswith("TIT_ngv") for c in r.infeasible_reasons)
-    # pattern factor unsourced -> NGV reported as unchecked with PF_max, not silently passed
+    # sourced pattern factor (0.25): the NGV is checked at TIT + PF (TIT - T3)
     r = mech.evaluate(1150.0, 450.0, 10000.0, 0.03, 5e-4, 500.0, 1050.0, 10e6, 10e6, MATS)
-    assert any("pattern factor not sourced" in t for t in r.tags)
+    c = r.checks["creep"]["in713c"]
+    assert MATS.pattern_factor == 0.25 and c["ngv_metal_T_K"] == pytest.approx(1150 + 0.25 * 700)
+    assert c["ngv_status"] == "ok" and r.feasible and r.material_status == "ok_default"
     assert mech.TURBINE_EFFICIENCY_FLAG in r.tags
+    # without a pattern factor the NGV is reported as unchecked with PF_max, not silently passed
+    r = mech.evaluate(1150.0, 450.0, 10000.0, 0.03, 5e-4, 500.0, 1050.0, 10e6, 10e6,
+                      mech.MaterialSet.from_yaml(pattern_factor=None))  # fmt: skip
+    assert any("pattern factor not sourced" in t for t in r.tags)
+
+
+def test_taper_area_ratio_mapping():
+    """DePaola eq. 58: AN^2 = 3600 sigma / (pi rho (1 + At/Ah)) <=> K = (1 + At/Ah)/2 in our sigma_c form."""
+    m = mech.MaterialSet.from_yaml(tip_to_hub_area_ratio=0.34)
+    assert m.blade_taper_factor == pytest.approx(0.67)
+    rho, n_rpm, A = 7910.0, 120000.0, 3e-3
+    sigma = mech.blade_root_stress_Pa(rho, n_rpm * math.pi / 30, A, m.blade_taper_factor)
+    assert A * n_rpm**2 == pytest.approx(3600 * sigma / (math.pi * rho * (1 + 0.34)), rel=1e-12)
+    assert MATS.tip_to_hub_area_ratio == 1.0 and MATS.blade_taper_factor == 1.0
+
+
+def test_premium_without_data_is_unchecked_infeasible():
+    """713C fails on the NGV, MAR-M 247 has no rupture data at the NGV metal temperature (> 1311 K), and nothing
+    the data cover fails: status unchecked_no_material_data, infeasible (user decision 2026-10-25).
+    """
+    T3, tit = 450.0, 1300.0  # NGV metal = 1300 + 0.25 * 850 = 1512 K: above both alloys' data
+    r = mech.evaluate(tit, T3, 1.0, 0.03, 1e-9, 500.0, 1100.0, 1e6, 1e6, MATS)
+    assert not r.feasible and r.material_status == "unchecked_no_material_data"
+    assert "TIT_ngv_above_material_data" in r.infeasible_reasons
 
 
 def test_premium_material_selected_when_default_fails():
@@ -85,7 +111,8 @@ def test_premium_material_selected_when_default_fails():
     s713 = creep.rupture_curve("in713c").strength_Pa(T, 100.0)[0]
     s247 = creep.rupture_curve("marm247").strength_Pa(T, 100.0)[0]
     sigma_gb = 0.5 * (s713 + s247) / 1.5  # pure gas-bending load between the two allowables
-    r = mech.evaluate(1150.0, 450.0, 1.0, 0.03, 1e-9, 500.0, T, sigma_gb, 1e6, m)
+    # T3 = 700 K keeps the NGV (1150 + 0.25 * 450 = 1262.5 K) inside both alloys' rupture data
+    r = mech.evaluate(1150.0, 700.0, 1.0, 0.03, 1e-9, 500.0, T, sigma_gb, 1e6, m)
     assert r.feasible and r.material == "marm247" and r.premium_material_required
 
 

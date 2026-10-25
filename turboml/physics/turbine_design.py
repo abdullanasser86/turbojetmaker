@@ -278,3 +278,54 @@ def design_stage(mdot_kg_s: float, T0_in_K: float, p0_in_Pa: float, omega_rad_s:
         k *= math.exp(x0)
         pr = max(1.05, pr * math.exp(x1))
     raise ValueError("turbine design solve did not converge")
+
+
+def rotor_exit_hub_tip(geometry: AxialStageGeometry) -> float:
+    """Rotor-exit hub-to-tip radius ratio (the station with the tallest blades of the stage)."""
+    return geometry.radius_hub_out[1] / geometry.radius_tip_out[1]
+
+
+def design_stage_hub_tip(mdot_kg_s: float, T0_in_K: float, p0_in_Pa: float, omega_rad_s: float, work_J_kg: float,
+                         hub_tip: float, psi: float, reaction: float, gas: GasMixture | None = None,
+                         incidence_sign: str = "turboflow", tol: float = 1e-6, max_iter: int = 30, **overrides):  # fmt: skip
+    """`design_stage` with the rotor-exit hub/tip ratio prescribed instead of the flow coefficient phi.
+
+    With psi, the work and the speed fixed, the mean radius r_m = sqrt(work/psi)/omega is fixed too, so the
+    hub/tip ratio lam fixes the rotor-exit blade height h = 2 r_m (1 - lam)/(1 + lam). Continuity then sets
+    the axial velocity, i.e. phi = C_x/U (blade height ~ 1/phi at fixed mass flow). We iterate
+    phi <- phi * h_actual/h_target on the converged `design_stage` geometry (fixed point, ~3-5 passes).
+
+    Returns (StageSizing, AxialTurbineMeanline, TurbinePoint, phi). Raises ValueError with a reason.
+    """
+    if not 0.0 < hub_tip < 1.0:
+        raise ValueError(f"hub/tip ratio {hub_tip} outside (0, 1)")
+    gas = gas or air()
+    U = math.sqrt(work_J_kg / psi)
+    r_m = U / omega_rad_s
+    h_target = 2 * r_m * (1 - hub_tip) / (1 + hub_tip)
+    # first guess of phi from continuity at the rotor exit (static density ~ total density at the exit)
+    T03 = gas.T_from_h(gas.h(T0_in_K) - work_J_kg, T0_in_K)
+    rho3 = p0_in_Pa * gas.p_ratio_isentropic(T0_in_K, T03) / (gas.R * T03)
+    phi = mdot_kg_s / (rho3 * 2 * math.pi * r_m * h_target) / U
+    a03 = math.sqrt(
+        gas.gamma(T03) * gas.R * T03
+    )  # an axial velocity above this would be supersonic
+
+    def check(phi):
+        if phi * U >= a03:
+            raise ValueError(
+                f"rotor hub/tip {hub_tip:.3f} too high for the flow: needs axial Mach >= 1 (phi ~ {phi:.3g})"
+            )
+        if phi <= 0.05:
+            raise ValueError(f"rotor hub/tip {hub_tip:.3f} too low for the flow (phi ~ {phi:.3g})")
+
+    for _ in range(max_iter):
+        check(phi)
+        sz, t, pt = design_stage(mdot_kg_s, T0_in_K, p0_in_Pa, omega_rad_s, work_J_kg, phi, psi, reaction, gas,
+                                 incidence_sign, tol, **overrides)  # fmt: skip
+        g = sz.geometry
+        h = g.radius_tip_out[1] - g.radius_hub_out[1]
+        if abs(h / h_target - 1) < 1e-5:
+            return sz, t, pt, phi
+        phi *= h / h_target
+    raise ValueError("hub/tip sizing did not converge")

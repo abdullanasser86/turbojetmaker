@@ -1,15 +1,16 @@
 # Coupled engine model (turboml/physics/engine.py): component assumptions, sizing rules, baseline design.
 #
-# kinds: user_summary (DePaola 2020 standard assumptions AS SUMMARISED BY THE USER, 2026-10-24; the thesis
-#        itself has not been read yet) | assumption | spec | calibrated | derived
-# [D] DePaola, AFIT thesis 2020 (via user summary).
+# kinds: user_summary (DePaola 2020 standard assumptions AS EXTRACTED BY THE USER, 2026-10-24/25; the thesis
+#        itself has not been read here) | assumption | spec | calibrated | derived
+# data_type (user decision 2026-10-25): MEAS | CFD | MFR | ASSUM; weighting MEAS > CFD > MFR > ASSUM.
+# [D] DePaola, AFIT thesis 2020 (via user extract). Rows: validation/cases/microturbine_reference_assumptions.csv.
 
 components:
-  inlet_recovery:        {value: 0.98, kind: user_summary, source: "[D] inlet total-pressure ratio pi_d ~0.98"}
-  dp_burner_frac:        {value: 0.10, kind: user_summary, source: "[D] burner total-pressure loss ~10 %"}
-  eta_burner:            {value: 0.95, kind: user_summary, source: "[D] combustion efficiency ~0.95"}
-  eta_mech:              {value: 0.99, kind: user_summary, source: "[D] mechanical efficiency ~0.99"}
-  dp_nozzle_frac:        {value: 0.05, kind: user_summary, source: "[D] nozzle ~0.95 = nozzle total-pressure ratio Pt9/Pt7 (Mattingly convention, P0/P9 ~ 1; confirmed by the user 2026-10-25, D-039; re-check against the thesis text)"}
+  inlet_recovery:        {value: 0.98, kind: user_summary, data_type: ASSUM, source: "[D] inlet total-pressure ratio 0.98"}
+  dp_burner_frac:        {value: 0.10, kind: user_summary, data_type: CFD, source: "[D] Sec. 2.5: burner total-pressure drop ~10 % from cold-flow aerodynamics of a comparable microturbine annular combustor (Gieras & Stankowski) [CFD/ASSUM]"}
+  eta_burner:            {value: 0.95, kind: user_summary, data_type: ASSUM, source: "[D] combustion efficiency 0.95, recommended by AFRL SERL for this combustor size and style (Murray 2009 used 0.90 in a preliminary model and correlated it with fuel-air ratio; see the idle-EGT study)"}
+  eta_mech:              {value: 0.99, kind: user_summary, data_type: ASSUM, source: "[D] mechanical efficiency >= 0.99 (bearing losses ~1 kW fluid film / < 0.5 kW ball at 100 krpm vs ~100 kW turbine work); Murray 2009 used 0.995"}
+  dp_nozzle_frac:        {value: 0.05, kind: user_summary, data_type: ASSUM, source: "[D] nozzle ~0.95 = nozzle total-pressure ratio Pt9/Pt7 (Mattingly convention, P0/P9 ~ 1; confirmed by the user 2026-10-25, D-039; re-check against the thesis text)"}
   nozzle_cv:             {value: 1.0,  kind: assumption,   source: "nozzle losses lumped into the total-pressure ratio above"}
   lhv_J_kg:              {value: 42.8e+6, kind: spec,     source: "ASTM D1655 minimum net heat of combustion, Jet A/A-1"}
   power_offtake_W:       {value: 0.0,  kind: assumption,   source: "no generator/pump load"}

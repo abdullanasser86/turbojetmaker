@@ -6,6 +6,7 @@ Usage:  uv run python scripts/phase4/make_dataset_card.py
 
 from __future__ import annotations
 
+import argparse
 import json
 import subprocess
 from pathlib import Path
@@ -29,7 +30,10 @@ def md_table(d: dict, h1: str, h2: str = "count") -> list[str]:
 
 
 def main() -> int:
-    dcfg = yaml.safe_load((ROOT / "configs" / "dataset_phase4.yaml").read_text())
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--config", default=str(ROOT / "configs" / "dataset_phase4_v2.yaml"))
+    args = ap.parse_args()
+    dcfg = yaml.safe_load(Path(args.config).read_text())
     name = dcfg["name"]
     out_dir = ROOT / dcfg["output_dir"]
     D = pd.read_csv(out_dir / "designs.csv")
@@ -87,7 +91,7 @@ def main() -> int:
          f"Status: {n_done} of {n_total} planned designs evaluated" + (" (pilot: the first designs of the Sobol sequence; the full run "
          "is started on the user's laptop after the wall-time estimate)." if pilot else "."), "",
          f"Generated with git {git} by `scripts/phase4/generate_dataset.py` (`turboml/data/generator.py`), config "
-         "`configs/dataset_phase4.yaml`. Raw records: `datasets/<name>/designs.jsonl` (git-ignored, regenerate from seed + config).", "",
+         f"`{Path(args.config).relative_to(ROOT)}`. Raw records: `datasets/<name>/designs.jsonl` (git-ignored, regenerate from seed + config).", "",
          "## What one record is", "",
          "One **design** = cycle design variables + turbine stage choices, sized by the coupled physics model (design mode), "
          "checked mechanically (creep, AN², tip speed), then evaluated at 4 **points**: design (SLS), M0.5 at 3 km (design "

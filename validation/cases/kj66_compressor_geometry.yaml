@@ -3,6 +3,10 @@
 # assumed for a model run, the run config says so; it is never filled in here.
 #
 # [X16] Xiang, Schlueter & Duan (2016), Proc IMechE Part G, doi:10.1177/0954410016644632 (Table 1, p. 3)
+#       = the print version Xiang, Schlueter & Duan (2017), Proc IMechE Part G 231(5); same data as Xiang NTU PhD
+#       thesis 2015, App. A-I, Table A-i.1. The user's 2026-10-25 extract (r2 33 mm, inlet hub 6.25 mm, inlet shroud
+#       22.5 mm, 10 blades, 15 diffuser vanes, 117 krpm, PR 2.2, 0.22 kg/s) matches every value below. Blade angles,
+#       backsweep, exit blade height, tip clearance and diffuser radii are NOT in [X16]/[X17] (user, 2026-10-25).
 # [L07] Ling, Wong & Armfield (2007), 16th Australasian Fluid Mech. Conf., pp. 961-966
 # [GTBA] KJ66 engine designs, Gas Turbine Builders Association (cited as ref 37 in [X16]; not read)
 

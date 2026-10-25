@@ -1,0 +1,26 @@
+# Component and modelling assumptions recommended by the sources, plus design guidance (values provided by the user
+# 2026-10-25 from the documents; PDFs not uploaded). data_type: MEAS | CFD | MFR | ASSUM. Weighting for decisions:
+# MEAS > CFD > MFR > ASSUM (user decision 2026-10-25).
+# [D20] DePaola, AFIT MS thesis 2020 (US Government work, public release).
+# [M09] Murray, MSc thesis, Queen's University 2009.
+# [GS]  Gieras & Stankowski (cold-flow aerodynamics of a microturbine annular combustor), as cited in [D20] Sec. 2.5.
+source_id,section,quantity,value,unit,data_type,used_in_turboml,note
+D20,,inlet_total_pressure_ratio,0.98,-,ASSUM,configs/engine_baseline.yaml components.inlet_recovery,
+D20,,nozzle_total_pressure_ratio,0.95,-,ASSUM,configs/engine_baseline.yaml components.dp_nozzle_frac = 0.05,"Mattingly convention Pt9/Pt7; P0/P9 ~ 1"
+D20,,combustion_efficiency,0.95,-,ASSUM,configs/engine_baseline.yaml components.eta_burner,"recommended by AFRL SERL for this combustor size and style"
+D20/GS,2.5,burner_total_pressure_drop,0.10,-,CFD,configs/engine_baseline.yaml components.dp_burner_frac,"cold-flow aerodynamics of a comparable microturbine annular combustor [CFD/ASSUM]"
+D20,,mechanical_efficiency_min,0.99,-,ASSUM,configs/engine_baseline.yaml components.eta_mech = 0.99,">= 0.99"
+D20,,bearing_loss_fluid_film_100krpm,1000,W,ASSUM,not used (eta_mech instead),"~1 kW at 100 krpm vs ~100 kW turbine work"
+D20,,bearing_loss_ball_100krpm,500,W,ASSUM,not used (eta_mech instead),"< 0.5 kW at 100 krpm (upper bound)"
+D20,2.4.3,impeller_tip_speed_limit_low,400,m/s,ASSUM,configs/bounds.yaml constraints.max_impeller_tip_speed_m_s = 500,"turbocharger-type impellers, structural; literature range"
+D20,2.4.3,impeller_tip_speed_limit_high,550,m/s,ASSUM,configs/bounds.yaml constraints.max_impeller_tip_speed_m_s = 500,"turbocharger-type impellers, structural; literature range"
+D20,,very_high_performance_compressor_pr,5-6,-,ASSUM,context for configs/bounds.yaml cycle_pressure_ratio,"centrifugal PR 5-6 is 'very high performance' at this size; literature"
+D20,Table 2,turbine_max_an2,4e10-5e10,in^2 rpm^2,ASSUM,configs/mechanical.yaml turbine_design_ranges (flag above 5e10 = 3.2258e7 m^2 rpm^2),"26-32e10 cm^2 rpm^2"
+D20,Table 2,turbine_stage_loading_psi,1.4-2.0,-,ASSUM,configs/mechanical.yaml turbine_design_ranges,"sanity flag"
+D20,Table 2,turbine_exit_mach,0.4-0.5,-,ASSUM,configs/mechanical.yaml turbine_design_ranges,"sanity flag"
+D20,Table 2,turbine_exit_swirl,0-40,deg,ASSUM,configs/mechanical.yaml turbine_design_ranges,"sanity flag"
+D20,eq. 58,an2_equation,"AN^2 = 3600/(pi (1 + At/Ah)) sigma/rho",-,ASSUM,configs/materials.yaml blade_tip_to_hub_area_ratio (K = (1 + At/Ah)/2),"from Mattingly; At/Ah = blade tip-to-hub cross-section area ratio (taper)"
+D20,,same_model_engine_spread,0.10,-,MEAS,validation error floor vs manufacturer data,"same-make same-model engines differ by up to 10 % in performance"
+M09,,mechanical_efficiency,0.995,-,ASSUM,not used (TurboML keeps D20's 0.99),
+M09,,combustion_efficiency_preliminary,0.90,-,ASSUM,idle-EGT sensitivity only,"preliminary model; Murray correlated combustion efficiency with fuel-air ratio (correlation not available here)"
+M09,,thermocouple_recovery_factor,0.68,-,ASSUM,idle-EGT comparison (scripts/phase4/idle_egt_investigation.py),"bare-wire probe normal to the flow: T_meas = T_s + r (T_t - T_s)"

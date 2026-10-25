@@ -17,3 +17,24 @@ envelope:
     value: 43.2
     kind: fitted
     source: "standard deviation over the same 14 variants (366-500 kg/m3)"
+
+# Typical axial-turbine design ranges, DePaola 2020 (AFIT thesis) Table 2, values provided by the user 2026-10-25.
+# Used as SANITY FLAGS only (turboml.physics.mechanical.turbine_design_range_flags): a design outside them is
+# flagged, not made infeasible. Data type ASSUM (design guidance).
+turbine_design_ranges:
+  an2_m2_rpm2:
+    range: [null, 3.2258e+7]
+    data_type: ASSUM
+    source: "DePaola 2020 Table 2: max AN^2 = 4-5e10 in^2 rpm^2 (26-32e10 cm^2 rpm^2); the upper end 5e10 in^2 rpm^2 = 3.2258e7 m^2 rpm^2 is the flag limit"
+  loading_coefficient:
+    range: [1.4, 2.0]
+    data_type: ASSUM
+    source: "DePaola 2020 Table 2: stage loading psi = 1.4-2.0 (psi = dh0/U^2, same definition as turboml.physics.turbine_design)"
+  exit_mach:
+    range: [0.4, 0.5]
+    data_type: ASSUM
+    source: "DePaola 2020 Table 2: turbine exit Mach 0.4-0.5 (absolute, rotor exit)"
+  exit_swirl_deg:
+    range: [0.0, 40.0]
+    data_type: ASSUM
+    source: "DePaola 2020 Table 2: exit swirl 0-40 deg (absolute flow angle at the rotor exit, magnitude)"

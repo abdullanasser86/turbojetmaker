@@ -1,0 +1,25 @@
+# KJ-66 engine specifications from two sources (values provided by the user 2026-10-25 from the documents; the PDFs
+# themselves were not uploaded). data_type: MEAS measured | MFR manufacturer claim / design spec | CFD | ASSUM.
+# The two sources describe different KJ-66 builds (Xiang: design data of the original KJ-66; Murray: ArtesJet KJ-66
+# version). They are a SPREAD, not a contradiction (user, 2026-10-25). Validation error floor for manufacturer data:
+# same-make same-model engines differ by up to 10 % (DePaola 2020, MEAS) -> see microturbine_reference_assumptions.csv.
+# [X17] Xiang, Schlueter & Duan (2017), Proc IMechE Part G 231(5) (online 2016, doi:10.1177/0954410016644632), Table 1;
+#       same data as Xiang NTU PhD thesis 2015, App. A-I, Table A-i.1.
+# [M09] Murray, MSc thesis, Queen's University 2009, Table 1.2 (ArtesJet KJ-66 manufacturer specs).
+source_id,engine_version,quantity,value,unit,data_type,note
+X17,KJ-66 (original design),thrust,75,N,MFR,design spec
+X17,KJ-66 (original design),max_speed,117000,rpm,MFR,design max speed
+X17,KJ-66 (original design),compressor_pressure_ratio,2.2,-,MFR,design PR
+X17,KJ-66 (original design),air_mass_flow,0.22,kg/s,MFR,design mass flow
+X17,KJ-66 (original design),max_exhaust_temperature,843,K,MFR,"570 C; manufacturer EGT reading (probe type not stated)"
+X17,KJ-66 (original design),diameter,110,mm,MFR,
+X17,KJ-66 (original design),length,240,mm,MFR,
+X17,KJ-66 (original design),mass,0.93,kg,MFR,
+M09,ArtesJet KJ-66,thrust,92.3,N,MFR,
+M09,ArtesJet KJ-66,max_speed,128000,rpm,MFR,
+M09,ArtesJet KJ-66,egt,590,C,MFR,"thermocouple reading at full power"
+M09,ArtesJet KJ-66,sfc,0.154,kg/(N h),MFR,"= 42.8 g/(kN s)"
+M09,ArtesJet KJ-66,compressor_delivery_pressure_gauge,1.56,bar,MFR,"=> PR ~ 2.54 at sea level (user's conversion: (1.01325 + 1.56) / 1.01325)"
+M09,ArtesJet KJ-66,diameter,108,mm,MFR,
+M09,ArtesJet KJ-66,length,230,mm,MFR,
+M09,ArtesJet KJ-66,mass,1.15,kg,MFR,

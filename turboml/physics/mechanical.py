@@ -61,9 +61,14 @@ class MaterialSet:
     premium: str
     life_h: float
     safety_factor: float
-    blade_taper_factor: float
+    tip_to_hub_area_ratio: float  # blade taper At/Ah (DePaola 2020 eq. 58); 1 = untapered
     pattern_factor: float | None
     materials: dict[str, Material]
+
+    @property
+    def blade_taper_factor(self) -> float:
+        """K in sigma_c = K rho omega^2 A / (2 pi): K = (1 + At/Ah) / 2 (linear taper, DePaola eq. 58)."""
+        return 0.5 * (1.0 + self.tip_to_hub_area_ratio)
 
     @classmethod
     def from_yaml(cls, path: str | Path = MATERIALS, **overrides) -> MaterialSet:
@@ -74,7 +79,7 @@ class MaterialSet:
         }
         pf = _val(d["combustor_pattern_factor"])
         out = cls(d["default_turbine_material"], d["premium_turbine_material"], float(_val(d["design_life_h"])),
-                  float(_val(d["stress_safety_factor"])), float(_val(d["blade_taper_factor"])),
+                  float(_val(d["stress_safety_factor"])), float(_val(d["blade_tip_to_hub_area_ratio"])),
                   None if pf is None else float(pf), mats)  # fmt: skip
         for k, v in overrides.items():
             setattr(out, k, v)
@@ -89,6 +94,9 @@ class MechanicalResult:
     feasible: bool
     material: str | None  # lowest-grade material that passes the creep checks
     premium_material_required: bool
+    # ok_default | ok_premium | unchecked_no_material_data (the default alloy fails and the premium alloy's
+    # rupture data don't reach its metal temperature: infeasible, user decision 2026-10-25) | fails_creep
+    material_status: str = ""
     tags: list[str] = field(default_factory=list)
     checks: dict = field(default_factory=dict)
     infeasible_reasons: list[str] = field(default_factory=list)  # active constraints
@@ -182,10 +190,22 @@ def evaluate(tit_K: float, T3_K: float, omega_rad_s: float, impeller_tip_radius_
     res.premium_material_required = res.material == mats.premium
     if res.premium_material_required:
         res.tags.append("premium material required")
-    if res.material is None:
-        res.infeasible_reasons.extend(
-            results[mats.premium].active
-        )  # fails even with the premium material
+        res.material_status = "ok_premium"
+    elif res.material is not None:
+        res.material_status = "ok_default"
+    else:
+        prem = results[mats.premium]
+        statuses = (prem.rotor_status, prem.ngv_status)
+        # missing data is the reason only if nothing the data DO cover fails
+        no_data = "above_material_data" in statuses and not any(
+            st in ("AN2", "creep") for st in statuses
+        )
+        res.material_status = "unchecked_no_material_data" if no_data else "fails_creep"
+        if no_data:
+            res.tags.append(
+                f"{mats.premium} unchecked: no rupture data at its metal temperature -> infeasible"
+            )
+        res.infeasible_reasons.extend(prem.active)  # fails even with the premium material
     chosen = results[res.material or mats.default]
     if chosen.ngv_status == "unchecked_pattern_factor_missing":
         pf = "n/a" if chosen.ngv_pf_max is None else f"{chosen.ngv_pf_max:.2f}"
@@ -210,3 +230,18 @@ def evaluate(tit_K: float, T3_K: float, omega_rad_s: float, impeller_tip_radius_
         res.infeasible_reasons.append("max_length")
     res.feasible = not res.infeasible_reasons
     return res
+
+
+def turbine_design_range_flags(an2_m2_rpm2: float, psi: float, exit_mach: float, exit_swirl_deg: float,
+                               path: str | Path = MECHANICAL) -> list[str]:  # fmt: skip
+    """Flags for a turbine outside the typical design ranges of DePaola 2020 Table 2 (configs/mechanical.yaml
+    `turbine_design_ranges`). Sanity flags only: they don't make a design infeasible."""
+    r = yaml.safe_load(Path(path).read_text())["turbine_design_ranges"]
+    vals = {"an2_m2_rpm2": an2_m2_rpm2, "loading_coefficient": psi, "exit_mach": exit_mach,
+            "exit_swirl_deg": abs(exit_swirl_deg)}  # fmt: skip
+    flags = []
+    for k, v in vals.items():
+        lo, hi = r[k]["range"]
+        if not (lo is None or v >= lo) or not (hi is None or v <= hi):
+            flags.append(f"turbine {k} = {v:.3g} outside DePaola Table 2 range [{lo}, {hi}]")
+    return flags
