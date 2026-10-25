@@ -1,0 +1,256 @@
+sources:
+  appD: validation/cases/murray2009/murray2009_appD_running_data.csv (transcribed)
+  runplots: validation/cases/murray2009/murray2009_runplot_plateaus_digitized.csv
+    (digitized)
+compressor:
+  near_calibration:
+    PR_rel_err_pct:
+      mean: -0.0188
+      rms: 0.8278
+      max_abs: 0.8464
+      n: 2
+    eta_err_pts:
+      mean: -0.01
+      rms: 1.6461
+      max_abs: 1.656
+      n: 2
+    PR_within_meas_uncertainty: 2/2
+    eta_within_meas_uncertainty: 2/2
+  validation:
+    PR_rel_err_pct:
+      mean: 0.1118
+      rms: 2.1233
+      max_abs: 5.214
+      n: 13
+    eta_err_pts:
+      mean: 0.6333
+      rms: 3.0329
+      max_abs: 7.4188
+      n: 13
+    PR_within_meas_uncertainty: 5/13
+    eta_within_meas_uncertainty: 12/13
+  validation_below_70krpm_(below_the_original_calibration_data):
+    PR_rel_err_pct:
+      mean: -1.3905
+      rms: 1.4128
+      max_abs: 1.6109
+      n: 5
+    eta_err_pts:
+      mean: 0.9051
+      rms: 3.8586
+      max_abs: 7.4188
+      n: 5
+  model_failures: []
+turbine_indicative:
+  psi_1.0:
+    flow_capacity_rel_err_pct:
+      mean: 5.7004
+      rms: 6.3214
+      max_abs: 8.6961
+      n: 15
+    eta_err_pts:
+      mean: 13.1095
+      rms: 13.4628
+      max_abs: 18.307
+      n: 15
+    converged: 15/15
+  psi_1.5:
+    flow_capacity_rel_err_pct:
+      mean: 5.5618
+      rms: 6.0203
+      max_abs: 8.5423
+      n: 15
+    eta_err_pts:
+      mean: 11.9845
+      rms: 12.3966
+      max_abs: 17.8195
+      n: 15
+    converged: 15/15
+  psi_2.0:
+    flow_capacity_rel_err_pct:
+      mean: 5.4082
+      rms: 5.8096
+      max_abs: 8.2484
+      n: 15
+    eta_err_pts:
+      mean: 10.0419
+      rms: 10.4899
+      max_abs: 15.56
+      n: 15
+    converged: 15/15
+  note: 'INDICATIVE ONLY: assumed replica stages (KJ-66 turbine geometry unknown);
+    measured turbine efficiency is derived by Murray from the compressor work (eta_m
+    0.995) and has +-0.07-0.37 uncertainty'
+engine_nozzle_runs:
+  ambient:
+    p_kPa: 98.9
+    T_K: 294.7
+    isa_alt_m: 203.9
+    dT_isa_K: 7.88
+  bellmouth_C_m2: 0.01041
+  validation psi 1.0:
+    EGT_err_K:
+      mean: 55.2616
+      rms: 60.1616
+      max_abs: 102.9897
+      n: 38
+    P03_err_kPa:
+      mean: -5.1549
+      rms: 5.3386
+      max_abs: 7.593
+      n: 38
+    m_rel_err_pct:
+      mean: -8.1851
+      rms: 8.9175
+      max_abs: 15.5541
+      n: 38
+    EGT_within_digitizing_unc: 1/38
+    EGT_err_K_at_or_below_48krpm:
+      mean: 78.3075
+      rms: 79.544
+      max_abs: 102.9897
+      n: 6
+    converged: 38/39
+  validation psi 1.5:
+    EGT_err_K:
+      mean: 36.9592
+      rms: 41.0349
+      max_abs: 75.7703
+      n: 38
+    P03_err_kPa:
+      mean: -5.0964
+      rms: 5.2743
+      max_abs: 7.4955
+      n: 38
+    m_rel_err_pct:
+      mean: -8.5288
+      rms: 9.2573
+      max_abs: 15.9126
+      n: 38
+    EGT_within_digitizing_unc: 3/38
+    EGT_err_K_at_or_below_48krpm:
+      mean: 51.4408
+      rms: 53.0874
+      max_abs: 75.7703
+      n: 6
+    converged: 38/39
+  validation psi 2.0:
+    EGT_err_K:
+      mean: 38.4575
+      rms: 42.6257
+      max_abs: 78.4248
+      n: 38
+    P03_err_kPa:
+      mean: -5.0689
+      rms: 5.2462
+      max_abs: 7.4701
+      n: 38
+    m_rel_err_pct:
+      mean: -8.7449
+      rms: 9.4946
+      max_abs: 16.256
+      n: 38
+    EGT_within_digitizing_unc: 3/38
+    EGT_err_K_at_or_below_48krpm:
+      mean: 54.2827
+      rms: 55.7681
+      max_abs: 78.4248
+      n: 6
+    converged: 38/39
+measured_egt_trend:
+  28 krpm:
+    T5_probe_C_mean: 538.0
+    min: 538.0
+    max: 538.0
+    n: 1
+  32 krpm:
+    T5_probe_C_mean: 532.0
+    min: 532.0
+    max: 532.0
+    n: 1
+  48 krpm:
+    T5_probe_C_mean: 506.0
+    min: 485.0
+    max: 527.0
+    n: 5
+  56 krpm:
+    T5_probe_C_mean: 501.8
+    min: 479.0
+    max: 524.0
+    n: 4
+  62.4 krpm:
+    T5_probe_C_mean: 492.0
+    min: 492.0
+    max: 492.0
+    n: 1
+  64 krpm:
+    T5_probe_C_mean: 505.3
+    min: 477.0
+    max: 524.0
+    n: 3
+  72 krpm:
+    T5_probe_C_mean: 497.5
+    min: 479.0
+    max: 522.0
+    n: 4
+  76.8 krpm:
+    T5_probe_C_mean: 487.0
+    min: 487.0
+    max: 487.0
+    n: 1
+  80 krpm:
+    T5_probe_C_mean: 517.5
+    min: 487.0
+    max: 532.0
+    n: 4
+  88 krpm:
+    T5_probe_C_mean: 511.2
+    min: 492.0
+    max: 533.0
+    n: 4
+  91.2 krpm:
+    T5_probe_C_mean: 482.0
+    min: 482.0
+    max: 482.0
+    n: 1
+  96 krpm:
+    T5_probe_C_mean: 515.3
+    min: 504.0
+    max: 525.0
+    n: 3
+  104 krpm:
+    T5_probe_C_mean: 521.2
+    min: 512.0
+    max: 530.0
+    n: 4
+  105.6 krpm:
+    T5_probe_C_mean: 508.0
+    min: 508.0
+    max: 508.0
+    n: 1
+  112 krpm:
+    T5_probe_C_mean: 540.0
+    min: 527.0
+    max: 560.0
+    n: 3
+  120 krpm:
+    T5_probe_C_mean: 543.0
+    min: 536.0
+    max: 550.0
+    n: 2
+  exhaust_diffuser_config_T05_total_K (Appendix D):
+    '48.11': 808.62
+    '48.13': 831.11
+    '56.17': 815.74
+    '62.5': 775.31
+    '64.33': 791.4
+    '71.96': 776.51
+    '76.87': 750.15
+    '79.91': 774.96
+    '88.01': 765.57
+    '91.23': 751.07
+    '95.99': 756.11
+    '103.99': 750.91
+    '105.6': 743.84
+    '112.01': 709.98
+    '120.1': 744.68

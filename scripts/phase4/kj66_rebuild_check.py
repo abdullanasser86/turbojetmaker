@@ -36,7 +36,9 @@ EXP = pd.read_csv(CASES / "kj66_compressor_exp_murray2009.csv", comment="#")
 CFD_X = pd.read_csv(CASES / "kj66_compressor_cfd_xiang2016.csv", comment="#")
 CFD_L = pd.read_csv(CASES / "kj66_compressor_cfd_ling2007_peaks.csv", comment="#")
 CAL = yaml.safe_load(
-    (ROOT / "configs" / "components" / "kj66_compressor_calibration.yaml").read_text()
+    (ROOT / "configs" / "components" / "kj66_compressor_calibration.yaml").read_text(
+        encoding="utf-8"
+    )
 )
 SPEEDS = [70000, 80000, 90000, 100000, 110000, 117000, 128000]
 FLOWS = np.linspace(0.05, 0.34, 59)
@@ -58,9 +60,9 @@ def line(geom, ds, cf, n):
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     geom = CentrifugalCompressorGeometry.from_yaml()
-    raw = yaml.safe_load((ROOT / "configs" / "components" / "kj66_compressor.yaml").read_text())[
-        "impeller"
-    ]
+    raw = yaml.safe_load(
+        (ROOT / "configs" / "components" / "kj66_compressor.yaml").read_text(encoding="utf-8")
+    )["impeller"]
     res: dict = {"geometry_check": {}}
     for k, v in XIANG_USER.items():
         res["geometry_check"][k] = {"model": getattr(geom, k), "xiang_user_extract": v,
@@ -177,7 +179,9 @@ def main() -> int:
         "xiang_cfd_peak_pr": [1.54, 1.76, 1.96],
     }
     res = json.loads(json.dumps(res, default=lambda v: v.item() if hasattr(v, "item") else str(v)))
-    (OUT / "kj66_rebuild_check.yaml").write_text(yaml.safe_dump(res, sort_keys=False))
+    (OUT / "kj66_rebuild_check.yaml").write_text(
+        yaml.safe_dump(res, sort_keys=False), encoding="utf-8"
+    )
     print(yaml.safe_dump(res, sort_keys=False))
     return 0
 

@@ -1,0 +1,129 @@
+name: phase4_v3
+pilot_designs: 200
+designed_engines: 51
+feasible: 17
+feasible_fraction_of_pilot: 0.085
+feasible_fraction_of_designed: 0.3333
+min_feasible_fraction: 0.1
+stop: true
+design_failure_reasons:
+  design_turbine: 149
+point_failure_reasons:
+  cruise_M05_3km:
+    design_failed: 149
+    'no_convergence: max iterations': 1
+  design:
+    design_failed: 149
+  idle_35:
+    design_failed: 149
+  part_speed_80:
+    design_failed: 149
+point_converged_of_designed:
+  cruise_M05_3km: 50/51
+  design: 51/51
+  idle_35: 51/51
+  part_speed_80: 51/51
+infeasible_by_active_constraints:
+  AN2;TIT_ngv_above_material_data: 26
+  TIT_ngv_above_material_data: 5
+  AN2: 3
+active_constraint_per_infeasible_design:
+  '1': AN2;TIT_ngv_above_material_data
+  '6': AN2;TIT_ngv_above_material_data
+  '22': AN2;TIT_ngv_above_material_data
+  '24': AN2;TIT_ngv_above_material_data
+  '31': AN2;TIT_ngv_above_material_data
+  '32': AN2;TIT_ngv_above_material_data
+  '34': AN2;TIT_ngv_above_material_data
+  '37': TIT_ngv_above_material_data
+  '40': AN2;TIT_ngv_above_material_data
+  '44': AN2;TIT_ngv_above_material_data
+  '49': AN2;TIT_ngv_above_material_data
+  '60': AN2;TIT_ngv_above_material_data
+  '71': TIT_ngv_above_material_data
+  '80': AN2
+  '91': AN2;TIT_ngv_above_material_data
+  '94': AN2;TIT_ngv_above_material_data
+  '99': AN2;TIT_ngv_above_material_data
+  '100': AN2;TIT_ngv_above_material_data
+  '102': TIT_ngv_above_material_data
+  '122': AN2;TIT_ngv_above_material_data
+  '125': AN2;TIT_ngv_above_material_data
+  '128': AN2
+  '131': AN2;TIT_ngv_above_material_data
+  '132': AN2;TIT_ngv_above_material_data
+  '154': AN2;TIT_ngv_above_material_data
+  '157': AN2;TIT_ngv_above_material_data
+  '160': AN2;TIT_ngv_above_material_data
+  '162': TIT_ngv_above_material_data
+  '167': AN2;TIT_ngv_above_material_data
+  '174': AN2
+  '176': TIT_ngv_above_material_data
+  '180': AN2;TIT_ngv_above_material_data
+  '190': AN2;TIT_ngv_above_material_data
+  '197': AN2;TIT_ngv_above_material_data
+designs_hitting_each_constraint:
+  TIT_ngv_above_material_data: 31
+  AN2: 29
+material_status:
+  fails_creep: 29
+  ok_default: 15
+  unchecked_no_material_data: 5
+  ok_premium: 2
+marm247_no_data_branch:
+  count: 5
+  tit_range_K:
+  - 1134.0
+  - 1212.9
+stored_sensitivity_feasible_counts:
+  at_ah_0.34: 20
+  pf_0.15: 20
+  pf_0.35: 13
+conservative_settings_probe:
+  default (100 h, SF 1.5, At/Ah 1, PF 0.25):
+    feasible: 17
+    fraction_of_pilot: 0.085
+    constraint_hits:
+      TIT_ngv_above_material_data: 31
+      AN2: 29
+  life 50 h:
+    feasible: 17
+    fraction_of_pilot: 0.085
+    constraint_hits:
+      TIT_ngv_above_material_data: 31
+      AN2: 28
+      creep_rotor: 1
+  SF 1.25:
+    feasible: 18
+    fraction_of_pilot: 0.09
+    constraint_hits:
+      TIT_ngv_above_material_data: 30
+      AN2: 25
+      creep_rotor: 1
+  SF 1.0:
+    feasible: 21
+    fraction_of_pilot: 0.105
+    constraint_hits:
+      TIT_ngv_above_material_data: 29
+      AN2: 16
+      creep_rotor: 1
+  At/Ah 0.34 (K 0.67):
+    feasible: 20
+    fraction_of_pilot: 0.1
+    constraint_hits:
+      TIT_ngv_above_material_data: 29
+      AN2: 16
+      creep_rotor: 2
+  PF 0.15:
+    feasible: 20
+    fraction_of_pilot: 0.1
+    constraint_hits:
+      AN2: 29
+      TIT_ngv_above_material_data: 26
+  all relaxed (50 h, SF 1.0, At/Ah 0.34, PF 0.15):
+    feasible: 33
+    fraction_of_pilot: 0.165
+    constraint_hits:
+      TIT_ngv_above_material_data: 18
+      AN2: 6
+check_default_probe_reproduces_dataset: true

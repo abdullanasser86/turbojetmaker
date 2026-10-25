@@ -85,7 +85,9 @@ def main() -> int:
             lambda s, scale=scale: round(float(s.abs().mean() * scale), 2)
         )
         summary["errors"][q]["mean_abs_by_speed_pct"] = {int(k): v for k, v in by_speed.items()}
-    (OUT / "kofskey_summary.yaml").write_text(yaml.safe_dump(summary, sort_keys=False))
+    (OUT / "kofskey_summary.yaml").write_text(
+        yaml.safe_dump(summary, sort_keys=False), encoding="utf-8"
+    )
     print(yaml.safe_dump(summary, sort_keys=False))
     return 0
 

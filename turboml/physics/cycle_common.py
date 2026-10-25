@@ -50,7 +50,7 @@ class CycleInputs:
     @classmethod
     def from_yaml(cls, path: str | Path = CONFIG_DIR / "cycle_baseline.yaml", **overrides):
         """Build inputs from the ``values`` block of a cycle YAML file, plus overrides."""
-        raw = yaml.safe_load(Path(path).read_text())
+        raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
         vals = {k: v["value"] if isinstance(v, dict) else v for k, v in raw["values"].items()}
         vals.update(overrides)
         bad = {k: v for k, v in vals.items() if isinstance(v, str)}

@@ -38,7 +38,7 @@ def evaluate(geom: Geometry, fluid: str, p0_Pa: float, t0_K: float, m_kg_s: floa
 
 
 def main() -> int:
-    db = yaml.safe_load(DB.read_text())
+    db = yaml.safe_load(DB.read_text(encoding="utf-8"))
 
     case = db[-1]
     c = case["conditions"]

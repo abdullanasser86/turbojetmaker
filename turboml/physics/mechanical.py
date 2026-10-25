@@ -72,7 +72,7 @@ class MaterialSet:
 
     @classmethod
     def from_yaml(cls, path: str | Path = MATERIALS, **overrides) -> MaterialSet:
-        d = yaml.safe_load(Path(path).read_text())
+        d = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
         mats = {
             k: Material(k, v["name"], v["grade"], float(_val(v["density_kg_m3"])))
             for k, v in d["materials"].items()
@@ -145,7 +145,7 @@ class EnvelopeModel:
 
     @classmethod
     def from_yaml(cls, path: str | Path = MECHANICAL) -> EnvelopeModel:
-        d = yaml.safe_load(Path(path).read_text())["envelope"]
+        d = yaml.safe_load(Path(path).read_text(encoding="utf-8"))["envelope"]
         return cls(_val(d["casing_to_impeller_diameter"]), _val(d["length_to_diameter"]),
                    _val(d["mass_coefficient_kg_m3"]), _val(d["mass_coefficient_std_kg_m3"]))  # fmt: skip
 
@@ -236,7 +236,7 @@ def turbine_design_range_flags(an2_m2_rpm2: float, psi: float, exit_mach: float,
                                path: str | Path = MECHANICAL) -> list[str]:  # fmt: skip
     """Flags for a turbine outside the typical design ranges of DePaola 2020 Table 2 (configs/mechanical.yaml
     `turbine_design_ranges`). Sanity flags only: they don't make a design infeasible."""
-    r = yaml.safe_load(Path(path).read_text())["turbine_design_ranges"]
+    r = yaml.safe_load(Path(path).read_text(encoding="utf-8"))["turbine_design_ranges"]
     vals = {"an2_m2_rpm2": an2_m2_rpm2, "loading_coefficient": psi, "exit_mach": exit_mach,
             "exit_swirl_deg": abs(exit_swirl_deg)}  # fmt: skip
     flags = []

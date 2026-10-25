@@ -15,7 +15,9 @@ from turboml.physics import crosscheck
 from turboml.physics.cycle_common import CycleInputs
 
 ROOT = Path(__file__).resolve().parents[1]
-EXC = yaml.safe_load((ROOT / "validation" / "phase1" / "known_exceptions.yaml").read_text())
+EXC = yaml.safe_load(
+    (ROOT / "validation" / "phase1" / "known_exceptions.yaml").read_text(encoding="utf-8")
+)
 
 
 @pytest.mark.slow

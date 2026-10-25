@@ -183,7 +183,9 @@ def main() -> int:
         int(k): round(float(v), 3) for k, v in choke.items()
     }
     summary["runtime_s"] = round(time.time() - t0, 1)
-    (OUT / "kj66_summary.yaml").write_text(yaml.safe_dump(summary, sort_keys=False))
+    (OUT / "kj66_summary.yaml").write_text(
+        yaml.safe_dump(summary, sort_keys=False), encoding="utf-8"
+    )
     print(yaml.safe_dump(summary, sort_keys=False))
     return 0
 

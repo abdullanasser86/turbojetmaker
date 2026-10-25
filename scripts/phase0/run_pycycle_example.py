@@ -30,7 +30,7 @@ def main() -> int:
         [sys.executable, str(EXAMPLE)], cwd=work, capture_output=True, text=True, check=False
     )
     dt = time.time() - t0
-    OUT.write_text(proc.stdout + "\n--- stderr ---\n" + proc.stderr)
+    OUT.write_text(proc.stdout + "\n--- stderr ---\n" + proc.stderr, encoding="utf-8")
 
     print(
         f"exit code {proc.returncode}, wall time {dt:.1f} s, full output -> {OUT.relative_to(ROOT)}"

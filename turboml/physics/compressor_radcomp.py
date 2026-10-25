@@ -24,7 +24,10 @@ def radcomp_geometry(
 ):
     from radcompressor.geometry import Geometry
 
-    ex = {k: v["value"] for k, v in yaml.safe_load(Path(path).read_text())["radcomp_extra"].items()}
+    ex = {
+        k: v["value"]
+        for k, v in yaml.safe_load(Path(path).read_text(encoding="utf-8"))["radcomp_extra"].items()
+    }
     return Geometry(
         r1=g.radius_tip_in_m, r2s=g.radius_tip_in_m, r2h=g.radius_hub_in_m,
         beta2=ex["mid_inlet_angle_deg"], beta2s=ex["shroud_inlet_angle_deg"], alpha2=0.0,

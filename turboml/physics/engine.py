@@ -56,7 +56,7 @@ def _val(x):
 
 
 def load_engine_config(path: str | Path = ENGINE_CONFIG) -> dict:
-    return yaml.safe_load(Path(path).read_text())
+    return yaml.safe_load(Path(path).read_text(encoding="utf-8"))
 
 
 class EngineFailure(Exception):
@@ -144,7 +144,7 @@ class CompressorReference:
 def compressor_reference(cfg: dict) -> CompressorReference:
     cd = cfg["compressor_design"]
     geom = CentrifugalCompressorGeometry.from_yaml(ROOT / cd["reference_geometry"])
-    cal = yaml.safe_load((ROOT / cd["calibration"]).read_text())
+    cal = yaml.safe_load((ROOT / cd["calibration"]).read_text(encoding="utf-8"))
     ds, cf = float(_val(cal["delta_sigma"])), float(_val(cal["diffuser_cf"]))
     rp = cd["reference_point"]
     comp = CentrifugalCompressor(geom, delta_sigma=ds, diffuser_cf=cf)
@@ -310,6 +310,80 @@ def size_compressor(ref: CompressorReference, mdot: float, n_rpm: float, pr_targ
     if q is None or abs(q.pr_tt / pr_target - 1) > 1e-5:
         raise EngineFailure("design_compressor_no_convergence")
     return gq, q
+
+
+def tip_speed_specific_speed(
+    omega_rad_s: float, mdot: float, T01: float, p01: float, u2: float
+) -> float:
+    """Compressor specific speed based on tip speed: n_s,U = omega sqrt(Q01) / U2^1.5 (dimensionless).
+
+    The usual specific speed N_s = omega sqrt(Q01) / dh_is^0.75 needs the isentropic work, i.e. the pressure ratio.
+    With the ideal work written as dh_is = psi_is U2^2 the two differ only by the factor psi_is^0.75 (about 0.5-0.6
+    for this wheel family), so n_s,U ranks wheel shapes the same way without knowing PR in advance. Q01 is the
+    volume flow at the compressor-inlet total state."""
+    rho01 = p01 / (thermo.air().R * T01)
+    return omega_rad_s * math.sqrt(mdot / rho01) / u2**1.5
+
+
+def size_compressor_direct(
+    ref: CompressorReference, mdot: float, u2: float, ns_u: float, T01: float, p01: float
+):
+    """KJ-66-like compressor for a prescribed tip speed U2 and tip-speed specific speed n_s,U (Phase 4 option A).
+
+    No search over the pressure ratio: omega = n_s,U U2^1.5 / sqrt(Q01) fixes the shaft speed, r2 = U2 / omega the
+    impeller, the KJ-66 inducer flow coefficient the inducer, and the exit width follows from its own exit density
+    (fixed point, as in `size_compressor`). The pressure ratio is the RESULT. Failure labels:
+    design_compressor_r2_below_inducer, design_compressor_<choke label>, design_compressor_no_convergence.
+    Returns (geometry, CompressorPoint, n_rpm)."""
+    air = thermo.air()
+    g0 = ref.geometry
+    rho01 = p01 / (air.R * T01)
+    omega = ns_u * u2**1.5 / math.sqrt(mdot / rho01)
+    n_rpm = omega * 30 / math.pi
+    r2 = u2 / omega
+    nu = g0.radius_hub_in_m / g0.radius_tip_in_m
+
+    def f_ind(r1t):
+        area = math.pi * r1t**2 * (1 - nu**2)
+        try:
+            return _inducer_velocity(air, mdot, area, T01, p01) / (omega * r1t) - ref.phi1t
+        except EngineFailure:
+            return 1e3
+
+    r1t = brentq(f_ind, 2e-3, 0.3, xtol=1e-9)
+    if r2 < 1.05 * r1t:
+        raise EngineFailure("design_compressor_r2_below_inducer")
+    c1 = _inducer_velocity(air, mdot, math.pi * r1t**2 * (1 - nu**2), T01, p01)
+    le_angle = math.degrees(math.atan(omega * 0.5 * (1 + nu) * r1t / c1)) + ref.incidence_deg
+    lam = r2 / g0.radius_out_m
+    rho, seen_ok, prev = rho01 * 1.5, False, None
+    for _ in range(40):
+        b2 = mdot / (2 * math.pi * r2 * rho * ref.phi2 * omega * r2)
+        g = replace(g0, radius_hub_in_m=nu * r1t, radius_tip_in_m=r1t, radius_out_m=r2, width_out_m=b2,
+                    leading_edge_angle_deg=le_angle, length_meridional_m=g0.length_meridional_m * lam,
+                    length_axial_m=g0.length_axial_m * lam, diffuser_radius_out_m=g0.diffuser_radius_out_m * lam,
+                    diffuser_width_out_m=b2, tip_clearance_m=max(ref.clearance_to_b2 * b2, ref.min_clearance_m),
+                    provenance={"sizing": "engine.size_compressor_direct (KJ-66-like rules, option A)"})  # fmt: skip
+        comp = CentrifugalCompressor(g, delta_sigma=ref.delta_sigma, diffuser_cf=ref.diffuser_cf,
+                                     T0_in_K=T01, p0_in_Pa=p01)  # fmt: skip
+        pt = comp.evaluate(mdot, n_rpm)
+        if not pt.converged:
+            label = pt.failure_reason.split(":")[0]
+            if not seen_ok and label in ("choke_impeller_exit", "choke_diffuser"):
+                rho *= 0.85  # exit too narrow for this density guess: widen
+                continue
+            raise EngineFailure(f"design_compressor_{label}")
+        seen_ok = True
+        F = pt.exit_density_kg_m3 - rho
+        if abs(F) < 1e-6 * rho:
+            return g, pt, n_rpm
+        if prev is not None and F != prev[1]:
+            rho_new = min(max(rho - F * (rho - prev[0]) / (F - prev[1]), 0.5 * rho), 2.0 * rho)
+        else:
+            rho_new = pt.exit_density_kg_m3
+        prev = (rho, F)
+        rho = rho_new
+    raise EngineFailure("design_compressor_no_convergence")
 
 
 def size_compressor_tip_speed(ref: CompressorReference, mdot: float, u2_target: float, pr_target: float, T01: float,
@@ -781,7 +855,16 @@ def design_engine(
         # the nominal calibration), different compressor performance in sizing and off-design
         ref = replace(ref, delta_sigma=float(calibration[0]), diffuser_cf=float(calibration[1]))
     m, tit = x["W_air_kg_s"], x["tit_K"]
-    if "impeller_tip_speed_m_s" in x:  # Phase 4 option C: tip speed prescribed, shaft speed derived
+    if (
+        "comp_specific_speed" in x
+    ):  # Phase 4 option A: tip speed + specific speed prescribed, PR and speed derived
+        cg, cpt, N = size_compressor_direct(
+            ref, m, x["impeller_tip_speed_m_s"], x["comp_specific_speed"], T02, p02
+        )
+        x["n_rpm"], x["pr_c"] = N, cpt.pr_tt
+    elif (
+        "impeller_tip_speed_m_s" in x
+    ):  # Phase 4 option C: tip speed prescribed, shaft speed derived
         cg, cpt, N = size_compressor_tip_speed(
             ref, m, x["impeller_tip_speed_m_s"], x["pr_c"], T02, p02
         )

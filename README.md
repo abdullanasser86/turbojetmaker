@@ -14,9 +14,10 @@ physics models.
 > testing by qualified people before anything is built or run.
 
 ## Status
-Phase 4 (training dataset), round 2: the option-C pilot (`phase4_v2`) was STOPPED by the agreed stop rule
-(5.5 % feasible < 10 %); the full run waits for a sampling decision. See `docs/PHASE4_REPORT.md` and the dataset cards
-`docs/dataset_cards/phase4_v1.md`, `phase4_v2.md` (earlier: `docs/PHASE0_REPORT.md` … `docs/PHASE3_REPORT.md`).
+Phase 4 (training dataset), round 3: the option-A pilot (`phase4_v3`) was STOPPED by the agreed stop rule
+(8.5 % feasible < 10 %; the compressor is now always buildable, the turbine hub/tip choice is the limit). The KJ-66
+model was validated against Murray's measured data. See `docs/PHASE4_REPORT.md` and the dataset cards in
+`docs/dataset_cards/` (earlier: `docs/PHASE0_REPORT.md` … `docs/PHASE3_REPORT.md`).
 
 What exists now: a 0-D cycle (plus pyCycle-CEA cross-check), meanline compressor and axial-turbine models, a coupled
 engine model with design mode (sizing) and off-design matching, turbine creep checks from NiDI No. 393 rupture data,
@@ -39,39 +40,57 @@ uv run pytest                             # tests (use -m "not slow" to skip sol
 uv run jupyter lab notebooks/             # phase notebooks (or open them in VS Code)
 ```
 
-## Laptop setup (RTX 4080 Laptop GPU, 12 GB)
+## Laptop setup (Windows 11, RTX 4080 Laptop GPU, 12 GB)
 
-The lock file pins **torch 2.10.0 built for CUDA 12.8** (Linux x86-64 wheels from PyPI), with
-GPyTorch 1.15.2 and BoTorch 0.18.1. Any recent NVIDIA driver (≥ 570, CUDA 12.8 capable) works.
-*Windows:* PyPI only ships CPU-only torch wheels for Windows, so a CUDA build needs the PyTorch
-package index. This is not yet in the lock (see docs/PHASE3_REPORT.md, open question about your OS).
+The lock file pins **torch 2.10.0 built for CUDA 12.8**: on Windows from the PyTorch package index
+(`2.10.0+cu128`, configured in `pyproject.toml` → `[tool.uv.sources]`), on Linux from PyPI. GPyTorch 1.15.2 and
+BoTorch 0.18.1 on both. Any recent NVIDIA driver (≥ 570, i.e. `nvidia-smi` shows CUDA ≥ 12.8) works.
 
-1. Install [uv](https://docs.astral.sh/uv/) and git.
-2. Clone and create the environment:
-   ```bash
+**Windows 11 (PowerShell)**
+1. Install git, then uv, and enable Python's UTF-8 mode once (Windows defaults to the cp1252 code page; our docs,
+   cards and notebooks are UTF-8):
+   ```powershell
+   winget install --id Git.Git -e
+   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+   setx PYTHONUTF8 1          # takes effect in NEW terminals
+   ```
+   Close and reopen PowerShell.
+2. Clone and create the environment (uv installs Python 3.11 itself if needed):
+   ```powershell
    git clone https://github.com/abdullanasser86/turbojetmaker.git
    cd turbojetmaker
-   uv sync --frozen            # exact versions from uv.lock (~3 GB incl. CUDA libraries)
+   uv sync --frozen           # exact versions from uv.lock, incl. the CUDA torch build (~3 GB)
    ```
-3. Check the environment, GPU and ML stack (versions vs lock, GPU name/VRAM/driver/power limit,
-   short GP and MLP benchmark with peak memory):
-   ```bash
+3. Check the environment. On Windows this also verifies that torch is the CUDA 12.x build, that it sees the GPU and
+   that UTF-8 mode is on (exit code 1 and a PROBLEMS list otherwise):
+   ```powershell
    uv run python scripts/check_env.py
    ```
-4. Run the tests (fast set first, then everything):
-   ```bash
+4. Check that the dataset generator runs with parallel workers on Windows (spawn start method; ~1 min):
+   ```powershell
+   uv run python scripts/phase4/windows_smoke_test.py
+   ```
+5. Run the tests:
+   ```powershell
    uv run pytest -m "not slow"
    uv run pytest
    ```
-5. For long runs: plug into **AC power** and select the laptop's **performance / turbo power mode**.
-   Expect lower sustained throughput than a desktop RTX 4080, and possible thermal throttling.
-   Training writes resumable checkpoints (`turboml/checkpoint.py`), so a run interrupted by sleep
-   or throttling can continue from its last checkpoint.
+6. Long runs: plug into **AC power** and select the **performance / turbo power mode**. Choose the number of worker
+   processes per run with an environment variable, e.g. `$env:TURBOML_N_WORKERS = "8"` (PowerShell) before the
+   command. The dataset generator is resumable: after sleep, a crash or Ctrl-C, run the same command again.
+   Training writes resumable checkpoints (`turboml/checkpoint.py`).
+
+**Linux** (same steps with bash): `curl -LsSf https://astral.sh/uv/install.sh | sh`, `uv sync --frozen`,
+`uv run python scripts/check_env.py`. No UTF-8 setting is needed.
+
+**Parallel code and Windows.** Windows has no `fork`: worker processes start fresh and import the module again.
+All parallel code uses joblib/loky (or a `spawn` pool) with top-level, picklable worker functions, and every script's
+work sits behind `if __name__ == "__main__":`. Keep it that way in new scripts.
 
 **Resource settings**
 - Physics data generation runs on the CPU with `compute.n_workers` parallel processes
   (`configs/default.yaml`; default = physical cores − 1, so the laptop stays usable). Override per
-  run with `TURBOML_N_WORKERS=4`.
+  run with the `TURBOML_N_WORKERS` environment variable (PowerShell: `$env:TURBOML_N_WORKERS = "4"`).
 - Training code picks CUDA automatically and falls back to CPU (`turboml/device.py`, override with
   `TURBOML_DEVICE=cpu`). GPs use float64, neural networks float32. Sized for 12 GB VRAM: exact GPs
   up to ~10k points per output, variational/sparse GPs or deep ensembles above that, ensemble

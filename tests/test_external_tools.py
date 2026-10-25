@@ -46,7 +46,7 @@ def test_radcomp_notebook_case():
     from radcompressor.geometry import Geometry
     from radcompressor.thermo import CoolPropFluid
 
-    case = yaml.safe_load((THIRD / "radcomp_known_compressors.yml").read_text())[-1]
+    case = yaml.safe_load((THIRD / "radcomp_known_compressors.yml").read_text(encoding="utf-8"))[-1]
     c = case["conditions"]
     in0 = CoolPropFluid(c["fluid"]).thermo_prop("PT", c["in_P"], c["in_T"])
     op = OperatingCondition(in0=in0, fld=in0.fld, m=0.120, n_rot=130e3 * np.pi / 30)

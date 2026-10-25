@@ -33,7 +33,9 @@ from turboml.physics.cycle_common import CycleInputs
 from turboml.physics.cycle_simple import design_point
 
 ROOT = Path(__file__).resolve().parents[2]
-DB = yaml.safe_load((ROOT / "validation" / "cases" / "jetcat_datasheets.yaml").read_text())
+DB = yaml.safe_load(
+    (ROOT / "validation" / "cases" / "jetcat_datasheets.yaml").read_text(encoding="utf-8")
+)
 OUT = ROOT / "validation" / "phase1"
 KEROSENE_DENSITY_KG_L = 0.80  # assumption for the fuel-flow consistency check only
 ETA_C_GRID = np.round(np.arange(0.60, 0.821, 0.02), 2)

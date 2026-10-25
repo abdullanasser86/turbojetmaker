@@ -75,7 +75,7 @@ def main() -> int:
         "cumulative_time_fraction_top_turboml_functions_after_speedup": cum,
     }
     path = ROOT / "validation" / "phase4" / "profiling.yaml"
-    path.write_text(yaml.safe_dump(out, sort_keys=False))
+    path.write_text(yaml.safe_dump(out, sort_keys=False), encoding="utf-8")
     print(yaml.safe_dump(out, sort_keys=False))
     return 0
 

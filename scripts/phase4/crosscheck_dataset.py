@@ -38,10 +38,12 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default=str(ROOT / "configs" / "dataset_phase4_v2.yaml"))
     args = ap.parse_args()
-    dcfg = yaml.safe_load(Path(args.config).read_text())
+    dcfg = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
     recs = [
         json.loads(ln)
-        for ln in (ROOT / dcfg["output_dir"] / "designs.jsonl").read_text().splitlines()
+        for ln in (ROOT / dcfg["output_dir"] / "designs.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
         if ln.strip()
     ]
     ok = sorted(
@@ -74,7 +76,9 @@ def main() -> int:
                                    "max_abs_TSFC_pct": round(100 * float(df.coupled_vs_pyc_TSFC.abs().max()), 4)},
             "secondary_dFn_over_Fg_max_abs": round(float(df.secondary_dFn_over_Fg.abs().max()), 5),
             "design_ids": [r["design_id"] for r in pick]}  # fmt: skip
-    (out / f"crosscheck_{dcfg['name']}.yaml").write_text(yaml.safe_dump(summ, sort_keys=False))
+    (out / f"crosscheck_{dcfg['name']}.yaml").write_text(
+        yaml.safe_dump(summ, sort_keys=False), encoding="utf-8"
+    )
     print(yaml.safe_dump(summ, sort_keys=False))
     return 0
 

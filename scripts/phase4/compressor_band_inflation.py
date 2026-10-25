@@ -30,7 +30,9 @@ ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "validation" / "phase4"
 EXP = pd.read_csv(ROOT / "validation" / "cases" / "kj66_compressor_exp_murray2009.csv", comment="#")
 CAL = yaml.safe_load(
-    (ROOT / "configs" / "components" / "kj66_compressor_calibration.yaml").read_text()
+    (ROOT / "configs" / "components" / "kj66_compressor_calibration.yaml").read_text(
+        encoding="utf-8"
+    )
 )
 TARGET = 0.95
 K_GRID = [1, 2, 2.25, 2.5, 2.75, 3, 4, 5, 6, 8, 10, 12, 15]
@@ -85,7 +87,9 @@ def main() -> int:
     pd.DataFrame(rows).to_csv(OUT / "compressor_band_inflation.csv", index=False)
     summary = {"target_coverage": TARGET, "held_out_points": int(len(held)), "k_grid_tried": [r["k"] for r in rows],
                "chosen": chosen, "statistical_2sigma_half_widths": {"delta_sigma": h_ds, "diffuser_cf": h_cf}}  # fmt: skip
-    (OUT / "compressor_band_inflation.yaml").write_text(yaml.safe_dump(summary, sort_keys=False))
+    (OUT / "compressor_band_inflation.yaml").write_text(
+        yaml.safe_dump(summary, sort_keys=False), encoding="utf-8"
+    )
     print(yaml.safe_dump(summary, sort_keys=False))
     return 0
 

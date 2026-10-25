@@ -61,6 +61,10 @@ bounds:
     lower: 0.5
     upper: 0.95
     source: "user decision 2026-10-25: rotor-exit hub/tip ratio inside TurboFlow's recommended range [0.5, 0.95] (turboflow geometry_model check_turbine_geometry)"
+  comp_specific_speed:
+    lower: 0.35
+    upper: 0.90
+    source: "Phase 4 option A (user decision 2026-10-25), n_s,U = omega sqrt(Q01) / U2^1.5 (turboml.physics.engine.tip_speed_specific_speed). DERIVED from a sizing scan of the KJ-66-like family (W 0.08-1.9 kg/s, U2 350-500 m/s): every wheel is buildable up to 0.95 (r2 drops below the inducer at 1.05, U2 500 m/s), efficiency peaks at ~0.9; below 0.35 the family's efficiency falls under ~0.6 (0.42-0.50 at 0.25). KJ-66 reference point: 0.68. PROVISIONAL (design judgement on the scan, no external source)"
   # Phase 4 candidates (bounds still to be set with sources): impeller blade count, backsweep, diffuser
   # radius ratio, tip clearance, turbine aspect ratio and tip clearance.
   imp_blade_count: {integer: true}

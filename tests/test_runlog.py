@@ -10,7 +10,7 @@ def test_start_run_writes_metadata_and_seeds(tmp_path):
     cfg = load_config()
     run_dir = start_run(cfg, "unit_test", root=tmp_path)
     assert (run_dir / "config.yaml").exists()
-    meta = json.loads((run_dir / "meta.json").read_text())
+    meta = json.loads((run_dir / "meta.json").read_text(encoding="utf-8"))
     assert meta["seed"] == cfg.seed and "commit" in meta["git"]
     a = np.random.rand()  # noqa: NPY002
     start_run(cfg, "unit_test_2", root=tmp_path)

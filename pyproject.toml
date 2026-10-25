@@ -49,6 +49,17 @@ dev = ["pytest>=8", "ruff>=0.6", "black>=24", "pre-commit>=3.7"]
 # numpy 2.3 / CoolProp 8 and checked its regression tests -- see docs/DECISIONS.md D-002.
 override-dependencies = ["numpy>=2.0,<2.4", "CoolProp>=6.6"]
 
+# Windows 11 (user's workstation, RTX 4080 Laptop): PyPI's Windows torch wheel is CPU-only, so on win32 torch comes
+# from the PyTorch CUDA 12.8 index (same CUDA 12.x line as the Linux PyPI build). Linux and macOS keep PyPI.
+# `explicit = true`: only torch is taken from this index. See docs/DECISIONS.md D-050.
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128", marker = "sys_platform == 'win32'" }]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

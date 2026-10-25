@@ -37,7 +37,9 @@ def test_diag_hook_off_is_identical_and_on_moves_egt_the_right_way():
     e = E.Engine(d, CFG)
     e.diag_eta_delta = {"compressor": 0.0, "turbine": 0.0}
     p1 = e.off_design(n)
-    assert p1.T05_K == pytest.approx(p0.T05_K, rel=1e-9) and p1.Fn_N == pytest.approx(p0.Fn_N, rel=1e-9)
+    assert p1.T05_K == pytest.approx(p0.T05_K, rel=1e-9) and p1.Fn_N == pytest.approx(
+        p0.Fn_N, rel=1e-9
+    )
     e = E.Engine(d, CFG)
     e.diag_eta_delta = {"compressor": 0.02}
     assert e.off_design(n).T05_K < p0.T05_K  # better compressor -> less turbine work -> cooler EGT
@@ -54,3 +56,36 @@ def test_v2_split_frozen_and_samples_in_bounds():
     ht = np.array([r["inputs"]["turb_hub_tip"] for r in recs])
     assert u2.min() >= 350 and u2.max() <= 500 and ht.min() >= 0.5 and ht.max() <= 0.95
     assert all("n_rpm" not in r["inputs"] and "turb_phi" not in r["inputs"] for r in recs)
+
+
+def test_option_a_direct_sizing_recovers_kj66_and_builds_at_all_bounds():
+    """At the KJ-66 reference point's own tip-speed specific speed, direct sizing gives back the KJ-66 wheel; every
+    corner of the option-A box (W, U2, n_s,U) is a buildable wheel (user requirement 2026-10-25)."""
+    import math
+
+    ref = E._cached_reference(CFG)
+    om = 110000 * math.pi / 30
+    u2 = ref.geometry.radius_out_m * om
+    ns = E.tip_speed_specific_speed(om, 0.235, 288.15, 101325.0, u2)
+    assert ns == pytest.approx(0.6807, abs=1e-3)
+    g, pt, n = E.size_compressor_direct(ref, 0.235, u2, ns, 288.15, 101325.0)
+    assert n == pytest.approx(110000, rel=1e-9) and g.radius_out_m == pytest.approx(0.033, rel=1e-9)
+    assert g.radius_tip_in_m == pytest.approx(ref.geometry.radius_tip_in_m, rel=1e-3)
+    from turboml.config import load_config
+
+    b = load_config().bounds
+    for W in (b["air_mass_flow_kg_s"].lower, b["air_mass_flow_kg_s"].upper):
+        for U in (b["impeller_tip_speed_m_s"].lower, b["impeller_tip_speed_m_s"].upper):
+            for s in (b["comp_specific_speed"].lower, b["comp_specific_speed"].upper):
+                g, pt, n = E.size_compressor_direct(ref, W, U, s, 288.15, 0.98 * 101325.0)
+                assert pt.converged and pt.tip_speed_m_s == pytest.approx(U, rel=1e-9)
+
+
+def test_v3_split_frozen_and_no_pr_variable():
+    spec = DatasetSpec.load("configs/dataset_phase4_v3.yaml")
+    f = pd.read_csv("data/splits/phase4_v3_split.csv")
+    assert np.array_equal(
+        f.split.eq("test").to_numpy(), make_test_split(2000, 0.15, spec.cfg["seed"])
+    )
+    r = sample_designs(spec)[0]["inputs"]
+    assert "pr_c" not in r and "n_rpm" not in r and "comp_specific_speed" in r

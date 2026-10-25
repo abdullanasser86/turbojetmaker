@@ -95,9 +95,9 @@ def test_turboflow_slip_hook_uses_degrees():
 
 def test_kj66_calibration_regression(geom):
     """Calibrated KJ-66 model (validation/phase2/kj66_summary.yaml) at 90 krpm vs measured mean."""
-    s = yaml.safe_load((ROOT / "validation" / "phase2" / "kj66_summary.yaml").read_text())[
-        "calibration"
-    ]
+    s = yaml.safe_load(
+        (ROOT / "validation" / "phase2" / "kj66_summary.yaml").read_text(encoding="utf-8")
+    )["calibration"]
     c = CentrifugalCompressor(geom, delta_sigma=s["delta_sigma"], diffuser_cf=s["diffuser_cf"])
     p = c.evaluate(0.148, 90000)
     assert p.pr_tt == pytest.approx(1.68, rel=0.03)  # measured cluster 1.66-1.695

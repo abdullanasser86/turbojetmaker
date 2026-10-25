@@ -210,7 +210,9 @@ def main() -> int:
         "direction": "lower Re at idle -> higher loss -> LOWER idle efficiencies -> HIGHER idle EGT (step 1 sensitivity)",
     }
     res = json.loads(json.dumps(res, default=lambda v: v.item() if hasattr(v, "item") else str(v)))
-    (OUT / "idle_egt_investigation.yaml").write_text(yaml.safe_dump(res, sort_keys=False))
+    (OUT / "idle_egt_investigation.yaml").write_text(
+        yaml.safe_dump(res, sort_keys=False), encoding="utf-8"
+    )
     print(yaml.safe_dump(res, sort_keys=False))
     return 0
 

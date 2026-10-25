@@ -45,7 +45,7 @@ class DatasetSpec:
     def load(cls, path: str | Path = DATASET_CONFIG) -> DatasetSpec:
         from turboml.config import load_config
 
-        cfg = yaml.safe_load(Path(path).read_text())
+        cfg = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
         b = load_config().bounds
         bounds = {}
         for name, v in cfg["design_variables"].items():
@@ -53,7 +53,7 @@ class DatasetSpec:
             if not bd.is_set():
                 raise ValueError(f"bound {name} is not set in configs/bounds.yaml")
             bounds[name] = (float(bd.lower), float(bd.upper), v["scale"], v["key"])
-        cal = yaml.safe_load((ROOT / cfg["calibration_sampling"]).read_text())
+        cal = yaml.safe_load((ROOT / cfg["calibration_sampling"]).read_text(encoding="utf-8"))
         return cls(cfg, bounds, cal)
 
 
@@ -160,7 +160,8 @@ def evaluate_design(rec: dict, engine_cfg: dict, points: list[dict]) -> dict:
     # variables derived by the sizing when the sampled set prescribes their counterparts (option C)
     out["derived"] = {"n_rpm": _plain(d.inputs["n_rpm"]), "turb_phi": _plain(d.inputs["turb_phi"]),
                       "turb_hub_tip": _plain(tg.radius_hub_out[1] / tg.radius_tip_out[1]),
-                      "impeller_tip_speed_m_s": _plain(d.design_point.compressor_tip_speed_m_s)}  # fmt: skip
+                      "impeller_tip_speed_m_s": _plain(d.design_point.compressor_tip_speed_m_s),
+                      "pr_c": _plain(d.design_point.pr_c), "comp_specific_speed_conventional": _plain(conventional_ns(d))}  # fmt: skip
     out["points"]["design"] = _point_dict(d.design_point)
     try:
         eng = Engine(d, engine_cfg)
@@ -182,6 +183,17 @@ def evaluate_design(rec: dict, engine_cfg: dict, points: list[dict]) -> dict:
     return out
 
 
+def conventional_ns(d) -> float:
+    """Conventional compressor specific speed N_s = omega sqrt(Q01) / dh_is^0.75 (dimensionless) at the design point."""
+    from turboml.gas import thermo
+
+    air, p = thermo.air(), d.design_point
+    T2s = air.T_isentropic(p.T02_K, p.pr_c)
+    dh_is = air.h(T2s) - air.h(p.T02_K)
+    q = p.W_air_kg_s * air.R * p.T02_K / p.p02_Pa
+    return p.n_rpm * math.pi / 30 * math.sqrt(q) / dh_is**0.75
+
+
 def sensitivities(d) -> dict:
     """Feasibility of one design under the sensitivity settings of configs/materials.yaml (user decision
     2026-10-25): blade taper At/Ah = 0.34 (K = 0.67) and pattern factor at the ends of its range. The default
@@ -189,7 +201,7 @@ def sensitivities(d) -> dict:
     on them."""
     from turboml.physics import mechanical
 
-    cfg = yaml.safe_load(mechanical.MATERIALS.read_text())
+    cfg = yaml.safe_load(mechanical.MATERIALS.read_text(encoding="utf-8"))
     cases = {f"at_ah_{cfg['blade_tip_to_hub_area_ratio']['sensitivity']}": {
                  "tip_to_hub_area_ratio": float(cfg["blade_tip_to_hub_area_ratio"]["sensitivity"])}}  # fmt: skip
     for pf in cfg["combustor_pattern_factor"]["sensitivity"]:
@@ -213,7 +225,7 @@ def done_ids(path: Path) -> set[int]:
     if not path.exists():
         return set()
     ids = set()
-    for line in path.read_text().splitlines():
+    for line in path.read_text(encoding="utf-8").splitlines():
         if line.strip():
             try:
                 ids.add(json.loads(line)["design_id"])

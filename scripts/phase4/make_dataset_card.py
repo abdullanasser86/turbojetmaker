@@ -33,14 +33,14 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default=str(ROOT / "configs" / "dataset_phase4_v2.yaml"))
     args = ap.parse_args()
-    dcfg = yaml.safe_load(Path(args.config).read_text())
+    dcfg = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
     name = dcfg["name"]
     out_dir = ROOT / dcfg["output_dir"]
     D = pd.read_csv(out_dir / "designs.csv")
     P = pd.read_csv(out_dir / "points.csv")
     split = pd.read_csv(ROOT / "data" / "splits" / f"{name}_split.csv")
     xc_path = ROOT / "validation" / "phase4" / f"crosscheck_{name}.yaml"
-    xc = yaml.safe_load(xc_path.read_text()) if xc_path.exists() else None
+    xc = yaml.safe_load(xc_path.read_text(encoding="utf-8")) if xc_path.exists() else None
     bounds = load_config().bounds
     git = subprocess.run(
         ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=ROOT
@@ -86,16 +86,18 @@ def main() -> int:
         stats["sensitivity_feasible"] = {c[5:-9]: int(ok[c].astype(bool).sum()) for c in ok.columns
                                          if c.startswith("sens_") and c.endswith("_feasible")}  # fmt: skip
         stats["derived_ranges"] = {c: [round(float(ok[c].min()), 3), round(float(ok[c].max()), 3)]
-                                   for c in ("derived_n_rpm", "derived_turb_phi") if c in ok}  # fmt: skip
+                                   for c in ("derived_n_rpm", "derived_turb_phi", "derived_pr_c", "derived_comp_specific_speed_conventional") if c in ok}  # fmt: skip
     pa = ROOT / "validation" / "phase4" / f"pilot_analysis_{name}.yaml"
-    pilot_analysis = yaml.safe_load(pa.read_text()) if pa.exists() else None
+    pilot_analysis = yaml.safe_load(pa.read_text(encoding="utf-8")) if pa.exists() else None
     timing = sorted((ROOT / "runs").glob(f"*_dataset_{name}/timing.json"))
     if timing:
-        t = json.loads(timing[-1].read_text())
+        t = json.loads(timing[-1].read_text(encoding="utf-8"))
         stats["last_run"] = t
     sdir = ROOT / "validation" / "phase4"
     sdir.mkdir(parents=True, exist_ok=True)
-    (sdir / f"dataset_stats_{name}.yaml").write_text(yaml.safe_dump(stats, sort_keys=False))
+    (sdir / f"dataset_stats_{name}.yaml").write_text(
+        yaml.safe_dump(stats, sort_keys=False), encoding="utf-8"
+    )
 
     pilot = n_done < n_total
     L = [f"# Dataset card: `{name}`{' (PILOT)' if pilot else ''}", "", f"> **{SAFETY_NOTE}**", "",
@@ -104,7 +106,7 @@ def main() -> int:
         L += [f"**STOPPED by the pilot stop rule:** {pilot_analysis['feasible']} of {pilot_analysis['pilot_designs']} pilot designs "
               f"feasible ({100 * pilot_analysis['feasible_fraction_of_pilot']:.1f} % < {100 * pilot_analysis['min_feasible_fraction']:.0f} %). "
               f"The full run was not started. Analysis: `validation/phase4/pilot_analysis_{name}.yaml`.", ""]  # fmt: skip
-    mcfg = yaml.safe_load((ROOT / "configs" / "materials.yaml").read_text())
+    mcfg = yaml.safe_load((ROOT / "configs" / "materials.yaml").read_text(encoding="utf-8"))
     life, sf = mcfg["design_life_h"]["value"], mcfg["stress_safety_factor"]["value"]
     at_ah, pf = (
         mcfg["blade_tip_to_hub_area_ratio"]["value"],
@@ -163,7 +165,7 @@ def main() -> int:
         ]
         L += md_table(stats["depaola_table2_flags"], "quantity", "designs flagged") + [""]
         if stats["derived_ranges"]:
-            L += ["Derived by the sizing (option C): " + "; ".join(f"{k.removeprefix('derived_')} {v[0]:g} – {v[1]:g}"
+            L += ["Derived by the sizing (not sampled): " + "; ".join(f"{k.removeprefix('derived_')} {v[0]:g} – {v[1]:g}"
                                                                      for k, v in stats["derived_ranges"].items()), ""]  # fmt: skip
     L += [
         "## Point-level outcome (designed engines)",
@@ -207,7 +209,7 @@ def main() -> int:
           "engine family (labelled design failures).", ""]  # fmt: skip
     cdir = ROOT / "docs" / "dataset_cards"
     cdir.mkdir(parents=True, exist_ok=True)
-    (cdir / f"{name}.md").write_text("\n".join(L))
+    (cdir / f"{name}.md").write_text("\n".join(L), encoding="utf-8")
     print(yaml.safe_dump(stats, sort_keys=False))
     return 0
 

@@ -99,7 +99,7 @@ def test_baseline_like_design_all_points():
 def test_resume_helpers(tmp_path):
     gen = _load_script()
     f = tmp_path / "designs.jsonl"
-    f.write_text('{"design_id": 0}\n{"design_id": 1}\n{"design_id": 2, "trunc')
+    f.write_text('{"design_id": 0}\n{"design_id": 1}\n{"design_id": 2, "trunc', encoding="utf-8")
     gen.repair_tail(f)
-    assert f.read_text().endswith("\n")
+    assert f.read_text(encoding="utf-8").endswith("\n")
     assert done_ids(f) == {0, 1}

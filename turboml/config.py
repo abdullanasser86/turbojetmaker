@@ -93,7 +93,7 @@ def _deep_merge(base: dict[str, Any], child: dict[str, Any]) -> dict[str, Any]:
 
 
 def _load_raw(path: Path) -> dict[str, Any]:
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:
         raw = yaml.safe_load(fh) or {}
     parent = raw.pop("extends", None)
     if parent is not None:
@@ -110,7 +110,7 @@ def load_config(path: str | Path = CONFIG_DIR / "default.yaml") -> TurboMLConfig
     path = Path(path)
     raw = _load_raw(path)
     if raw.get("bounds_file"):
-        b = yaml.safe_load((path.parent / raw["bounds_file"]).read_text()) or {}
+        b = yaml.safe_load((path.parent / raw["bounds_file"]).read_text(encoding="utf-8")) or {}
         raw["bounds"] = _deep_merge(b.get("bounds", {}), raw.get("bounds", {}))
         cons = {
             k: v["value"] if isinstance(v, dict) else v for k, v in b.get("constraints", {}).items()

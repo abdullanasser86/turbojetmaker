@@ -1,0 +1,95 @@
+name: phase4_v3
+designs_evaluated: 200
+designs_planned: 2000
+design_status:
+  design_failed: 149
+  ok: 51
+design_failure_reasons:
+  design_turbine: 149
+feasible_designs: 17
+infeasible_designs_by_active_constraint:
+  AN2;TIT_ngv_above_material_data: 26
+  TIT_ngv_above_material_data: 5
+  AN2: 3
+premium_material_required: 2
+points:
+  cruise_M05_3km:
+    converged_all_designs: 50/200
+    converged_designed_engines: 50/51
+    failure_reasons_designed_engines:
+      'no_convergence: max iterations': 1
+    surge_flags:
+      ? ''
+      : 51
+  design:
+    converged_all_designs: 51/200
+    converged_designed_engines: 51/51
+    failure_reasons_designed_engines: {}
+    surge_flags:
+      ? ''
+      : 51
+  idle_35:
+    converged_all_designs: 51/200
+    converged_designed_engines: 51/51
+    failure_reasons_designed_engines: {}
+    surge_flags:
+      ? ''
+      : 51
+  part_speed_80:
+    converged_all_designs: 51/200
+    converged_designed_engines: 51/51
+    failure_reasons_designed_engines: {}
+    surge_flags:
+      ? ''
+      : 51
+split:
+  train_val: 173
+  test: 27
+split_ok_designs:
+  train_val: 45
+  test: 6
+calibration_sampled: 39
+time_per_design_s:
+  mean: 1.3
+  median: 0.09
+  p95: 4.08
+  max: 29.33
+turbine_outside_turboflow_range:
+  rotor_hub_tip: 0
+  any_warning: 5
+  feasible_with_rotor_hub_tip_warning: 0
+ngv_pf_max_in713c:
+  p10: 0.052
+  median: 0.208
+  p90: 0.489
+material_status:
+  fails_creep: 29
+  ok_default: 15
+  unchecked_no_material_data: 5
+  ok_premium: 2
+depaola_table2_flags:
+  an2_m2_rpm2: 7
+  loading_coefficient: 31
+  exit_mach: 41
+  exit_swirl_deg: 2
+sensitivity_feasible:
+  at_ah_0.34: 20
+  pf_0.15: 20
+  pf_0.35: 13
+derived_ranges:
+  derived_n_rpm:
+  - 25871.679
+  - 168655.201
+  derived_turb_phi:
+  - 0.247
+  - 1.962
+  derived_pr_c:
+  - 1.686
+  - 3.193
+  derived_comp_specific_speed_conventional:
+  - 0.727
+  - 1.363
+last_run:
+  designs_this_run: 200
+  wall_s: 88.88592314720154
+  workers: 3

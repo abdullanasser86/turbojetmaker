@@ -211,6 +211,23 @@ terms and a short "what we did and why".
 - **Stop rule** – A pass/fail criterion fixed *before* a run (here: ≥ 10 % feasible in the pilot), so the decision
   isn't bent by the result.
 
+- **Transcribed vs digitized** – Numbers copied from a printed table are *transcribed*: exact, apart from typos.
+  Numbers read off a plotted curve are *digitized*: they carry a reading error, which we measure by digitizing a plot
+  whose numbers are also tabulated (Murray's Fig C.7 vs Appendix D: ±6 °C rms).
+- **Energy-balance (derived) quantities** – A value computed from other measurements, not measured itself. Murray's
+  turbine inlet temperature is the exhaust temperature plus the turbine work, and the turbine work is the compressor
+  work / η_m. A "measured turbine efficiency" built that way inherits all their errors.
+- **Exhaust diffuser vs propelling nozzle** – A turbojet ends in a nozzle that accelerates the gas into a jet (thrust).
+  A cogeneration rig ends in a diffuser that slows the gas down to recover pressure, so the turbine can extract more
+  work. The two give different operating lines, so data from one can't directly validate the other.
+- **Thermal soak (hysteresis)** – After running fast, the engine casing and probes are hot, so readings taken while
+  slowing down differ from readings taken while speeding up at the same speed.
+- **fork vs spawn** – Two ways to start a worker process. Linux can *fork* (copy the running program). Windows can only
+  *spawn* (start a fresh Python that imports the script again), so all work must sit behind
+  `if __name__ == "__main__":`.
+- **Code page / UTF-8 mode** – How text is turned into bytes. Windows' default (cp1252) can't write characters like
+  "Δσ" or "²"; Python's UTF-8 mode (`PYTHONUTF8=1`) and explicit `encoding="utf-8"` avoid that.
+
 ### ML and optimization (expanded from Phase 4 on)
 - **Surrogate model** – A fast ML approximation of a slow physics model. Here it runs in
   microseconds instead of seconds.
@@ -367,4 +384,22 @@ user).
 **Why it matters:** Sampling must respect the physics of the component family, or the dataset fills up with
 impossible engines. Validating the *shape* of a trend (EGT vs speed) can reveal model problems that a single design
 point hides.
+
+### Phase 4, round 3 — Murray's measurements, option A pilot, Windows (2026-10-25)
+**What we did**
+1. Transcribed Murray's measured KJ-66 running data (15 tables) and digitized his run plots, including three runs of
+   the real turbojet from 28 to 120 krpm. The digitizing error was measured against the tables.
+2. Validated our compressor model on the new data: pressure ratio within about 2 % rms, including speeds below the
+   calibration data.
+3. Redid the idle-EGT question with real low-speed data. The real KJ-66 IS hot at idle (about as hot as at full
+   speed); our model is ~40–80 K too hot there, not 150–250 K. The likely cause is the turbine/nozzle side of the
+   matching, and an indicative turbine check suggests the meanline turbine is ~10 points too optimistic at this size.
+4. Option A: the compressor is now sized directly from tip speed and specific speed, so every wheel is buildable and
+   PR comes out (1.7–3.3). The pilot still stopped (8.5 % feasible), now because of the turbine: a prescribed hub/tip
+   ratio is often impossible for low-work engines.
+5. Windows: CUDA torch for Windows in the lock, a Windows-aware environment check, UTF-8 everywhere, spawn-safe scripts
+   and a smoke test.
+
+**Why it matters:** Measured data turned a vague worry ("idle too hot") into a quantified model error with a likely
+cause. The same "make it buildable by construction" step that fixed the compressor is now needed for the turbine.
 

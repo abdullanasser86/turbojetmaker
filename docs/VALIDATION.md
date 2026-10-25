@@ -259,3 +259,66 @@ What this shows:
 - Cross-check: 1 of 15 designed engines checked, 0 flagged (ΔFn 0.010 %, ΔTSFC 0.054 %).
 - The pilot ran from the working tree that was committed as af26454. The later diagnostic hook does not change
   results (test `test_diag_hook_off_is_identical_and_on_moves_egt_the_right_way`; Phase 3 baseline outputs unchanged).
+
+## Phase 4 (round 3) — Murray (2009) as the second KJ-66 validation case; option-A pilot
+
+Data: `validation/cases/murray2009/`.
+- Appendix D tables are TRANSCRIBED: MEAS, or calculated from MEAS by Murray. This is the exhaust-diffuser
+  configuration, 48–120 krpm.
+- Appendix C run plots are DIGITIZED [MEAS], including the three turbojet (nozzle) runs down to 28 krpm. Digitizer
+  error against Appendix D (same run): T5 rms 5.8 °C, P03 rms 0.41 kPa.
+- Script: `scripts/phase4/murray_validation.py` → `validation/phase4/murray2009_*`. Figs 5.1–5.3 / 5.12–5.19 were not
+  in the upload.
+
+### Compressor (KJ-66 model, stored 90 krpm calibration; Appendix D at the measured speed, flow and inlet state)
+| set | n | PR error mean / rms / max | efficiency error mean / rms / max | within Murray's uncertainty (PR / η) |
+|---|---|---|---|---|
+| validation | 13 | +0.1 / 2.1 / 5.2 % | +0.6 / 3.0 / 7.4 pts | 5/13 / 12/13 |
+| near calibration (88, 91 krpm) | 2 | 0.0 / 0.8 / 0.8 % | 0.0 / 1.6 / 1.7 pts | 2/2 / 2/2 |
+| validation below 70 krpm (first data there) | 5 | −1.4 / 1.4 / 1.6 % | +0.9 / 3.9 / 7.4 pts | |
+- PR is −1.6 … −1.1 % at 48–64 krpm and +3 … +5 % at 112–120 krpm (`murray2009_compressor.png`).
+- The model's efficiency is almost flat (0.745–0.762). The measured efficiency drops at 120 krpm (0.706) and at the
+  second 48 krpm point (0.671, ±0.086); the model misses both.
+- Murray's PR uncertainty (±0.019) is tighter than the model error at most points, hence the 5/13.
+
+### Turbine (INDICATIVE: assumed replica stages, KJ-66 turbine geometry unknown)
+Sized at the 120 krpm point (φ 0.7, R 0.5, ψ 1.0/1.5/2.0), evaluated at all 15 points:
+- flow capacity +5.4 … +5.7 % (mean);
+- efficiency **+10.0 … +13.1 pts** above Murray's derived η_tt (0.667–0.823, ±0.07–0.37).
+
+This is the first measured hint on the "micro-scale turbine efficiency" flag: a meanline model with Kofskey-scale
+correlations looks ~10 pts optimistic for a KJ-66-size turbine. It is not conclusive: the geometry is assumed, and
+Murray's turbine efficiency is derived from the compressor work.
+
+### Turbojet engine and idle EGT (nozzle runs 1–3; TIT fitted at 120 krpm only; thermocouple reading T_s + 0.68 (T_t − T_s))
+| ψ (assumed) | EGT error, rising / falling speed | 104–120 krpm | 62–96 krpm | 48–56 krpm | 28–32 krpm | P03 error | mass flow error |
+|---|---|---|---|---|---|---|---|
+| 1.0 | +49 / +70 K | +25 K | +55 K | +79 K | +71 K | −5.2 kPa | −8.2 % |
+| 1.5 | +32 / +49 K | +18 K | +36 K | +53 K | +41 K | −5.1 kPa | −8.5 % |
+| 2.0 | +34 / +50 K | +18 K | +38 K | +56 K | +45 K | −5.1 kPa | −8.7 % |
+
+What the measurements show (`murray2009_egt_vs_speed.png`):
+- The real KJ-66 turbojet's EGT reading is nearly flat, 480–535 °C over 48–120 krpm, and rises again to ~535 °C at
+  28–32 krpm.
+- On run 3 the falling-speed leg reads 20–40 K cooler than the rising leg (thermal soak). Run 2 does not show this
+  consistently, and runs differ by up to ~45 K at the same speed.
+
+What the model does:
+- It has the same U shape, but too hot: +18 K near the fitted point, growing to +53–79 K at 48–56 krpm.
+- Its part-speed operating line has 8–9 % less air and ~5 kPa less delivery pressure.
+- Its compressor characteristic is within ~2 % at the measured flow, so the difference is in the matching (turbine
+  and nozzle flow capacity at low pressure ratio).
+- It fails at 27.6 krpm (impeller-exit choke at very low speed and flow, a model limit; recorded).
+
+Conclusion on the idle-EGT question:
+- The real engine IS hot at idle. Its EGT at 28–48 krpm (485–538 °C) is about the same as at 120 krpm.
+- Our model over-predicts low-speed EGT by ~40–80 K, not by the 150–250 K the round-2 comparison suggested.
+
+### Dataset `phase4_v3` pilot (option A)
+- 200 designs: 51 designed, **17 feasible (8.5 % < 10 %): stopped** (D-054).
+- Cross-check: 2 checked, 0 flagged (max ΔFn 0.03 %, ΔTSFC 0.12 %).
+
+### Windows (D-050)
+- `scripts/phase4/windows_smoke_test.py` PASSES in the Linux container: a spawn pool and loky are identical to
+  serial, and the generator with 2 workers writes and resumes.
+- `tests/test_windows_env.py` checks the lock and the win32 CUDA check. Not yet run on Windows itself.

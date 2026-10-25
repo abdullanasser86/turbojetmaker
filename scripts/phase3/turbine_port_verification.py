@@ -144,10 +144,14 @@ def main() -> int:
     part = OUT / "turbine_port_sobol.partial.jsonl"
     done = set()
     if part.exists():
-        done = {json.loads(ln)["sample"] for ln in part.read_text().splitlines() if ln.strip()}
+        done = {
+            json.loads(ln)["sample"]
+            for ln in part.read_text(encoding="utf-8").splitlines()
+            if ln.strip()
+        }
     todo = [(i, x) for i, x in enumerate(samples) if i not in done]
     print(f"{len(done)} samples already done, {len(todo)} to run", flush=True)
-    with part.open("a") as fh:
+    with part.open("a", encoding="utf-8") as fh:
         gen = Parallel(n_jobs=n_workers(cfg.compute.n_workers), return_as="generator_unordered")(
             delayed(run_sample_safe)(i, x) for i, x in todo
         )
@@ -155,7 +159,9 @@ def main() -> int:
             for r in rows:
                 fh.write(json.dumps(r, default=float) + "\n")
             fh.flush()
-    df = pd.DataFrame([json.loads(ln) for ln in part.read_text().splitlines() if ln.strip()])
+    df = pd.DataFrame(
+        [json.loads(ln) for ln in part.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    )
     df = df.sort_values(["sample", "point"]).reset_index(drop=True)
     df.to_csv(OUT / "turbine_port_sobol.csv", index=False)
 
@@ -188,7 +194,9 @@ def main() -> int:
         summ["rotor_plus_minus_turboflow_sign"] = {"eta_ts_pts_mean": round(float(e.mean()), 3),
                                              "eta_ts_pts_min": round(float(e.min()), 3),
                                              "eta_ts_pts_max": round(float(e.max()), 3)}  # fmt: skip
-    (OUT / "turbine_port_summary.yaml").write_text(yaml.safe_dump(summ, sort_keys=False))
+    (OUT / "turbine_port_summary.yaml").write_text(
+        yaml.safe_dump(summ, sort_keys=False), encoding="utf-8"
+    )
     print(yaml.safe_dump(summ, sort_keys=False))
     return 0
 

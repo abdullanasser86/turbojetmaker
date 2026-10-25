@@ -157,10 +157,10 @@ def main() -> int:
     }  # fmt: skip
     summary = plain(summary)
     (OUT / "baseline_summary.yaml").write_text(
-        yaml.safe_dump(summary, sort_keys=False, default_flow_style=None)
+        yaml.safe_dump(summary, sort_keys=False, default_flow_style=None), encoding="utf-8"
     )
     (OUT / "baseline_design_card.md").write_text(
-        design_card(d, pts, title="TurboML baseline engine (Phase 3)")
+        design_card(d, pts, title="TurboML baseline engine (Phase 3)"), encoding="utf-8"
     )
     print(yaml.safe_dump(summary, sort_keys=False, default_flow_style=None))
     return 0

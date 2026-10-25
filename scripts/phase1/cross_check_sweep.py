@@ -27,8 +27,10 @@ from turboml.physics import crosscheck
 from turboml.physics.cycle_common import CycleInputs
 
 ROOT = Path(__file__).resolve().parents[2]
-CFG = yaml.safe_load((ROOT / "configs" / "phase1_crosscheck.yaml").read_text())
-EXC = yaml.safe_load((ROOT / "validation" / "phase1" / "known_exceptions.yaml").read_text())
+CFG = yaml.safe_load((ROOT / "configs" / "phase1_crosscheck.yaml").read_text(encoding="utf-8"))
+EXC = yaml.safe_load(
+    (ROOT / "validation" / "phase1" / "known_exceptions.yaml").read_text(encoding="utf-8")
+)
 OUT = ROOT / "validation" / "phase1" / "cross_check.csv"
 
 

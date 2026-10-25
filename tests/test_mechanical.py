@@ -132,7 +132,9 @@ def test_tit_bound_raised_to_1350():
 
 
 def test_compressor_calibration_split_and_bands():
-    cal = yaml.safe_load(open("configs/components/kj66_compressor_calibration.yaml"))
+    cal = yaml.safe_load(
+        open("configs/components/kj66_compressor_calibration.yaml", encoding="utf-8")
+    )
     fit = cal["fit"]
     assert set(fit["calibration_points"]["speed_rpm"]).isdisjoint(
         fit["validation_points"]["speed_rpm"]

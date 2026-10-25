@@ -397,3 +397,71 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
 - Cause: in this KJ-66-like compressor family, PR and U2 are tied (no design above PR ~3.2 can be built at
   ≤ 500 m/s), and the reachable U2 band at a given PR is only ~50 m/s wide. Independent sampling of PR and U2 misses it.
 - The full run was not started; the next step is the user's decision (Phase 4 report).
+
+### D-050 · 2026-10-25 · Windows 11 workstation: CUDA torch from the PyTorch index, UTF-8, spawn-safe code
+- The user's OS is Windows 11. PyPI's Windows torch wheel is CPU-only, so `pyproject.toml` adds the PyTorch cu128
+  index (`explicit`, used only for torch on `sys_platform == 'win32'`). `uv.lock` holds torch 2.10.0+cu128 on Windows
+  and 2.10.0 from PyPI elsewhere; both are CUDA 12.8 builds.
+- `scripts/check_env.py`:
+  - picks the platform's locked version;
+  - fails on Windows if torch is not a +cu12x build, does not see the GPU, or Python's UTF-8 mode is off;
+  - has no POSIX-only module imports (`resource` → psutil).
+- Text I/O is explicitly UTF-8 in `turboml/`, `scripts/` and `tests/` (69 calls); Windows' default code page is
+  cp1252. The README sets `PYTHONUTF8=1` for the notebooks.
+- Parallel work uses joblib/loky (spawn-like) with top-level worker functions. Every script runs only under
+  `if __name__ == "__main__"`; the notebook builders were the last scripts without a guard.
+- `scripts/phase4/windows_smoke_test.py` checks that serial, a "spawn" pool and loky give identical records, and that
+  the real generator runs with 2 workers and resumes. It passes in the Linux container; the user should run it on the
+  laptop.
+
+### D-051 · 2026-10-25 · Murray (2009) data: transcribed tables, digitized run plots, and what the numbers are
+- Upload: thesis pp. 121–171 (Ch. 7, references, Appendices B–J). **Figs 5.1–5.3 and the maps 5.12–5.19 were not in
+  it.**
+- Appendix D (15 tables, vaneless EXHAUST-diffuser run 3, 48–120 krpm) was TRANSCRIBED to
+  `validation/cases/murray2009/murray2009_appD_running_data.csv`, with Murray's printed uncertainties.
+  Consistency checks pass: PR = P03/P02 to 0.03 %; FAR and corrected flow within 0.6 %.
+- Table H.1 (pp. 157–159) shows what the numbers are:
+  - T02 and T05 are thermocouple readings corrected to total temperature with r = 0.68.
+  - **T04 is calculated** from T05 and the compressor work / η_m (0.995), even though it is printed in bold.
+  - So Murray's turbine efficiency is derived, not measured.
+- The Appendix C run plots (incl. the three NOZZLE = turbojet runs, down to 28 krpm) were DIGITIZED
+  (`scripts/data/digitize_murray_runplots.py`) at steady plateaus: T5 reading, P03 gauge, bellmouth head P01 − P1.
+  - The digitizer was checked against Appendix D on Fig C.7, which is the same run: rms 5.8 °C, 0.41 kPa,
+    0.004 kPa. The stated uncertainty is 2 × rms.
+  - The plots' axis label "T5 × 0.1 (K)" is wrong: the values match Appendix D only in °C.
+  - Mass flow for the nozzle runs is derived from the bellmouth head with C = m/√(ρ ΔP) = 0.01041 m², inferred from
+    Appendix D.
+
+### D-052 · 2026-10-25 · Murray as the second KJ-66 validation case: calibration and validation kept apart
+- Compressor: the stored calibration (fitted on the 90 krpm line) is not changed. Points within 3 krpm of 90 krpm
+  (D.6, D.12) are reported as near-calibration; the other 13 as validation.
+- Turbine: the KJ-66 turbine geometry is not available, so the check is indicative only (an assumed replica family,
+  ψ 1.0/1.5/2.0, sized at the 120 krpm point).
+- Engine (turbojet runs): replicas use Murray's ambient (98.9 kPa, 294.7 K) and the measured W and PR at 120 krpm.
+  ONE parameter (TIT, i.e. the nozzle area) is fitted to the measured 120 krpm EGT reading. Every other speed
+  (28–112 krpm) is a prediction.
+
+### D-053 · 2026-10-25 · Option A: tip speed and tip-speed specific speed sampled, PR is an output (user decision)
+- n_s,U = ω √Q01 / U2^1.5 (`engine.tip_speed_specific_speed`). It equals the usual specific speed up to the factor
+  ψ_is^0.75, but needs no PR.
+- `engine.size_compressor_direct` sizes the wheel directly from (W, U2, n_s,U), with no search: 0.04–0.07 s instead
+  of 3–11 s.
+- Bounds: U2 350–500 m/s; n_s,U 0.35–0.90. Both are derived from a sizing scan: every wheel is buildable up to 0.95,
+  efficiency peaks near 0.9, and is below ~0.6 under 0.35. The KJ-66 itself is at 0.68. Every sample in the box is a
+  buildable wheel (test).
+- **PR range.** The user's wording was "roughly 1.9–3.3". With these bounds PR lands at 1.7–3.35 (scan) and 1.69–3.19
+  in the v3 pilot. That brackets the real KJ-66/JetCat class (KJ-66 PR 2.2–2.54, JetCat P90 ≈ 2.35).
+- **OPEN ITEM:** this excludes higher-PR micro engines (up to ~5 per the micro-turbojet review, Anjomrouz et al.
+  2023). Reaching them needs a wider compressor family (option D: backsweep / work coefficient as a variable), which
+  waits on blade-angle data.
+- Dataset `phase4_v3`: seed 20261027, own frozen 15 % split, turbine rotor-exit hub/tip prescribed (as in v2). v1 and
+  v2 are kept.
+
+### D-054 · 2026-10-25 · Pilot v3 stopped by the stop rule (8.5 % feasible < 10 %)
+- Compressor: no failures (option A works).
+- Turbine: 149/200 fail in sizing. Above hub/tip 0.8 almost every design fails (the axial velocity would be
+  supersonic); 0.7–0.8 fails 82 %; 0.5–0.7 about 50 % (limit loading / no convergence, worse at high ψ).
+- Built engines: 17/51 feasible. Active constraints: NGV metal above the rupture data (31: with PF 0.25 every design
+  above TIT ≈ 1145 K; IN-713C data end at 1366 K) and AN² (29).
+- Relaxing all creep settings gives 16.5 %; a single setting gives at most 10.5 %.
+- The full run was not started.

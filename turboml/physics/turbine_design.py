@@ -49,7 +49,9 @@ _RECOMMENDED = {
 
 
 def load_design_defaults(path: str | Path = DESIGN_DEFAULTS) -> dict:
-    return {k: v["value"] for k, v in yaml.safe_load(Path(path).read_text()).items()}
+    return {
+        k: v["value"] for k, v in yaml.safe_load(Path(path).read_text(encoding="utf-8")).items()
+    }
 
 
 @dataclass

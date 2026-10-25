@@ -269,7 +269,9 @@ class AxialStageGeometry:
 
     @classmethod
     def from_turboflow_yaml(cls, path: str | Path) -> AxialStageGeometry:
-        return cls.from_turboflow(yaml.safe_load(Path(path).read_text())["geometry"])
+        return cls.from_turboflow(
+            yaml.safe_load(Path(path).read_text(encoding="utf-8"))["geometry"]
+        )
 
     def to_turboflow(self) -> dict:
         return {

@@ -67,7 +67,7 @@ def repair_tail(path: Path) -> None:
 
 
 def flatten(jsonl: Path, out_dir: Path, split_csv: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
-    recs = [json.loads(ln) for ln in jsonl.read_text().splitlines() if ln.strip()]
+    recs = [json.loads(ln) for ln in jsonl.read_text(encoding="utf-8").splitlines() if ln.strip()]
     split = pd.read_csv(split_csv).set_index("design_id").split
     drows, prows = [], []
     for r in recs:
@@ -136,7 +136,7 @@ def main() -> int:
     )
     engine_cfg = load_engine_config()
     t0, k = time.time(), 0
-    with jsonl.open("a") as fh:
+    with jsonl.open("a", encoding="utf-8") as fh:
         for line in Parallel(n_jobs=workers, return_as="generator_unordered")(
             delayed(evaluate_design_json)(d, engine_cfg, cfg["points"]) for d in todo
         ):
@@ -153,7 +153,7 @@ def main() -> int:
     d_df, p_df = flatten(jsonl, out_dir, split_csv)
     wall = time.time() - t0
     (run_dir / "timing.json").write_text(
-        json.dumps({"designs_this_run": k, "wall_s": wall, "workers": workers})
+        json.dumps({"designs_this_run": k, "wall_s": wall, "workers": workers}), encoding="utf-8"
     )
     print(
         f"wrote {out_dir / 'designs.csv'} ({len(d_df)} designs) and points.csv ({len(p_df)} rows); wall {wall:.0f} s"

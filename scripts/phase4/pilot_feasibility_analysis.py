@@ -68,7 +68,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default=str(ROOT / "configs" / "dataset_phase4_v2.yaml"))
     args = ap.parse_args()
-    cfg = yaml.safe_load(Path(args.config).read_text())
+    cfg = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
     d_dir = ROOT / cfg["output_dir"]
     D = pd.read_csv(d_dir / "designs.csv")
     P = pd.read_csv(d_dir / "points.csv").set_index(["design_id", "point"])
@@ -136,7 +136,7 @@ def main() -> int:
     )
     res = json.loads(json.dumps(res, default=lambda v: v.item() if hasattr(v, "item") else str(v)))
     out = ROOT / "validation" / "phase4" / f"pilot_analysis_{cfg['name']}.yaml"
-    out.write_text(yaml.safe_dump(res, sort_keys=False))
+    out.write_text(yaml.safe_dump(res, sort_keys=False), encoding="utf-8")
     print(yaml.safe_dump(res, sort_keys=False))
     return 0
 

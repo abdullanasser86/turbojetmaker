@@ -22,10 +22,12 @@ def test_extends_deep_merges(tmp_path):
                 "design_point": {"name": "dp", "mach": 0.0, "alt_m": 0.0},
                 "constraints": {"thrust_target_N": 100.0, "max_tit_K": 1200.0},
             }
-        )
+        ),
+        encoding="utf-8",
     )
     (tmp_path / "child.yaml").write_text(
-        "extends: base.yaml\nname: child\nconstraints:\n  thrust_target_N: 200.0\n"
+        "extends: base.yaml\nname: child\nconstraints:\n  thrust_target_N: 200.0\n",
+        encoding="utf-8",
     )
     cfg = load_config(tmp_path / "child.yaml")
     assert cfg.name == "child"
@@ -35,7 +37,9 @@ def test_extends_deep_merges(tmp_path):
 
 def test_unknown_keys_rejected(tmp_path):
     p = tmp_path / "bad.yaml"
-    p.write_text("name: x\ndesign_point: {name: dp, mach: 0, alt_m: 0}\ntypo_key: 1\n")
+    p.write_text(
+        "name: x\ndesign_point: {name: dp, mach: 0, alt_m: 0}\ntypo_key: 1\n", encoding="utf-8"
+    )
     with pytest.raises(pydantic.ValidationError):
         load_config(p)
 

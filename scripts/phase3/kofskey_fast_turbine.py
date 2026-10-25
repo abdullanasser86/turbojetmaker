@@ -101,7 +101,9 @@ def main() -> int:
             },
         }  # fmt: skip
     pd.concat(comps).to_csv(OUT / "kofskey_fast_comparison.csv", index=False)
-    (OUT / "kofskey_fast_summary.yaml").write_text(yaml.safe_dump(summary, sort_keys=False))
+    (OUT / "kofskey_fast_summary.yaml").write_text(
+        yaml.safe_dump(summary, sort_keys=False), encoding="utf-8"
+    )
     print(yaml.safe_dump(summary, sort_keys=False))
     return 0
 

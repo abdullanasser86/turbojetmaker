@@ -113,7 +113,7 @@ class CentrifugalCompressorGeometry:
     def from_yaml(
         cls, path: str | Path = CONFIG_DIR / "components" / "kj66_compressor.yaml", **overrides
     ):
-        raw = yaml.safe_load(Path(path).read_text())
+        raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
         imp, vld = raw["impeller"], raw["vaneless_diffuser"]
         vals = {k: v["value"] for k, v in imp.items()}
         vals["diffuser_radius_out_m"] = vld["radius_out_m"]["value"]

@@ -251,3 +251,100 @@ Dataset card: `docs/dataset_cards/phase4_v2.md`. Analysis: `validation/phase4/pi
    (labelled digitized). This is the most direct test of the idle-EGT problem.
 3. **OS** (Windows 11 or Linux) for the PyTorch CUDA index.
 4. "Go" for the chosen sampling, then the full run.
+
+---
+
+# Phase 4, round 3 (2026-10-25): Murray validation, option-A pilot, Windows
+
+## What was done, item by item
+| # | Your instruction | Done |
+|---|---|---|
+| 1 | Option A: sample tip speed + compressor specific speed, PR as output; every sample buildable; new version + frozen split; pilot, then full run if ≥ 10 % | `engine.size_compressor_direct`. Variable n_s,U = ω√Q01/U2^1.5 in 0.35–0.90; U2 350–500 m/s. Every corner of the box builds (test). Dataset `phase4_v3` with its own split. **Pilot 8.5 % feasible → stopped; no full run** (D-053, D-054) |
+| 1 | Record the PR range and the excluded high-PR engines; option D as an open item | D-053. PR lands at 1.7–3.35 with these bounds (your wording: ~1.9–3.3). It brackets KJ-66 (2.2–2.54) and JetCat P90 (≈ 2.35). PR 3.4–5 engines are excluded until a wider compressor family (option D) has blade-angle data |
+| 2 | Digitize Murray, label digitized [MEAS] with uncertainty, store in `validation/cases/murray2009/` | **Your upload holds thesis pp. 121–171, so Figs 5.1–5.3 and the maps 5.12–5.19 were not in it.** Used instead (D-051): Appendix D's 15 running-data tables (*transcribed*, more accurate than digitizing) and the Appendix C run plots (*digitized*, ±12 °C / ±0.8 kPa at 2σ, measured against Appendix D), including the three turbojet runs at 28–120 krpm |
+| 2 | Second validation case for compressor and turbine, calibration/validation kept apart | Compressor: 13 validation points + 2 near-calibration. Turbine: indicative only (geometry unknown) (D-052) |
+| 2 | Redo the idle-EGT study against the low-speed points, recovery 0.68 | Done with the turbojet runs; findings below |
+| 3 | Windows 11: CUDA index in the lock, check_env, PowerShell README, spawn-safe, test the generator with workers | Done (D-050). Smoke test passes here (Linux, spawn pool + loky + the real generator); **not yet run on Windows itself** |
+| 4 | Upstream issues stay drafts | Unchanged |
+
+## Dataset card and feasibility / failure statistics: `phase4_v3` pilot (200 designs)
+Card: `docs/dataset_cards/phase4_v3.md`. Analysis: `validation/phase4/pilot_analysis_phase4_v3.yaml`.
+
+| | count |
+|---|---|
+| design failed | 149: **all in turbine sizing** (85 hub/tip too high for the flow (axial Mach ≥ 1), 30 limit loading, 34 no convergence) |
+| compressor failures | **0** (option A works) |
+| designed engines | 51 (PR 1.69–3.19, 26–169 krpm) |
+| **feasible** | **17 (8.5 % of the pilot, 33 % of designed engines)** |
+| infeasible, active constraints | AN² + NGV above material data: 26; NGV above material data: 5; AN²: 3 |
+| material status | ok 713C 15, ok MAR-M 247 2, fails creep 29, **no material data 5** (TIT 1134–1213 K) |
+| sensitivity: At/Ah 0.34 / PF 0.15 / PF 0.35 | 20 / 20 / 13 feasible |
+| off-design convergence (designed) | design 51/51, cruise 50/51, 80 % 51/51, idle 51/51 |
+| cross-check vs pyCycle-CEA | 2 checked, 0 flagged (ΔFn ≤ 0.03 %, ΔTSFC ≤ 0.12 %) |
+| time | 200 designs in 89 s on 3 workers |
+
+What limits feasibility now:
+1. **Turbine hub/tip.** Option A gives lower-work cycles, and with ψ fixed a high hub/tip ratio needs a supersonic
+   axial velocity. Build success by hub/tip: 0.5–0.6: 50 %, 0.6–0.7: 45 %, 0.7–0.8: 18 %, 0.8–0.95: 1 %.
+2. **NGV material data.** With PF 0.25 the hottest vane exceeds IN-713C's rupture data (1366 K) above TIT ≈ 1150–1190
+   K. No design above TIT 1145 K is feasible.
+3. **Conservative settings are a minor factor.** Relaxing all together gives 33 feasible (16.5 %); one setting at a
+   time gives 17–21.
+
+## Murray validation results
+- **Compressor** (validation points):
+  - PR rms 2.1 % (max 5.2 % at 120 krpm), −1.1 … −1.6 % at 48–64 krpm.
+  - Efficiency rms 3.0 pts; the model is nearly flat at 0.75–0.76, the measurement drops at 120 and 48 krpm.
+  - The 88/91 krpm near-calibration points: 0.8 % / 1.6 pts.
+  - Plot: `validation/phase4/murray2009_compressor.png`.
+- **Turbine** (indicative): flow capacity +5.5 %, efficiency **+10 … +13 pts** above Murray's derived values. This is
+  the first measured sign that the turbine-efficiency flag matters, roughly 10 pts optimistic at KJ-66 size.
+- **Turbojet engine** (TIT fitted at 120 krpm only): EGT +18 K at 104–120 krpm, +36 K at 62–96, +53 K at 48–56 and
+  +41 K at 28–32 krpm (ψ 1.5). Part-speed air flow is −8.5 % and delivery pressure −5 kPa.
+
+## Idle-EGT findings (redone with measured low-speed data)
+1. **The real KJ-66 is hot at idle.** Thermocouple readings in the turbojet runs:
+   - 28–32 krpm: 532–538 °C;
+   - 48 krpm: 485–527 °C;
+   - 120 krpm: 536–550 °C.
+
+   EGT is roughly flat with a slight U shape, so the round-2 assumption (idle much cooler than full power, from
+   JetCat bands) does not hold for this engine.
+2. **Thermocouple:** Murray already corrects T02 and T05 to total with r = 0.68. Our comparison uses the raw reading
+   on both sides; the correction is 2–3 K at idle and ~15 K at 120 krpm.
+3. **Our model is ~40–80 K too hot at low speed** and starts its low-speed rise too early (below ~80 krpm instead of
+   ~48 krpm). Its compressor speed lines are right to ~2 %, but its operating line carries 8–9 % less air, so the gap
+   is in the turbine/nozzle flow matching at low pressure ratio. The indicative turbine check (+10–13 pts efficiency,
+   +6 % flow capacity) points the same way.
+4. Combustion efficiency (Murray measured 69–77 %, ±5–22 %) and the Reynolds effect remain as in round 2: neither
+   explains a hot idle.
+5. Next step, if you want this closed: KJ-66 turbine geometry (blade count, radii, angles) or Murray's turbine map
+   figures (5.16–5.19) for a real turbine validation.
+
+## Windows environment check
+- `uv.lock`: torch 2.10.0+cu128 from download.pytorch.org on Windows; 2.10.0 from PyPI elsewhere.
+- `scripts/check_env.py` on Windows also fails on:
+  - a CPU-only torch;
+  - CUDA not available;
+  - UTF-8 mode off.
+- README: PowerShell setup (uv, `setx PYTHONUTF8 1`, `uv sync --frozen`, check_env, smoke test).
+- Text I/O is UTF-8 everywhere, and all entry points are guarded.
+- `scripts/phase4/windows_smoke_test.py`: PASS here. Please run it once on the laptop:
+  `uv run python scripts/phase4/windows_smoke_test.py`.
+
+## Decisions I need from you
+1. **Turbine side of the sampling** (the same "buildable by construction" fix as option A, now for the turbine):
+   - **T1 (recommended):** sample the hub/tip ratio *within its reachable range*. 0.5 up to the hub/tip at which the
+     rotor-exit axial Mach number reaches DePaola's exit-Mach limit of 0.5 (Table 2), computed analytically per design
+     (cheap). Every turbine is then buildable and inside DePaola's range.
+   - **T2:** sample the flow coefficient φ (0.35–0.9, the model's verified range) and derive hub/tip, as in v1.
+     Buildable, but v1 showed many long-bladed turbines (hub/tip < 0.5) that then fail AN².
+   - **T3:** narrow hub/tip to 0.5–0.75 (data-driven). Simple, but ~55 % would still fail.
+
+   With T1 I expect roughly 25–35 % feasible (about all built × the 33 % feasible-when-built), so above your 10 %.
+2. **TIT above ~1150 K** is not shown feasible with PF 0.25 and the IN-713C data. Keep it sampled, so the
+   feasibility classifier learns the edge (recommended), or cap TIT? Higher-temperature rupture data (MAR-M 247 above
+   1900 °F, or another cast alloy) would open it.
+3. **Murray Ch. 5 pages** (Figs 5.1–5.3, 5.12–5.19) if you want the measured maps as well; the Appendix D tables
+   already give the operating points.
+4. "Go" for the chosen turbine option → new pilot (`phase4_v4`) → full run if ≥ 10 %.

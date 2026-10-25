@@ -63,7 +63,7 @@ class AxialTurbine:
 
         import yaml
 
-        cfg = yaml.safe_load(Path(template).read_text())
+        cfg = yaml.safe_load(Path(template).read_text(encoding="utf-8"))
         cfg["geometry"] = {
             k: [float(x) for x in v] if k != "cascade_type" else list(v)
             for k, v in geometry.items()

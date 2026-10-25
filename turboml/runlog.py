@@ -55,7 +55,9 @@ def start_run(cfg: TurboMLConfig, name: str, root: Path = REPO_ROOT / "runs") ->
     run_dir = root / f"{stamp}_{name}"
     run_dir.mkdir(parents=True, exist_ok=False)
     seed_everything(cfg.seed)
-    (run_dir / "config.yaml").write_text(yaml.safe_dump(cfg.model_dump(), sort_keys=False))
+    (run_dir / "config.yaml").write_text(
+        yaml.safe_dump(cfg.model_dump(), sort_keys=False), encoding="utf-8"
+    )
     meta = {
         "name": name,
         "utc": stamp,
@@ -64,5 +66,5 @@ def start_run(cfg: TurboMLConfig, name: str, root: Path = REPO_ROOT / "runs") ->
         "python": platform.python_version(),
         "packages": {p: version(p) for p in ("numpy", "openmdao", "om-pycycle", "torch")},
     }
-    (run_dir / "meta.json").write_text(json.dumps(meta, indent=2))
+    (run_dir / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
     return run_dir

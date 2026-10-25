@@ -187,9 +187,15 @@ cells = [
     ),
 ]
 
-nb = nbf.v4.new_notebook(
-    cells=cells, metadata={"kernelspec": {"name": "python3", "display_name": "Python 3"}}
-)
-out = Path(__file__).resolve().parents[2] / "notebooks" / "01_cycle_model.ipynb"
-nbf.write(nb, out)
-print("wrote", out)
+
+def main() -> None:
+    nb = nbf.v4.new_notebook(
+        cells=cells, metadata={"kernelspec": {"name": "python3", "display_name": "Python 3"}}
+    )
+    out = Path(__file__).resolve().parents[2] / "notebooks" / "01_cycle_model.ipynb"
+    nbf.write(nb, out)
+    print("wrote", out)
+
+
+if __name__ == "__main__":
+    main()

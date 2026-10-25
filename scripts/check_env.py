@@ -10,17 +10,19 @@ Checks:
 1. Installed versions of the key packages (or all packages) equal the versions in uv.lock.
 2. GPU: name, VRAM, driver, CUDA runtime/driver version, current and max power limit
    (`nvidia-smi`), compute capability, torch's CUDA build.
-3. Benchmarks on the auto-selected device (CUDA if available, else CPU):
+3. On Windows: torch must be the CUDA 12.x build from the PyTorch index (version ends in +cu12x, torch.version.cuda
+   12.x) and must see the GPU; the CPU-only PyPI wheel is reported as a problem.
+4. Benchmarks on the auto-selected device (CUDA if available, else CPU):
    * exact GP (GPyTorch/BoTorch SingleTaskGP, float64, 3 inputs): fit time and peak memory,
    * MLP (float32, 20 -> 256 -> 256 -> 4, 20 epochs on 100k samples): time and peak memory.
-   Peak memory = torch.cuda.max_memory_allocated on GPU, max RSS growth on CPU.
+   Peak memory = torch.cuda.max_memory_allocated on GPU, peak RSS growth on CPU (psutil; `resource` on POSIX).
+Works on Linux and Windows (no POSIX-only imports at module level).
 """
 
 from __future__ import annotations
 
 import argparse
 import platform
-import resource
 import shutil
 import subprocess
 import sys
@@ -41,8 +43,28 @@ def _norm(name: str) -> str:
     return name.lower().replace("_", "-")
 
 
+def locked_versions() -> dict[str, set[str]]:
+    """All versions uv.lock holds per package. A package can appear more than once with platform markers (torch:
+    PyPI build everywhere except Windows, +cu128 build from the PyTorch index on Windows)."""
+    out: dict[str, set[str]] = {}
+    for p in tomllib.loads(LOCK.read_text(encoding="utf-8"))["package"]:
+        out.setdefault(_norm(p["name"]), set()).add(p["version"])
+    return out
+
+
+def expected_version(name: str, versions: set[str], platform_name: str = sys.platform) -> str:
+    """The locked version for this platform: on Windows the CUDA (+cu) torch build, elsewhere the plain one."""
+    if len(versions) == 1:
+        return next(iter(versions))
+    cuda = sorted(v for v in versions if "+cu" in v)
+    plain = sorted(v for v in versions if "+" not in v)
+    if name == "torch" and platform_name == "win32" and cuda:
+        return cuda[-1]
+    return (plain or sorted(versions))[-1]
+
+
 def check_lock(all_packages: bool) -> list[str]:
-    locked = {_norm(p["name"]): p["version"] for p in tomllib.loads(LOCK.read_text())["package"]}
+    locked = {n: expected_version(n, v) for n, v in locked_versions().items()}
     names = sorted(locked) if all_packages else [_norm(n) for n in KEY_PACKAGES]
     problems = []
     print(f"{'package':22s} {'locked':14s} {'installed':14s}")
@@ -60,6 +82,35 @@ def check_lock(all_packages: bool) -> list[str]:
         if not all_packages or flag:
             print(f"{n:22s} {want:14s} {have:14s}{flag}")
     return problems
+
+
+def check_torch_build(platform_name: str = sys.platform) -> list[str]:
+    """Windows: the installed torch must be a CUDA 12.x build and see a GPU (the laptop has an RTX 4080)."""
+    import torch
+
+    problems = []
+    if platform_name == "win32" and not sys.flags.utf8_mode:
+        problems.append("Python UTF-8 mode is off: run `setx PYTHONUTF8 1` and open a new terminal (docs and notebooks "
+                        "read/write UTF-8 text; Windows' default code page is cp1252)")  # fmt: skip
+    if platform_name == "win32":
+        if "+cu" not in torch.__version__ or not (torch.version.cuda or "").startswith("12"):
+            problems.append(f"torch {torch.__version__} (CUDA {torch.version.cuda}) is not the CUDA 12.x build: "
+                            "run `uv sync --frozen` (uv.lock takes torch from the PyTorch cu128 index on Windows)")  # fmt: skip
+        elif not torch.cuda.is_available():
+            problems.append("CUDA torch installed but torch.cuda.is_available() is False: check the NVIDIA driver "
+                            "(nvidia-smi must show CUDA >= 12.8)")  # fmt: skip
+    return problems
+
+
+def _rss_bytes() -> int:
+    try:
+        import psutil
+
+        return psutil.Process().memory_info().rss
+    except ImportError:  # POSIX fallback
+        import resource
+
+        return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024
 
 
 def gpu_report() -> None:
@@ -98,7 +149,7 @@ def _peak_reset(device):
         torch.cuda.synchronize()
         torch.cuda.reset_peak_memory_stats()
         return None
-    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss  # KiB on Linux
+    return _rss_bytes()
 
 
 def _peak_read(device, base) -> str:
@@ -107,7 +158,7 @@ def _peak_read(device, base) -> str:
     if device.type == "cuda":
         torch.cuda.synchronize()
         return f"{torch.cuda.max_memory_allocated() / 2**20:.0f} MiB GPU"
-    return f"+{(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss - base) / 1024:.0f} MiB RSS"
+    return f"+{(_rss_bytes() - base) / 2**20:.0f} MiB RSS"
 
 
 def benchmarks() -> list[str]:
@@ -172,6 +223,7 @@ def main() -> int:
     args = ap.parse_args()
     print(f"python {sys.version.split()[0]} ({platform.platform()})\n")
     problems = check_lock(args.all)
+    problems += check_torch_build()
     gpu_report()
     if not args.quick:
         problems += benchmarks()
