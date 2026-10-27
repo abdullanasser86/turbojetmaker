@@ -37,3 +37,8 @@ rotor_le_deg: {value: 27.33, kind: "derived from the calibrated values (rotor_le
 # Alternative (fit Q, flow map only; NOT adopted): hub/tip 0.52 +- 0.60, NGV 70.9 deg, rotor 67.9 deg -- matches the
 # flow map within +-4 % but the exit velocity V5 by -47 %. Used as a sensitivity case in the idle-EGT replica, where it
 # reproduces Murray's low-speed TIT (D-062, docs/VALIDATION.md round 5).
+# Joint refit (geometry + k_loss, D-068; calibrated, not measured; validation/phase4/turbine_joint_refit.yaml):
+#   near T-A: hub/tip 0.735, NGV 63.9, rotor 45.0 deg, k_loss 1.95 (V5 -5 %)  <- consistent with the exit velocity
+#   middle:   hub/tip 0.649, NGV 67.8, rotor 54.3 deg, k_loss 2.33 (lowest RSS; V5 -29 %)
+#   near T-B: hub/tip 0.482, NGV 71.0, rotor 67.9 deg, k_loss 2.10 (V5 -51 %)
+# The maps alone do not identify the geometry; the adopted values above (fit F / T-A) are unchanged.

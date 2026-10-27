@@ -707,3 +707,30 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
     43.9); the feasible median moves 61.3 → 72.5.
 - Surrogate targets: design and cruise fuel flow (`Wf_*`) are added, since TSFC = Wf/Fn has the heavy tail. TSFC
   targets are kept for comparison with v5.
+
+### D-068 · 2026-10-27 · Joint KJ-66 turbine refit (geometry + k_loss) on Murray's flow and efficiency maps
+- Free parameters: hub/tip, NGV gauging, rotor gauging and k_loss.
+- Fitted data: Fig 5.16 flow + Fig 5.18 efficiency, calibration lines 26/38/50/62 krpm, held out 32/44/56/68
+  (+ 20 krpm flow only).
+- Not fitted: the exit velocity V5, kept as the independent check of the exit-velocity vs idle-EGT conflict.
+- Robust PR matching. Three starts (`scripts/phase4/turbine_joint_refit.py`).
+- **Results (all calibrated, not measured):**
+
+| start | hub/tip | NGV g | rotor g | k_loss | RSS | held-out η err | held-out flow err | V5 err (not fitted) |
+|---|---|---|---|---|---|---|---|---|
+| near T-A | 0.735 | 63.9° | 45.0° | 1.95 | 0.0406 | +2.2 pts (rms 3.6) | −1.2 % (rms 4.9) | **−5 %** |
+| middle (lowest RSS) | 0.649 | 67.8° | 54.3° | 2.33 | **0.0357** | +1.7 pts (rms 3.6) | −1.1 % (rms 3.2) | −29 % |
+| near T-B | 0.482 | 71.0° | 67.9° | 2.10 | 0.0381 | +3.8 pts (rms 4.8) | −3.0 % (rms 3.5) | −51 % |
+
+- **The joint fit does not identify the geometry.** The flow + efficiency maps are reproduced about equally well
+  from hub/tip 0.48 to 0.73. RSS differs by only ~12 %, about 6 s² (n ≈ 46), a mild preference for the middle.
+- The lowest-RSS fit is closer to T-A than to T-B (scaled distance 1.55 vs 1.98) and 0.09 from the hobbyist hint
+  (0.56, unverified).
+- **It does NOT resolve the exit-velocity vs idle-EGT conflict on its own:**
+  - V5 (independent) strongly prefers the near-T-A solution (−5 % vs −29 / −51 %);
+  - idle EGT: see VALIDATION round 7.
+- Every joint solution wants k_loss 1.95–2.33, at or above the v6 band [1.6, 2.0] (D-064): with geometry free, the
+  maps ask for slightly more loss. Holding the geometry fixed (round 6) gave 1.76–1.96.
+- **Fitting jointly removes the flow-capacity side effect** of the fixed-geometry k_loss fit: held-out flow
+  −9.4 % → −1.1 … −3.0 %. Efficiency stays within +2 … +4 pts.
+- T-A and T-B stay documented as the bracketing variants (D-066).
