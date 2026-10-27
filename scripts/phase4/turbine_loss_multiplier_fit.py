@@ -83,7 +83,7 @@ def main() -> int:
             r, nf = eta_residuals(kk, geom)
             prof[float(kk)] = {"rss": float(r @ r), "failed_cal_points": nf}
         kg = min(prof, key=lambda q: prof[q]["rss"])
-        opt = minimize_scalar(lambda q: float(np.sum(eta_residuals(q, geom)[0] ** 2)), bounds=(kg - 0.1, kg + 0.1),
+        opt = minimize_scalar(lambda q, geom=geom: float(np.sum(eta_residuals(q, geom)[0] ** 2)), bounds=(kg - 0.1, kg + 0.1),
                               method="bounded", options={"xatol": 2e-3})  # fmt: skip
         k = float(opt.x)
         r, nf = eta_residuals(k, geom)
