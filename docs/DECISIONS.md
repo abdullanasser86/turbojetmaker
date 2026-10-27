@@ -672,3 +672,19 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
   meanline's monotone root finder finds a discontinuity or non-monotone stretch in the modelled characteristic
   (between its subsonic and choked branches); raising its iteration budget from 100 to 400 changes nothing. A fix
   would be a change to the meanline's regime logic (not done; option in the report).
+
+### D-069 · 2026-10-27 · v6 turbine-efficiency sanity check (user request)
+- Range for the design-point TOTAL-TO-TOTAL turbine efficiency (points now store `eta_t_tt`): **[0.58, 0.93]**.
+  - Basis: Murray 2009's measured (derived) turbine efficiency spans 0.667–0.823 (App D, D.1–D.15) and
+    0.684–0.851 (Fig 5.18, digitized).
+  - Widened by his published uncertainty at the high-speed lines, ±0.083 (App D 112 krpm; Fig 5.18 68 krpm),
+    because design points sit in that regime.
+  - **DePaola 2020 turbine-efficiency values are not in the extracts available to TurboML** (only his loading,
+    exit-Mach, swirl and AN² ranges), so he does not enter the range. Open item: the user's DePaola value.
+- Designs outside the range are flagged (card + `validation/phase4/turbine_eta_flags_<dataset>.csv`), not made
+  infeasible.
+- **v6 pilot (200 designs, 105 designed engines):**
+  - η_t,tt quantiles: min 0.682, p5 0.711, median 0.793, p95 0.832, max 0.857;
+  - **0 designs flagged**, so the full run was started;
+  - the distribution lies inside Murray's measured span;
+  - η_t,ts median 0.643 (v5 pilot 0.712).

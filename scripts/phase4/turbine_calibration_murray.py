@@ -101,6 +101,9 @@ def at_pr_tt_robust(t: AxialTurbineMeanline, T04, P04, omega, pr_tt, n_grid: int
     """
     from types import SimpleNamespace
 
+    q = at_pr_tt(t, T04, P04, omega, pr_tt)  # fast path: the plain bracketed solve usually works
+    if q is not None:
+        return q
     grid = pr_tt * np.linspace(1.0005, 1.8, n_grid)
     pts = []
     for x in grid:

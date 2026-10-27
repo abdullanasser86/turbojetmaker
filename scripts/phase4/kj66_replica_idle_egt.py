@@ -62,8 +62,19 @@ TURB = yaml.safe_load((OUT / "turbine_calibration_murray.yaml").read_text(encodi
 def turbine_params(variant: str) -> tuple[float, float, float, float]:
     """(hub/tip, NGV gauging, rotor gauging, rotor LE) of a turbine variant:
     F = adopted calibration (configs/components/kj66_turbine.yaml: flow + exit velocity),
-    Q = flow-only fit (turbine_calibration_murray.yaml `alternative_flow_only`; matches the flow map, not V5).
+    Q = flow-only fit (turbine_calibration_murray.yaml `alternative_flow_only`; matches the flow map, not V5),
+    J = joint geometry + k_loss fit (turbine_joint_refit.yaml `joint_fit`, D-068; rotor LE from the same rule).
     """
+    if variant == "J":
+        import importlib.util
+
+        jp = yaml.safe_load((OUT / "turbine_joint_refit.yaml").read_text(encoding="utf-8"))["joint_fit"]["params"]
+        sp = importlib.util.spec_from_file_location("tcal", ROOT / "scripts" / "phase4" / "turbine_calibration_murray.py")
+        tc = importlib.util.module_from_spec(sp)
+        sp.loader.exec_module(tc)
+        p = (jp["hub_tip"], jp["ngv_gauging_deg"], jp["rotor_gauging_deg"])
+        _g, le = tc.build(p, k_loss=jp["k_loss"])
+        return (*p, float(le))
     if variant == "F":
         for k in ("hub_tip", "ngv_gauging_deg", "rotor_gauging_deg", "rotor_le_deg"):
             if KJ[k]["value"] is None:
