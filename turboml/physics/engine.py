@@ -59,6 +59,11 @@ def _val(x):
     return x["value"] if isinstance(x, dict) and "value" in x else x
 
 
+def turbine_loss_multiplier(cfg: dict) -> float:
+    """k_loss on the turbine loss coefficients (D-064); 1.0 if the config predates it."""
+    return float(_val(cfg.get("turbine_design", {}).get("loss_multiplier", 1.0)))
+
+
 def load_engine_config(path: str | Path = ENGINE_CONFIG) -> dict:
     return yaml.safe_load(Path(path).read_text(encoding="utf-8"))
 
@@ -549,7 +554,9 @@ class Engine:
             design.compressor_geometry, delta_sigma=ref.delta_sigma, diffuser_cf=ref.diffuser_cf
         )
         self.turb = AxialTurbineMeanline(
-            design.turbine_geometry, incidence_sign=cfg["turbine_design"]["incidence_sign"]
+            design.turbine_geometry,
+            incidence_sign=cfg["turbine_design"]["incidence_sign"],
+            loss_multiplier=turbine_loss_multiplier(cfg),
         )
         self.A9 = design.A9_m2
         dp = design.design_point
@@ -911,10 +918,12 @@ def design_engine(
         ):  # option C / T1: rotor-exit hub/tip prescribed, flow coefficient derived
             sz, turb, tpt, x["turb_phi"] = design_stage_hub_tip(s4.W, tit, s4.Pt, omega, work, x["turb_hub_tip"],
                                                                 x["turb_psi"], x["turb_reaction"], gas=s4.gas,
-                                                                incidence_sign=cfg["turbine_design"]["incidence_sign"])  # fmt: skip
+                                                                incidence_sign=cfg["turbine_design"]["incidence_sign"],
+                                                                loss_multiplier=turbine_loss_multiplier(cfg))  # fmt: skip
         else:
             sz, turb, tpt = design_stage(s4.W, tit, s4.Pt, omega, work, x["turb_phi"], x["turb_psi"], x["turb_reaction"],
-                                         gas=s4.gas, incidence_sign=cfg["turbine_design"]["incidence_sign"])  # fmt: skip
+                                         gas=s4.gas, incidence_sign=cfg["turbine_design"]["incidence_sign"],
+                                         loss_multiplier=turbine_loss_multiplier(cfg))  # fmt: skip
     except ValueError as e:
         raise EngineFailure(f"design_turbine: {e}") from e
     Pt9 = tpt.p0_out_Pa * (1 - L.dp_nozzle_frac)

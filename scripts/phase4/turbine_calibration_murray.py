@@ -112,15 +112,17 @@ def build(p, n_le_iter: int = 3):
     return g, le
 
 
-def predict(p) -> pd.DataFrame:
-    g, le = build(p)
+def predict(p, k_loss: float = 1.0, geometry=None) -> pd.DataFrame:
+    """Model vs Figs 5.16/5.18 for parameters p (or a fixed `geometry` = (AxialStageGeometry, rotor LE)), with the
+    turbine loss multiplier k_loss (D-064)."""
+    g, le = build(p) if geometry is None else geometry
     rows = []
     turbs = {}
     for r in PTS.itertuples():
         n = r.speed_class_krpm
         T04, P04, far = inlet_state(n)
         if far not in turbs:
-            turbs[far] = AxialTurbineMeanline(g, thermo.products(far))
+            turbs[far] = AxialTurbineMeanline(g, thermo.products(far), loss_multiplier=k_loss)
         om = n * 1e3 * math.sqrt(T04 / TREF) * math.pi / 30
         q = at_pr_tt(turbs[far], T04, P04, om, r.PR)
         row = {"figure": r.figure, "speed_krpm": int(n), "meas_PR": r.PR,

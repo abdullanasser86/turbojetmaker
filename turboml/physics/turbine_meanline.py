@@ -735,12 +735,16 @@ class AxialTurbineMeanline:
 
     warm_start: reuse the previous solution's row states as initial guesses (much faster in sweeps and
     engine matching; results change only at the solver-tolerance level, ~1e-9).
+    loss_multiplier: k_loss, multiplies every row's total loss coefficient Y (Benner profile + trailing edge +
+    secondary + clearance + incidence). 1.0 = the published correlations unchanged. A value fitted to measured
+    efficiency is an EFFECTIVE calibration factor (like the compressor's diffuser Cf): it absorbs whatever the
+    correlations miss at micro-turbine scale (low Reynolds number, relative roughness, clearance, leakage).
     """
 
     def __init__(self, geometry: AxialStageGeometry, gas: GasMixture | None = None,
                  incidence_sign: str = "turboflow", blockage: float = 0.0,
                  delta_height_ratio: float = 0.011, alpha_in_deg: float = 0.0, tol: float = 1e-9,
-                 warm_start: bool = True):  # fmt: skip
+                 warm_start: bool = True, loss_multiplier: float = 1.0):  # fmt: skip
         incidence_sign = {"corrected": "rotor_plus"}.get(incidence_sign, incidence_sign)  # old name
         if incidence_sign not in ("turboflow", "rotor_plus"):
             raise ValueError("incidence_sign must be 'turboflow' or 'rotor_plus'")
@@ -752,6 +756,7 @@ class AxialTurbineMeanline:
         self.dh_ratio, self.alpha_in, self.tol = delta_height_ratio, alpha_in_deg, tol
         self._sign = [_incidence_sign(c, incidence_sign) for c in self.c]
         self.warm_start = warm_start
+        self.loss_multiplier = float(loss_multiplier)
         self._ws: dict = {}
 
     def set_gas(self, gas: GasMixture) -> None:
@@ -761,12 +766,13 @@ class AxialTurbineMeanline:
 
     def with_gas(self, gas: GasMixture) -> AxialTurbineMeanline:
         return AxialTurbineMeanline(self.geometry, gas, self.incidence_sign, self.blockage, self.dh_ratio,
-                                    self.alpha_in, self.tol, self.warm_start)  # fmt: skip
+                                    self.alpha_in, self.tol, self.warm_start, self.loss_multiplier)  # fmt: skip
 
     # ---------------------------------------------------------------- row pieces
     def _Y(self, c, inlet, pl, p0is):
-        return _benner(c, inlet.Re, pl.Re, inlet.Ma_rel, pl.Ma_rel, p0is, inlet.p, pl.p0rel, pl.p, inlet.beta,
-                       pl.beta, pl.gamma, self._sign[c.index], self.dh_ratio)  # fmt: skip
+        y = _benner(c, inlet.Re, pl.Re, inlet.Ma_rel, pl.Ma_rel, p0is, inlet.p, pl.p0rel, pl.p, inlet.beta,
+                    pl.beta, pl.gamma, self._sign[c.index], self.dh_ratio)  # fmt: skip
+        return y if self.loss_multiplier == 1.0 else tuple(self.loss_multiplier * v for v in y)
 
     def _outlet_plane(self, c, r, w, beta, T, p, s, omega):
         pl = _Plane()
@@ -920,6 +926,8 @@ class AxialTurbineMeanline:
             p0rel = p0is * math.exp(-(s - inlet.s) / R)
             y = _benner(c, inlet.Re, rho * v * c.chord / air_viscosity(T), inlet.Ma_rel, Ma, p0is, inlet.p, p0rel,
                         p, inlet.beta, beta, gam, self._sign[c.index], self.dh_ratio)  # fmt: skip
+            if self.loss_multiplier != 1.0:
+                y = tuple(self.loss_multiplier * v for v in y)
             Y = y[0] + y[1] + y[2] + y[3] + y[4]
             p0rel_new = (p0is + Y * p) / (1 + Y)
             s_new = inlet.s + R * math.log(p0is / p0rel_new)

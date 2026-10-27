@@ -145,8 +145,11 @@ def replica(top, alt, dT, cfg, diag=None, variant="F"):
     )
 
 
-def run_all(diag=None, label="model", variant="F") -> tuple[pd.DataFrame, dict]:
+def run_all(
+    diag=None, label="model", variant="F", k_loss: float = 1.0
+) -> tuple[pd.DataFrame, dict]:
     cfg = load_engine_config()
+    cfg["turbine_design"] = {**cfg["turbine_design"], "loss_multiplier": {"value": float(k_loss)}}
     noz, alt, dT = nozzle_runs()
     rows, summ = [], {}
     for run, g in noz.groupby("run"):
@@ -178,7 +181,8 @@ def run_all(diag=None, label="model", variant="F") -> tuple[pd.DataFrame, dict]:
             if p.converged:
                 row.update(model_T5_tc_K=MV.tc_reading(p), model_tit_K=p.tit_K, model_P03_gauge_kPa=p.p03_Pa / 1e3 - MV.P_AMB_KPA,
                            model_m_kg_s=p.W_air_kg_s, model_PR=p.pr_c, model_eta_c=p.eta_c, model_eta_t_ts=p.eta_t_ts,
-                           model_pr_t=p.pr_t_ts, model_turbine_choked=p.turbine_choked)  # fmt: skip
+                           model_pr_t=p.pr_t_ts, model_turbine_choked=p.turbine_choked, model_Fn_N=p.Fn_N,
+                           model_TSFC_g_kN_s=1e6 * p.TSFC_kg_N_s)  # fmt: skip
             rows.append(row)
     d = pd.DataFrame(rows)
     if d.empty:

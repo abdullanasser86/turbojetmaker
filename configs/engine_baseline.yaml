@@ -34,6 +34,10 @@ compressor_design:
 turbine_design:
   defaults: configs/components/axial_turbine_design.yaml
   incidence_sign: turboflow   # see turboml/physics/turbine_meanline.py (open question in the Phase 3 report)
+  # k_loss: multiplier on the meanline turbine loss coefficients (D-064). 1.0 = published Benner correlations, used by
+  # datasets v1-v5. The Murray-calibrated value is in configs/components/turbine_loss_calibration.yaml; a dataset applies
+  # it through `engine_overrides` in its config (v6).
+  loss_multiplier: {value: 1.0, kind: assumption, source: "uncalibrated correlations (D-064)"}
 
 # Baseline ~150 N class engine (Phase 3 demonstration; NOT an optimised design).
 baseline_design:

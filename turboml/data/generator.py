@@ -69,9 +69,10 @@ def sample_designs(spec: DatasetSpec) -> list[dict]:
     cal = spec.calibration
     frac = float(cal["phase4_sampling"]["fraction_of_designs"])
     sampled = rng.random(n) < frac
-    u_ds, u_cf = rng.random(n), rng.random(
-        n
-    )  # same stream and order as rng.uniform(lo, hi, n) before R3
+    # same stream and order as rng.uniform(lo, hi, n) before R3
+    u_ds, u_cf = rng.random(n), rng.random(n)
+    # k_loss draws (v6+) come from their OWN stream so the v1-v5 samples stay bit-identical
+    u_kl = np.random.default_rng(cfg["seed"] + 3).random(n)
     out = []
     for i in range(n):
         x = {}
@@ -97,9 +98,16 @@ def sample_designs(spec: DatasetSpec) -> list[dict]:
         cf = cf_lo + (cf_hi - cf_lo) * u_cf[i] if sampled[i] else cal["diffuser_cf"]["value"]
         rec = {"design_id": i, "inputs": x, "calibration_sampled": bool(sampled[i]),
                "delta_sigma": float(ds), "diffuser_cf": float(cf)}  # fmt: skip
-        if (
-            band["tip_speed_regime"] is not None
-        ):  # calibration files with an `extrapolation` section (R1/R3)
+        tl = spec.cfg.get(
+            "turbine_loss_sampling"
+        )  # v6+: k_loss nominal, sampled in its band for the same designs
+        if tl is not None:
+            lo_k, hi_k = tl["band"]
+            rec["turbine_loss_multiplier"] = (
+                float(lo_k + (hi_k - lo_k) * u_kl[i]) if sampled[i] else float(tl["value"])
+            )
+        # calibration files with an `extrapolation` section (R1/R3)
+        if band["tip_speed_regime"] is not None:
             rec.update(tip_speed_regime=band["tip_speed_regime"], compressor_band_scale=band["scale"],
                        compressor_band={"delta_sigma": list(band["delta_sigma"]), "diffuser_cf": list(band["diffuser_cf"])})  # fmt: skip
         out.append(rec)
@@ -176,6 +184,9 @@ def evaluate_design(rec: dict, engine_cfg: dict, points: list[dict]) -> dict:
     from turboml.physics.engine import Engine, EngineFailure, design_engine
 
     t0 = time.perf_counter()
+    if "turbine_loss_multiplier" in rec:  # per-design k_loss (D-064)
+        engine_cfg = {**engine_cfg, "turbine_design": {**engine_cfg["turbine_design"],
+                                                       "loss_multiplier": {"value": rec["turbine_loss_multiplier"]}}}  # fmt: skip
     out = {**rec, "status": "ok", "failure_reason": "", "points": {}}
     try:
         d = design_engine(

@@ -1,0 +1,72 @@
+# Phase 5 surrogate pipeline (turboml/surrogates/, scripts/phase5/train_surrogates.py).
+# Dataset-version-agnostic: `uv run python scripts/phase5/train_surrogates.py --dataset phase4_v6` retrains everything.
+# User decision 2026-10-27: build the pipeline on phase4_v5 now; v5 results are a PIPELINE TEST, not final numbers.
+
+# Label printed on every result of a dataset (metrics files, cards, plots). Datasets not listed get no label.
+result_labels:
+  phase4_v5: "provisional (pre-v6 calibration)"
+
+# Inputs: the dataset's sampled design variables (from its config `design_variables`, scaled to [0, 1] with the bounds
+# and the same scale - linear/log/piecewise - as the sampling) plus, optionally, the per-design compressor calibration
+# factors (sampled for 20 % of designs; nominal otherwise), so model uncertainty can be propagated.
+inputs:
+  include_calibration_factors: true
+
+# Regression targets: design-point and off-design quantities of DESIGNED engines whose point converged.
+# transform: log for strictly positive, multiplicative quantities; none otherwise. Targets are standardized after it.
+targets:
+  - {name: Fn_design_N,      point: design,         column: Fn_N,          transform: log}
+  - {name: TSFC_design,      point: design,         column: TSFC_kg_N_s,   transform: log}
+  - {name: pr_c_design,      point: design,         column: pr_c,          transform: none}
+  - {name: T05_design_K,     point: design,         column: T05_K,         transform: none}
+  - {name: Fn_cruise_N,      point: cruise_M05_3km, column: Fn_N,          transform: log}
+  - {name: TSFC_cruise,      point: cruise_M05_3km, column: TSFC_kg_N_s,   transform: log}
+  - {name: Fn_idle_N,        point: idle_35,        column: Fn_N,          transform: log}
+  - {name: T05_idle_K,       point: idle_35,        column: T05_K,         transform: none}
+  - {name: dry_mass_kg,      design_column: dry_mass_kg, transform: log}
+  - {name: diameter_m,       design_column: diameter_m,  transform: log}
+
+# Classifier: P(feasible) over ALL sampled designs (design-mode failures count as infeasible; their reason is kept).
+classifier:
+  target: feasible       # status == ok and mechanically feasible
+  ensemble_size: 5
+  hidden: [128, 128]
+  epochs: 600
+  lr: 0.002
+  weight_decay: 1.0e-4
+
+# Train / validation split inside the frozen train_val ids (the frozen test ids are never used for fitting or tuning).
+validation_fraction: 0.15
+seed: 20261110
+
+gp:
+  kernel: matern52_ard
+  max_points_per_output: 10000      # exact-GP limit on the RTX 4080 Laptop (12 GB VRAM); larger sets -> error, not silent subsampling
+  training_iters: 300
+  lr: 0.05
+  jitter: 1.0e-6
+
+ensemble:
+  members: 5
+  hidden: [128, 128, 128]
+  epochs: 1500
+  lr: 0.002
+  weight_decay: 1.0e-5
+  batch_size: 256
+
+# Out-of-distribution flags (each a boolean per query point; any flag -> "do not trust without physics re-check").
+ood:
+  extrapolated_tip_speed_m_s: 415.0   # D-060: compressor beyond the top measured speed line
+  outside_bounds: true                # any scaled input outside [0, 1]
+  knn_k: 10                           # mean distance to the k nearest training inputs (scaled space)
+  knn_quantile: 0.99                  # flag above this quantile of the training leave-one-out distances
+  epistemic_quantile: 0.99            # flag if the ensemble's epistemic std (scaled) exceeds this training quantile
+
+# Calibration metrics
+metrics:
+  interval_levels: [0.5, 0.68, 0.9, 0.95]
+  ece_bins: 10
+
+hardware:
+  vram_gb: 12          # RTX 4080 Laptop
+  checkpoint_every_epochs: 250

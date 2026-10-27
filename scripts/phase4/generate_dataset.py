@@ -66,6 +66,22 @@ def repair_tail(path: Path) -> None:
             path.write_bytes(data[: data.rfind(b"\n") + 1])
 
 
+def apply_engine_overrides(engine_cfg: dict, overrides: dict | None) -> dict:
+    """Deep-merge a dataset config's `engine_overrides` (e.g. {turbine_design: {loss_multiplier: 2.1}}) into the
+    engine config, so a dataset version can change a calibration without editing configs/engine_baseline.yaml.
+    """
+    if not overrides:
+        return engine_cfg
+    out = dict(engine_cfg)
+    for k, v in overrides.items():
+        out[k] = (
+            apply_engine_overrides(dict(out.get(k, {})), v)
+            if isinstance(v, dict) and not ("value" in v)
+            else v
+        )
+    return out
+
+
 def flatten(jsonl: Path, out_dir: Path, split_csv: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     recs = [json.loads(ln) for ln in jsonl.read_text(encoding="utf-8").splitlines() if ln.strip()]
     split = pd.read_csv(split_csv).set_index("design_id").split
@@ -75,6 +91,7 @@ def flatten(jsonl: Path, out_dir: Path, split_csv: Path) -> tuple[pd.DataFrame, 
                 "failure_reason": r["failure_reason"], "calibration_sampled": r["calibration_sampled"],
                 "delta_sigma": r["delta_sigma"], "diffuser_cf": r["diffuser_cf"], "time_s": r.get("time_s"),
                 "tip_speed_regime": r.get("tip_speed_regime"), "compressor_band_scale": r.get("compressor_band_scale"),
+                "turbine_loss_multiplier": r.get("turbine_loss_multiplier"),
                 **{f"in_{k}": v for k, v in r["inputs"].items()}}  # fmt: skip
         g = r.get("geometry", {})
         m = r.get("mechanical", {})
@@ -135,7 +152,7 @@ def main() -> int:
         f"{len(done)} done, {len(todo)} to run on {workers} workers; split {split_csv}; run log {run_dir}",
         flush=True,
     )
-    engine_cfg = load_engine_config()
+    engine_cfg = apply_engine_overrides(load_engine_config(), cfg.get("engine_overrides"))
     t0, k = time.time(), 0
     with jsonl.open("a", encoding="utf-8") as fh:
         for line in Parallel(n_jobs=workers, return_as="generator_unordered")(

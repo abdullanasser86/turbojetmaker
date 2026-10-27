@@ -1,0 +1,174 @@
+source: Galvas 1973, NASA TN D-7487 (fetched from NTRS, public domain)
+finding: no loss term grows with inducer relative Mach (shock losses neglected, pp.
+  2 and 10); the only Mach-dependent element applicable to the KJ-66 is the inducer
+  choke criterion (flow limit)
+kj66_inducer:
+  r_rms_m: 0.01651
+  beta_b_mid_deg: 42.0
+  beta_b_rms_deg_assumed: 45.97
+murray_points_per_line:
+  '40':
+    M_W_rms:
+    - 0.224
+    - 0.224
+    M_W_tip:
+    - 0.293
+    - 0.293
+    incidence_rms_deg:
+    - 19.08
+    - 19.08
+    choking_incidence_rms_deg:
+    - null
+    margin_to_choke_deg: null
+    galvas_choked_points_rms45.9: 0
+    galvas_choked_points_mid42: 0
+    n: 1
+  '50':
+    M_W_rms:
+    - 0.283
+    - 0.287
+    M_W_tip:
+    - 0.368
+    - 0.371
+    incidence_rms_deg:
+    - 16.66
+    - 18.2
+    choking_incidence_rms_deg:
+    - null
+    margin_to_choke_deg: null
+    galvas_choked_points_rms45.9: 0
+    galvas_choked_points_mid42: 0
+    n: 2
+  '60':
+    M_W_rms:
+    - 0.342
+    - 0.342
+    M_W_tip:
+    - 0.443
+    - 0.443
+    incidence_rms_deg:
+    - 17.48
+    - 17.48
+    choking_incidence_rms_deg:
+    - null
+    margin_to_choke_deg: null
+    galvas_choked_points_rms45.9: 0
+    galvas_choked_points_mid42: 0
+    n: 1
+  '70':
+    M_W_rms:
+    - 0.401
+    - 0.401
+    M_W_tip:
+    - 0.519
+    - 0.519
+    incidence_rms_deg:
+    - 16.98
+    - 16.98
+    choking_incidence_rms_deg:
+    - null
+    margin_to_choke_deg: null
+    galvas_choked_points_rms45.9: 0
+    galvas_choked_points_mid42: 0
+    n: 1
+  '80':
+    M_W_rms:
+    - 0.458
+    - 0.464
+    M_W_tip:
+    - 0.594
+    - 0.599
+    incidence_rms_deg:
+    - 15.65
+    - 17.03
+    choking_incidence_rms_deg:
+    - null
+    margin_to_choke_deg: null
+    galvas_choked_points_rms45.9: 0
+    galvas_choked_points_mid42: 0
+    n: 2
+  '90':
+    M_W_rms:
+    - 0.519
+    - 0.527
+    M_W_tip:
+    - 0.671
+    - 0.677
+    incidence_rms_deg:
+    - 14.94
+    - 16.48
+    choking_incidence_rms_deg:
+    - -15.57
+    margin_to_choke_deg: 29.9
+    galvas_choked_points_rms45.9: 0
+    galvas_choked_points_mid42: 0
+    n: 2
+  '100':
+    M_W_rms:
+    - 0.581
+    - 0.591
+    M_W_tip:
+    - 0.75
+    - 0.758
+    incidence_rms_deg:
+    - 14.18
+    - 15.8
+    choking_incidence_rms_deg:
+    - -10.78
+    margin_to_choke_deg: 24.2
+    galvas_choked_points_rms45.9: 0
+    galvas_choked_points_mid42: 0
+    n: 2
+  '110':
+    M_W_rms:
+    - 0.645
+    - 0.659
+    M_W_tip:
+    - 0.83
+    - 0.841
+    incidence_rms_deg:
+    - 13.14
+    - 15.03
+    choking_incidence_rms_deg:
+    - -6.82
+    margin_to_choke_deg: 19.22
+    galvas_choked_points_rms45.9: 0
+    galvas_choked_points_mid42: 0
+    n: 2
+  '120':
+    M_W_rms:
+    - 0.709
+    - 0.726
+    M_W_tip:
+    - 0.911
+    - 0.924
+    incidence_rms_deg:
+    - 12.47
+    - 14.49
+    choking_incidence_rms_deg:
+    - -3.31
+    margin_to_choke_deg: 14.9
+    galvas_choked_points_rms45.9: 0
+    galvas_choked_points_mid42: 0
+    n: 2
+phase4_v5_design_points:
+  extrapolated:
+    designed: 552
+    M_W_rms_range:
+    - 0.491
+    - 1.096
+    beta_b_rms_range_deg:
+    - 46.0
+    - 46.0
+    inside_galvas_validity: 549
+    galvas_inducer_choked: 4
+  validated:
+    designed: 479
+    M_W_rms_range:
+    - 0.409
+    - 0.878
+    beta_b_rms_range_deg:
+    - 46.0
+    - 46.0
+    inside_galvas_validity: 382
+    galvas_inducer_choked: 0

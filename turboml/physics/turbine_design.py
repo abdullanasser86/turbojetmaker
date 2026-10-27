@@ -222,8 +222,10 @@ def design_stage(mdot_kg_s: float, T0_in_K: float, p0_in_Pa: float, omega_rad_s:
 
     Two unknowns (k, PR_ts), two residuals (mass flow, work); Newton with finite-difference Jacobian.
     Returns (StageSizing, AxialTurbineMeanline, TurbinePoint at the design point). Raises ValueError
-    with a reason if the stage can't deliver the work (e.g. limit loading)."""
+    with a reason if the stage can't deliver the work (e.g. limit loading).
+    `loss_multiplier` (in overrides) is passed to the meanline model (k_loss, D-064); default 1."""
     gas = gas or air()
+    loss_multiplier = float(overrides.pop("loss_multiplier", 1.0))
     k = 1.0
     sz = size_axial_stage(
         mdot_kg_s,
@@ -254,7 +256,9 @@ def design_stage(mdot_kg_s: float, T0_in_K: float, p0_in_Pa: float, omega_rad_s:
             k,
             **overrides,
         )
-        t = AxialTurbineMeanline(s.geometry, gas, incidence_sign=incidence_sign)
+        t = AxialTurbineMeanline(
+            s.geometry, gas, incidence_sign=incidence_sign, loss_multiplier=loss_multiplier
+        )
         pt = t.evaluate(T0_in_K, p0_in_Pa, omega_rad_s, pr)
         if not pt.converged:
             raise ValueError(f"turbine design point failed: {pt.failure_reason} ({pt.message})")
