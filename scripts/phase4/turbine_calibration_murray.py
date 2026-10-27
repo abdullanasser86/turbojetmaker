@@ -97,7 +97,8 @@ def at_pr_tt(t: AxialTurbineMeanline, T04, P04, omega, pr_tt):
 def at_pr_tt_robust(t: AxialTurbineMeanline, T04, P04, omega, pr_tt, n_grid: int = 33):
     """`at_pr_tt` that survives isolated solver failures (round 6b): evaluate on a grid of PR_ts, bracket the target
     PR_tt between two CONVERGED neighbours, refine with brentq there; if the refinement hits a failure, interpolate
-    linearly between the bracketing converged points (flagged `interpolated`). None if no converged bracket exists."""
+    linearly between the bracketing converged points (flagged `interpolated`). None if no converged bracket exists.
+    """
     from types import SimpleNamespace
 
     grid = pr_tt * np.linspace(1.0005, 1.8, n_grid)

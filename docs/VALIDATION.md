@@ -454,3 +454,44 @@ Q's geometry also contradicts the measured exit velocity (V5 −47 %).
 Card `docs/dataset_cards/phase4_v5.md`. 604 feasible (30.2 %); validated tip speed 40.2 % of designs feasible,
 extrapolated 22.6 %; TIT > 1150 K 1.0 %. Cross-check vs pyCycle-CEA: 21 checked, 0 flagged (max |ΔFn| 0.037 %,
 |ΔTSFC| 0.094 %).
+
+## Phase 4 (round 6) — R2 test (Galvas), turbine loss multiplier, KJ-66 turbine variants
+
+### R2: Galvas (1973) NASA TN D-7487 (`scripts/phase4/galvas_r2_test.py` → `validation/phase4/galvas_r2_test.yaml`)
+Galvas has no shock or Mach-dependent loss (D-065). Its inducer choke criterion (choking incidence vs rms relative
+Mach, listing p. 26/29), applied to the KJ-66 (rms blade angle 45.9°, assumed from the digitized 42° midspan):
+
+| line [krpm] | M_W,rms | rms incidence [°] | choking incidence [°] | margin [°] | choked points |
+|---|---|---|---|---|---|
+| 90 | 0.52–0.53 | +14.9 … +16.5 | −15.6 | 29.9 | 0 |
+| 100 | 0.58–0.59 | +14.2 … +15.8 | −10.8 | 24.2 | 0 |
+| 110 | 0.65–0.66 | +13.1 … +15.0 | −6.8 | 19.2 | 0 |
+| 120 | 0.71–0.73 | +12.5 … +14.5 | −3.3 | 14.9 | 0 |
+
+Below 90 krpm M_W,rms < 0.5 (outside the table). Held-out compressor errors with the criterion = without (D-059
+table unchanged). phase4_v5: 4 of 1031 designed engines would be flagged inducer-choked (all extrapolated).
+
+### Turbine loss multiplier k_loss (`scripts/phase4/turbine_loss_multiplier_fit.py` → `validation/phase4/turbine_loss_multiplier.*`)
+| variant | k_loss | interval | held-out η err [pts] k=1 → fit | held-out flow err [%] k=1 → fit | failed points at fit |
+|---|---|---|---|---|---|
+| T-A (hub/tip 0.743) | 1.955 | 1σ 1.8–2.0 | +11.3 → **+1.7** (rms 3.5) | −5.7 → −9.4 | 0 |
+| T-B (hub/tip 0.519) | 1.762 | 2σ 1.6–1.7 | +12.8 → **+6.6** (rms 7.2) | −1.7 → −5.9 | 5 (68 krpm line) |
+
+Per held-out line (T-A, fitted): 32: +1.4 · 44: +1.8 · 56: +3.8 · 68: −1.7 pts; all within Murray's published
+uncertainty. The 26 krpm calibration point stays −12 pts (single point, Murray η 0.85 ± 0.34).
+
+### KJ-66 turbine variants in the replica (`scripts/phase4/kj66_turbine_variants.py` → `validation/phase4/kj66_turbine_variants.*`)
+Replica as in round 5 (real compressor + R1, A9 fitted per run at the top speed). Run 2 (120 krpm top):
+
+| variant, k_loss | idle EGT err (< 50 krpm) | idle TIT | Fn @ 120 krpm | TSFC @ 120 krpm [g/kN/s] | η_t,ts @ 120 | air flow err @ 120 |
+|---|---|---|---|---|---|---|
+| T-A, 1 | +78 K | 877 K | 56.1 N | 43.5 | 0.658 | −8 % |
+| T-B, 1 | −13 K | 785 K | 53.9 N | 47.1 | 0.787 | −3 % |
+| T-A, 1.955 | +109 K (run 2 only) | 897 K | 47.4 N | 50.4 | 0.608 | −10 % |
+| T-B, 1.762 | −0.3 K (run 1 only, top 112 krpm) | 815 K | – | – | – | – |
+
+With the fitted k_loss the replica's top-speed point does not converge (`turbine_no_convergence`) for 2 of 3 runs
+per variant (T-A runs 1 and 3, T-B runs 2 and 3) at any nozzle area; at k = 1 all runs converge. Spread T-A vs T-B at
+k = 1: thrust 4 %, TSFC 8 %, idle EGT ~90 K; the turbine efficiency differs most (0.66 vs 0.79 total-to-static:
+T-A's short, choked NGV and fast exit flow). Murray's thrust is not in our data, so thrust is not validated.
+Hobbyist hint (hub/tip ≈ 0.56, hobbyist CAD, unverified): closer to T-B.

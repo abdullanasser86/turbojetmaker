@@ -78,7 +78,7 @@ class GPSurrogate:
             self.models.append(model)
             self.likelihoods.append(lik)
             self.train_n.append(n)
-            log(f"  GP target {j}: n={n}, -mll/n={float(loss):.3f}")
+            log(f"  GP target {j}: n={n}, -mll/n={float(loss.detach()):.3f}")
         return self
 
     def predict(self, U: np.ndarray, include_noise: bool = True) -> tuple[np.ndarray, np.ndarray]:

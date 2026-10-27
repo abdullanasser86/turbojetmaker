@@ -287,6 +287,18 @@ terms and a short "what we did and why".
 - **Sobol indices** – A sensitivity analysis: what fraction of output variance each input
   causes.
 
+- **Loss multiplier (k_loss)** – One number that scales a loss model's predicted losses so the model's efficiency
+  matches measurements. It does not explain *why* losses are higher (small blades, low Reynolds number, roughness);
+  it only makes the size right, like a calibration factor on a sensor.
+- **Expected calibration error (ECE)** – For a classifier: group predictions by probability (0–0.1, 0.1–0.2, …) and
+  compare the average predicted probability with how often the event really happened in each group. 0 = perfectly
+  honest probabilities.
+- **Aleatoric vs epistemic uncertainty** – Aleatoric: scatter the data themselves contain (it does not shrink with
+  more data). Epistemic: the model not knowing, because it has seen little data nearby (it shrinks with more data). A
+  deep ensemble measures epistemic uncertainty as the disagreement between its members.
+- **Out-of-distribution (OOD)** – A query unlike the training data (outside the sampled box, in a sparse region, or
+  where the physics model itself is extrapolating). Surrogate predictions there must be re-checked with physics.
+
 ---
 
 ## Project log
@@ -474,3 +486,19 @@ cause. The same "make it buildable by construction" step that fixed the compress
 
 **Why it matters:** We now know which numbers in the model are measured, which are calibrated, and where each is
 trustworthy. A surrogate trained on v5 can be told which designs lie beyond the validated compressor range.
+
+### Phase 4, round 6 + Phase 5 start — Loss calibration, two turbines, surrogates (2026-10-27)
+**What we did**
+1. Read the 1973 NASA compressor report the user pointed to (Galvas). It has no loss term for high inducer Mach
+   numbers; it says so itself. Its choke check never triggers on Murray's measured points, so it cannot explain the
+   high-speed error. Recommendation: do not add it.
+2. Fitted one turbine loss multiplier on Murray's measured turbine efficiency. With the published correlations the
+   turbine was 11–13 points too efficient; with losses ×~1.9 the held-out error drops to +2 (T-A) / +7 (T-B) points.
+3. Carried two plausible KJ-66 turbine geometries side by side, so we can see how much the unknown geometry matters
+   (idle exhaust temperature differs by ~90 K; thrust and fuel consumption by 4–8 %).
+4. Built the surrogate pipeline: a Gaussian process and a deep ensemble predict thrust, fuel consumption,
+   temperatures and mass in milliseconds, with honest uncertainty; a classifier predicts feasibility; flags mark
+   predictions that need a physics re-check. On v5 it reaches ~0.3 % median error (provisional).
+
+**Why it matters:** Calibrating the turbine changes engine fuel consumption by ~20 %. That is why the dataset must be
+regenerated (v6) before the surrogates' numbers mean anything, and why the pipeline was built to retrain in one command.

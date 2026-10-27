@@ -76,7 +76,7 @@ def apply_engine_overrides(engine_cfg: dict, overrides: dict | None) -> dict:
     for k, v in overrides.items():
         out[k] = (
             apply_engine_overrides(dict(out.get(k, {})), v)
-            if isinstance(v, dict) and not ("value" in v)
+            if isinstance(v, dict) and "value" not in v
             else v
         )
     return out

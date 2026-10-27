@@ -3,19 +3,88 @@ T-A:
   - 0.7433
   - 64.79
   - 43.62
-  k_loss: 2.091
-  sigma_1: 0.002
-  residual_rms_weighted: 0.3928
+  k_loss: 1.955
+  interval_profile:
+    1sigma:
+    - 1.8
+    - 2.0
+    2sigma:
+    - 1.6
+    - 2.0
+  residual_rms_weighted: 0.0485
+  failed_cal_points_at_fit: 0
+  failed_points_all_at_fit: 0
+  failed_points_all_k1: 0
   rss_profile:
-    '1.091': 0.08143
-    '1.341': 0.05452
-    '1.591': 0.46551
-    '1.841': 0.88701
-    '2.091': 2.00597
-    '2.341': 3.00182
-    '2.591': 3.00112
-    '2.841': 3.50189
-    '3.091': 4.0
+    '0.8':
+      rss: 0.12986
+      failed: 0
+    '0.9':
+      rss: 0.11086
+      failed: 0
+    '1.0':
+      rss: 0.0944
+      failed: 0
+    '1.1':
+      rss: 0.08025
+      failed: 0
+    '1.2':
+      rss: 0.06822
+      failed: 0
+    '1.3':
+      rss: 0.05813
+      failed: 0
+    '1.4':
+      rss: 0.04983
+      failed: 0
+    '1.5':
+      rss: 0.04319
+      failed: 0
+    '1.6':
+      rss: 0.03807
+      failed: 0
+    '1.7':
+      rss: 0.03435
+      failed: 0
+    '1.8':
+      rss: 0.03195
+      failed: 0
+    '1.9':
+      rss: 0.03076
+      failed: 0
+    '2.0':
+      rss: 0.0307
+      failed: 0
+    '2.1':
+      rss: 0.14061
+      failed: 0
+    '2.2':
+      rss: 0.15241
+      failed: 0
+    '2.3':
+      rss: 0.27152
+      failed: 0
+    '2.4':
+      rss: 0.29393
+      failed: 0
+    '2.5':
+      rss: 0.31659
+      failed: 0
+    '2.6':
+      rss: 0.40648
+      failed: 0
+    '2.7':
+      rss: 0.57358
+      failed: 0
+    '2.8':
+      rss: 0.67419
+      failed: 0
+    '2.9':
+      rss: 0.71553
+      failed: 0
+    '3.0':
+      rss: 0.75531
+      failed: 0
   held_out_eta_err_pts:
     k=1:
       mean: 11.34
@@ -23,10 +92,10 @@ T-A:
       max_abs: 16.24
       n: 13
     fitted:
-      mean: 1.94
-      rms: 2.93
-      max_abs: 5.33
-      n: 6
+      mean: 1.74
+      rms: 3.48
+      max_abs: 6.46
+      n: 13
   held_out_Mcorr_err_pct:
     k=1:
       mean: -5.68
@@ -34,10 +103,10 @@ T-A:
       max_abs: 11.42
       n: 7
     fitted:
-      mean: -7.39
-      rms: 7.46
-      max_abs: 8.33
-      n: 3
+      mean: -9.44
+      rms: 10.11
+      max_abs: 14.04
+      n: 7
   eta_err_pts_le_44krpm_all:
     k=1:
       mean: 10.93
@@ -45,98 +114,125 @@ T-A:
       max_abs: 16.26
       n: 12
     fitted:
-      mean: 0.86
-      rms: 2.79
-      max_abs: 4.9
-      n: 6
+      mean: 0.64
+      rms: 4.81
+      max_abs: 12.12
+      n: 12
   per_speed_line_fitted:
     '20':
       set: flow_only_line
       eta_err_pts:
         n: 0
       Mcorr_err_pct:
-        n: 0
+        mean: 2.93
+        rms: 2.93
+        max_abs: 2.93
+        n: 1
       eta_within_published_uncertainty: 0/0
     '26':
       set: calibration
       eta_err_pts:
-        n: 0
+        mean: -12.12
+        rms: 12.12
+        max_abs: 12.12
+        n: 1
       Mcorr_err_pct:
-        n: 0
-      eta_within_published_uncertainty: 0/1
+        mean: 2.3
+        rms: 2.3
+        max_abs: 2.3
+        n: 1
+      eta_within_published_uncertainty: 1/1
     '32':
       set: held_out
       eta_err_pts:
-        n: 0
+        mean: 1.43
+        rms: 3.53
+        max_abs: 5.75
+        n: 5
       Mcorr_err_pct:
-        n: 0
-      eta_within_published_uncertainty: 0/5
+        mean: -3.27
+        rms: 3.27
+        max_abs: 3.27
+        n: 1
+      eta_within_published_uncertainty: 5/5
     '38':
       set: calibration
       eta_err_pts:
-        mean: 0.99
-        rms: 3.04
-        max_abs: 4.9
+        mean: 2.25
+        rms: 3.64
+        max_abs: 6.15
         n: 4
       Mcorr_err_pct:
-        mean: -5.53
-        rms: 5.53
-        max_abs: 5.53
+        mean: -4.83
+        rms: 4.83
+        max_abs: 4.83
         n: 1
       eta_within_published_uncertainty: 4/4
     '44':
       set: held_out
       eta_err_pts:
-        mean: 0.6
-        rms: 2.23
-        max_abs: 2.74
+        mean: 1.83
+        rms: 2.81
+        max_abs: 3.97
         n: 2
       Mcorr_err_pct:
-        mean: -5.93
-        rms: 5.93
-        max_abs: 5.93
+        mean: -5.32
+        rms: 5.32
+        max_abs: 5.32
         n: 1
       eta_within_published_uncertainty: 2/2
     '50':
       set: calibration
       eta_err_pts:
-        mean: 3.88
-        rms: 4.53
-        max_abs: 6.22
+        mean: 5.05
+        rms: 5.56
+        max_abs: 7.38
         n: 2
       Mcorr_err_pct:
-        mean: -8.4
-        rms: 8.4
-        max_abs: 8.67
+        mean: -7.89
+        rms: 7.9
+        max_abs: 8.16
         n: 2
       eta_within_published_uncertainty: 2/2
     '56':
       set: held_out
       eta_err_pts:
-        mean: 2.61
-        rms: 3.23
-        max_abs: 5.33
+        mean: 3.8
+        rms: 4.23
+        max_abs: 6.46
         n: 4
       Mcorr_err_pct:
-        mean: -8.12
-        rms: 8.12
-        max_abs: 8.33
-        n: 2
+        mean: -10.39
+        rms: 10.47
+        max_abs: 12.24
+        n: 3
       eta_within_published_uncertainty: 4/4
     '62':
       set: calibration
       eta_err_pts:
-        n: 0
+        mean: 2.53
+        rms: 2.82
+        max_abs: 5.01
+        n: 7
       Mcorr_err_pct:
-        n: 0
-      eta_within_published_uncertainty: 0/7
+        mean: -12.02
+        rms: 12.1
+        max_abs: 13.64
+        n: 5
+      eta_within_published_uncertainty: 7/7
     '68':
       set: held_out
       eta_err_pts:
-        n: 0
+        mean: -1.69
+        rms: 1.92
+        max_abs: 2.6
+        n: 2
       Mcorr_err_pct:
-        n: 0
-      eta_within_published_uncertainty: 0/2
+        mean: -13.15
+        rms: 13.18
+        max_abs: 14.04
+        n: 2
+      eta_within_published_uncertainty: 2/2
   per_speed_line_k1:
     '20':
       set: flow_only_line
@@ -257,19 +353,86 @@ T-B:
   - 0.5191
   - 70.91
   - 67.88
-  k_loss: 2.166
-  sigma_1: 1.434
-  residual_rms_weighted: 0.2816
+  k_loss: 1.762
+  interval_profile:
+    1sigma: null
+    2sigma:
+    - 1.6
+    - 1.7
+  residual_rms_weighted: 0.057
+  failed_cal_points_at_fit: 0
+  failed_points_all_at_fit: 5
+  failed_points_all_k1: 0
   rss_profile:
-    '1.166': 0.0995
-    '1.416': 0.06972
-    '1.666': 0.04849
-    '1.916': 1.03333
-    '2.166': 1.03092
-    '2.416': 1.03314
-    '2.666': 2.27313
-    '2.916': 2.32809
-    '3.166': 2.37502
+    '0.8':
+      rss: 0.16203
+      failed: 0
+    '0.9':
+      rss: 0.14242
+      failed: 0
+    '1.0':
+      rss: 0.12479
+      failed: 0
+    '1.1':
+      rss: 0.10898
+      failed: 0
+    '1.2':
+      rss: 0.09489
+      failed: 0
+    '1.3':
+      rss: 0.08238
+      failed: 0
+    '1.4':
+      rss: 0.07135
+      failed: 0
+    '1.5':
+      rss: 0.06171
+      failed: 0
+    '1.6':
+      rss: 0.05334
+      failed: 0
+    '1.7':
+      rss: 0.04618
+      failed: 0
+    '1.8':
+      rss: 0.18308
+      failed: 1
+    '1.9':
+      rss: 0.60709
+      failed: 4
+    '2.0':
+      rss: 1.03197
+      failed: 7
+    '2.1':
+      rss: 1.03109
+      failed: 7
+    '2.2':
+      rss: 1.03097
+      failed: 7
+    '2.3':
+      rss: 1.03157
+      failed: 7
+    '2.4':
+      rss: 2.00646
+      failed: 8
+    '2.5':
+      rss: 2.00507
+      failed: 8
+    '2.6':
+      rss: 2.00423
+      failed: 8
+    '2.7':
+      rss: 2.15599
+      failed: 8
+    '2.8':
+      rss: 2.1661
+      failed: 8
+    '2.9':
+      rss: 2.17581
+      failed: 8
+    '3.0':
+      rss: 2.18537
+      failed: 8
   held_out_eta_err_pts:
     k=1:
       mean: 12.8
@@ -277,10 +440,10 @@ T-B:
       max_abs: 18.04
       n: 13
     fitted:
-      mean: 2.18
-      rms: 3.71
-      max_abs: 6.37
-      n: 7
+      mean: 6.62
+      rms: 7.21
+      max_abs: 10.92
+      n: 11
   held_out_Mcorr_err_pct:
     k=1:
       mean: -1.69
@@ -288,10 +451,10 @@ T-B:
       max_abs: 3.98
       n: 7
     fitted:
-      mean: -8.95
-      rms: 8.96
-      max_abs: 9.46
-      n: 2
+      mean: -5.91
+      rms: 6.15
+      max_abs: 8.32
+      n: 5
   eta_err_pts_le_44krpm_all:
     k=1:
       mean: 12.74
@@ -299,9 +462,9 @@ T-B:
       max_abs: 18.14
       n: 12
     fitted:
-      mean: 1.29
-      rms: 5.04
-      max_abs: 11.76
+      mean: 4.93
+      rms: 6.89
+      max_abs: 10.55
       n: 12
   per_speed_line_fitted:
     '20':
@@ -309,87 +472,102 @@ T-B:
       eta_err_pts:
         n: 0
       Mcorr_err_pct:
-        n: 0
+        mean: -2.45
+        rms: 2.45
+        max_abs: 2.45
+        n: 1
       eta_within_published_uncertainty: 0/0
     '26':
       set: calibration
       eta_err_pts:
-        mean: -11.76
-        rms: 11.76
-        max_abs: 11.76
+        mean: -7.93
+        rms: 7.93
+        max_abs: 7.93
         n: 1
       Mcorr_err_pct:
-        mean: -5.23
-        rms: 5.23
-        max_abs: 5.23
+        mean: -2.42
+        rms: 2.42
+        max_abs: 2.42
         n: 1
       eta_within_published_uncertainty: 1/1
     '32':
       set: held_out
       eta_err_pts:
-        mean: 2.01
-        rms: 3.82
-        max_abs: 6.37
+        mean: 5.72
+        rms: 6.57
+        max_abs: 10.06
         n: 5
       Mcorr_err_pct:
-        mean: -9.46
-        rms: 9.46
-        max_abs: 9.46
+        mean: -6.93
+        rms: 6.93
+        max_abs: 6.93
         n: 1
       eta_within_published_uncertainty: 5/5
     '38':
       set: calibration
       eta_err_pts:
-        mean: 2.98
-        rms: 4.17
-        max_abs: 6.99
+        mean: 6.57
+        rms: 7.19
+        max_abs: 10.55
         n: 4
       Mcorr_err_pct:
-        mean: -9.82
-        rms: 9.82
-        max_abs: 9.82
+        mean: -7.46
+        rms: 7.46
+        max_abs: 7.46
         n: 1
       eta_within_published_uncertainty: 4/4
     '44':
       set: held_out
       eta_err_pts:
-        mean: 2.62
-        rms: 3.41
-        max_abs: 4.8
+        mean: 6.12
+        rms: 6.49
+        max_abs: 8.28
         n: 2
       Mcorr_err_pct:
-        mean: -8.44
-        rms: 8.44
-        max_abs: 8.44
+        mean: -6.15
+        rms: 6.15
+        max_abs: 6.15
         n: 1
       eta_within_published_uncertainty: 2/2
     '50':
       set: calibration
       eta_err_pts:
-        mean: 5.92
-        rms: 6.43
-        max_abs: 8.44
+        mean: 9.35
+        rms: 9.67
+        max_abs: 11.8
         n: 2
       Mcorr_err_pct:
-        mean: -7.81
-        rms: 7.87
-        max_abs: 8.75
+        mean: -5.57
+        rms: 5.65
+        max_abs: 6.5
         n: 2
       eta_within_published_uncertainty: 2/2
     '56':
       set: held_out
       eta_err_pts:
-        n: 0
+        mean: 7.99
+        rms: 8.25
+        max_abs: 10.92
+        n: 4
       Mcorr_err_pct:
-        n: 0
-      eta_within_published_uncertainty: 0/4
+        mean: -5.49
+        rms: 5.86
+        max_abs: 8.32
+        n: 3
+      eta_within_published_uncertainty: 3/4
     '62':
       set: calibration
       eta_err_pts:
-        n: 0
+        mean: 4.82
+        rms: 5.29
+        max_abs: 8.55
+        n: 7
       Mcorr_err_pct:
-        n: 0
-      eta_within_published_uncertainty: 0/7
+        mean: -5.03
+        rms: 5.3
+        max_abs: 7.6
+        n: 4
+      eta_within_published_uncertainty: 7/7
     '68':
       set: held_out
       eta_err_pts:
@@ -513,9 +691,9 @@ T-B:
         n: 2
       eta_within_published_uncertainty: 2/2
 proposed_for_v6:
-  k_loss: 2.128
+  k_loss: 1.859
   band:
-  - -0.702
-  - 5.034
-  rule: centre = mean of the T-A and T-B fits; band = union of their 2-sigma intervals
-    (geometry spread as part of the turbine model uncertainty)
+  - 1.6
+  - 2.0
+  rule: centre = mean of the T-A and T-B fits; band = union of their 2-sigma profile
+    intervals (geometry spread as part of the turbine model uncertainty)

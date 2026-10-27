@@ -117,7 +117,9 @@ def main() -> int:
                               "rule": "centre = mean of the T-A and T-B fits; band = union of their 2-sigma profile intervals (geometry spread as part of the turbine model uncertainty)"}  # fmt: skip
     pd.concat(rows, ignore_index=True).to_csv(OUT / "turbine_loss_multiplier.csv", index=False)
     res = json.loads(json.dumps(res, default=lambda v: v.item() if hasattr(v, "item") else str(v)))
-    (OUT / "turbine_loss_multiplier.yaml").write_text(yaml.safe_dump(res, sort_keys=False), encoding="utf-8")
+    (OUT / "turbine_loss_multiplier.yaml").write_text(
+        yaml.safe_dump(res, sort_keys=False), encoding="utf-8"
+    )
     print(yaml.safe_dump(res["proposed_for_v6"], sort_keys=False))
     return 0
 

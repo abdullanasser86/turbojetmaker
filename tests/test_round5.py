@@ -120,3 +120,51 @@ def test_kj66_turbine_labels():
         assert kj[k]["kind"] == "calibrated, not measured" and kj[k]["value"] is not None
         lo, hi = kj[k]["range_profile"]
         assert lo <= kj[k]["value"] <= hi
+
+
+def test_turbine_loss_multiplier_lowers_efficiency_and_defaults_to_identity():
+    from turboml.gas import thermo
+    from turboml.physics.turbine_meanline import AxialTurbineMeanline
+
+    kj = yaml.safe_load(open("configs/components/kj66_turbine.yaml", encoding="utf-8"))
+    g = stage_from_counts(0.033, kj["hub_tip"]["value"], 18, 24, kj["ngv_gauging_deg"]["value"],
+                          kj["rotor_gauging_deg"]["value"], kj["rotor_le_deg"]["value"], 0.01)  # fmt: skip
+    om = 100e3 * math.pi / 30
+    base = AxialTurbineMeanline(g, thermo.products(0.015)).evaluate(820.0, 180e3, om, 1.8)
+    same = AxialTurbineMeanline(g, thermo.products(0.015), loss_multiplier=1.0).evaluate(
+        820.0, 180e3, om, 1.8
+    )
+    more = AxialTurbineMeanline(g, thermo.products(0.015), loss_multiplier=1.8).evaluate(
+        820.0, 180e3, om, 1.8
+    )
+    assert base.converged and more.converged
+    assert same.eta_tt == base.eta_tt  # bit-identical at k = 1
+    assert more.eta_tt < base.eta_tt - 0.03
+
+
+def test_v6_config_samples_k_loss_in_band_and_keeps_v5_identical():
+    v6 = sample_designs(DatasetSpec.load("configs/dataset_phase4_v6.yaml"))
+    tl = yaml.safe_load(open("configs/dataset_phase4_v6.yaml", encoding="utf-8"))[
+        "turbine_loss_sampling"
+    ]
+    ks = np.array([d["turbine_loss_multiplier"] for d in v6])
+    sampled = np.array([d["calibration_sampled"] for d in v6])
+    assert np.all(ks[~sampled] == tl["value"])
+    assert np.all((ks[sampled] >= tl["band"][0]) & (ks[sampled] <= tl["band"][1]))
+    v5 = sample_designs(DatasetSpec.load("configs/dataset_phase4_v5.yaml"))
+    assert all("turbine_loss_multiplier" not in d for d in v5)
+
+
+def test_galvas_choking_incidence_table():
+    import importlib.util
+
+    s = importlib.util.spec_from_file_location("g", "scripts/phase4/galvas_r2_test.py")
+    m = importlib.util.module_from_spec(s)
+    s.loader.exec_module(m)
+    assert m.choking_incidence_deg(0.8, 50.0) == pytest.approx(
+        1.5
+    )  # all three tables cross at M = 0.8
+    assert m.choking_incidence_deg(0.7, 45.0) == pytest.approx(
+        -4.0
+    )  # halfway between CINC40 (-5) and CINC50 (-3)
+    assert math.isnan(m.choking_incidence_deg(0.4, 45.0))  # outside the tabulated Mach range

@@ -1,0 +1,1208 @@
+dataset: phase4_v5
+label: provisional (pre-v6 calibration)
+device: cpu
+run_dir: runs/20261027T151955Z_surrogates_phase4_v5
+inputs:
+- W_air_kg_s
+- impeller_tip_speed_m_s
+- comp_specific_speed
+- tit_K
+- turb_hub_tip_frac
+- turb_psi
+- turb_reaction
+- delta_sigma
+- diffuser_cf
+targets:
+- Fn_design_N
+- TSFC_design
+- pr_c_design
+- T05_design_K
+- Fn_cruise_N
+- TSFC_cruise
+- Fn_idle_N
+- T05_idle_K
+- dry_mass_kg
+- diameter_m
+counts:
+  train: 1445
+  val: 255
+  test: 300
+  designed_train: 747
+models:
+  gp:
+    val:
+      Fn_design_N:
+        accuracy:
+          n: 125
+          rmse: 4.731232754896828
+          mae: 2.1054878849405285
+          r2: 0.9993746850620422
+          rel_err_median: 0.006107150257977589
+          rel_err_p95: 0.03948021774934566
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.64
+            '0.68': 0.808
+            '0.9': 0.912
+            '0.95': 0.928
+          std_of_standardized_residual: 0.9226258407717044
+          nll: -2.8655258941550175
+          miscalibration_area: 0.07549999999999998
+      TSFC_design:
+        accuracy:
+          n: 125
+          rmse: 9.608013861281753e-07
+          mae: 5.324567614170951e-07
+          r2: 0.9943662016289224
+          rel_err_median: 0.005030845294096142
+          rel_err_p95: 0.02499917582324833
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.576
+            '0.68': 0.792
+            '0.9': 0.944
+            '0.95': 0.992
+          std_of_standardized_residual: 0.849917478118494
+          nll: -1.7912307919938562
+          miscalibration_area: 0.06849999999999998
+      pr_c_design:
+        accuracy:
+          n: 125
+          rmse: 0.0025351374934098176
+          mae: 0.0010270953246771838
+          r2: 0.9999415915249594
+          rel_err_median: 0.00018461043491524443
+          rel_err_p95: 0.002069118010908987
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.8
+            '0.68': 0.904
+            '0.9': 0.992
+            '0.95': 0.992
+          std_of_standardized_residual: 0.5405868099949505
+          nll: -4.190081391902772
+          miscalibration_area: 0.1645
+      T05_design_K:
+        accuracy:
+          n: 125
+          rmse: 0.5014858080310245
+          mae: 0.33509697220508405
+          r2: 0.9999617662747267
+          rel_err_median: 0.00021805689739351486
+          rel_err_p95: 0.0011159847573862347
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.792
+            '0.68': 0.912
+            '0.9': 0.984
+            '0.95': 0.984
+          std_of_standardized_residual: 0.5969553803739887
+          nll: -3.671173496372226
+          miscalibration_area: 0.1605
+      Fn_cruise_N:
+        accuracy:
+          n: 125
+          rmse: 8.221862967608356
+          mae: 3.851064488160815
+          r2: 0.9949058521645481
+          rel_err_median: 0.025799673826237934
+          rel_err_p95: 0.21728961108635889
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.72
+            '0.68': 0.784
+            '0.9': 0.872
+            '0.95': 0.904
+          std_of_standardized_residual: 1.5435992013641235
+          nll: -0.5105860470966143
+          miscalibration_area: 0.09949999999999998
+      TSFC_cruise:
+        accuracy:
+          n: 125
+          rmse: 6.265572184429064e-05
+          mae: 1.2184044499483809e-05
+          r2: 0.5952419102404751
+          rel_err_median: 0.01845957367306139
+          rel_err_p95: 0.21971869320006074
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.752
+            '0.68': 0.792
+            '0.9': 0.888
+            '0.95': 0.912
+          std_of_standardized_residual: 1.5515070264581101
+          nll: 0.2803465196960082
+          miscalibration_area: 0.10349999999999998
+      Fn_idle_N:
+        accuracy:
+          n: 125
+          rmse: 0.3654366305254801
+          mae: 0.18164021891054827
+          r2: 0.9993265242085264
+          rel_err_median: 0.007528307948572843
+          rel_err_p95: 0.03362008095912143
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.552
+            '0.68': 0.72
+            '0.9': 0.88
+            '0.95': 0.936
+          std_of_standardized_residual: 1.02337685040992
+          nll: -2.8098003371508953
+          miscalibration_area: 0.03149999999999997
+      T05_idle_K:
+        accuracy:
+          n: 125
+          rmse: 7.9223543465554975
+          mae: 5.106449384770069
+          r2: 0.9919452752912024
+          rel_err_median: 0.003009334680514675
+          rel_err_p95: 0.0126882510932643
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.592
+            '0.68': 0.768
+            '0.9': 0.896
+            '0.95': 0.928
+          std_of_standardized_residual: 0.9644869782050931
+          nll: -1.2637753891499506
+          miscalibration_area: 0.05149999999999996
+      dry_mass_kg:
+        accuracy:
+          n: 125
+          rmse: 0.04820416975258924
+          mae: 0.017054014122010117
+          r2: 0.999996111131706
+          rel_err_median: 0.0003954984440465159
+          rel_err_p95: 0.008694125110605095
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.952
+            '0.68': 0.992
+            '0.9': 1.0
+            '0.95': 1.0
+          std_of_standardized_residual: 0.2653274637079864
+          nll: -4.971221539470833
+          miscalibration_area: 0.22849999999999998
+      diameter_m:
+        accuracy:
+          n: 125
+          rmse: 0.00020952747802333298
+          mae: 8.841163189572654e-05
+          r2: 0.9999953312397702
+          rel_err_median: 0.00013185019844763612
+          rel_err_p95: 0.0029039730509986747
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.952
+            '0.68': 0.992
+            '0.9': 1.0
+            '0.95': 1.0
+          std_of_standardized_residual: 0.26532746370770355
+          nll: -4.971221539464919
+          miscalibration_area: 0.22849999999999998
+    test:
+      Fn_design_N:
+        accuracy:
+          n: 159
+          rmse: 4.720861915907892
+          mae: 2.1255969003737336
+          r2: 0.9992668808285778
+          rel_err_median: 0.0058643604673799254
+          rel_err_p95: 0.04221687275225419
+        calibration:
+          n: 159
+          coverage:
+            '0.5': 0.6855345911949685
+            '0.68': 0.8301886792452831
+            '0.9': 0.9371069182389937
+            '0.95': 0.9622641509433962
+          std_of_standardized_residual: 1.0460072382686612
+          nll: -2.6353224023377915
+          miscalibration_area: 0.09627358490566038
+      TSFC_design:
+        accuracy:
+          n: 159
+          rmse: 5.9469014395124935e-06
+          mae: 9.69798345962318e-07
+          r2: 0.8837960333352294
+          rel_err_median: 0.004166381095896954
+          rel_err_p95: 0.025151951572940742
+        calibration:
+          n: 159
+          coverage:
+            '0.5': 0.660377358490566
+            '0.68': 0.8113207547169812
+            '0.9': 0.949685534591195
+            '0.95': 0.9685534591194969
+          std_of_standardized_residual: 1.260986659980639
+          nll: -1.2438869423204701
+          miscalibration_area: 0.08998427672955975
+      pr_c_design:
+        accuracy:
+          n: 159
+          rmse: 0.009813685772843979
+          mae: 0.00237078598409297
+          r2: 0.9992372150275293
+          rel_err_median: 0.00021828241732735343
+          rel_err_p95: 0.0038850742608512365
+        calibration:
+          n: 159
+          coverage:
+            '0.5': 0.7421383647798742
+            '0.68': 0.8616352201257862
+            '0.9': 0.9433962264150944
+            '0.95': 0.9622641509433962
+          std_of_standardized_residual: 0.8505337916545548
+          nll: -3.85840965077867
+          miscalibration_area: 0.11985849056603773
+      T05_design_K:
+        accuracy:
+          n: 159
+          rmse: 1.0505109485239348
+          mae: 0.49014277478826407
+          r2: 0.9998216108598017
+          rel_err_median: 0.00020819866090571182
+          rel_err_p95: 0.0016966271672841473
+        calibration:
+          n: 159
+          coverage:
+            '0.5': 0.7924528301886793
+            '0.68': 0.8867924528301887
+            '0.9': 0.9622641509433962
+            '0.95': 0.9811320754716981
+          std_of_standardized_residual: 0.6851515523171735
+          nll: -3.5265879619972442
+          miscalibration_area: 0.14816037735849058
+      Fn_cruise_N:
+        accuracy:
+          n: 158
+          rmse: 9.010833388054142
+          mae: 4.129026218164689
+          r2: 0.9923852618893182
+          rel_err_median: 0.024140502048525747
+          rel_err_p95: 0.2746674570298307
+        calibration:
+          n: 158
+          coverage:
+            '0.5': 0.7784810126582279
+            '0.68': 0.8670886075949367
+            '0.9': 0.9493670886075949
+            '0.95': 0.9556962025316456
+          std_of_standardized_residual: 1.7275038023575693
+          nll: -0.11066400427374017
+          miscalibration_area: 0.13015822784810124
+      TSFC_cruise:
+        accuracy:
+          n: 158
+          rmse: 0.00021657722574466542
+          mae: 3.3316312793413496e-05
+          r2: 0.3168300246587705
+          rel_err_median: 0.017657268083504984
+          rel_err_p95: 0.21697513402716637
+        calibration:
+          n: 158
+          coverage:
+            '0.5': 0.7721518987341772
+            '0.68': 0.8607594936708861
+            '0.9': 0.9240506329113924
+            '0.95': 0.9430379746835443
+          std_of_standardized_residual: 1.8970016062772357
+          nll: 0.9769506213147378
+          miscalibration_area: 0.12098101265822783
+      Fn_idle_N:
+        accuracy:
+          n: 159
+          rmse: 0.3993556151269873
+          mae: 0.1766653859227602
+          r2: 0.9990744517628404
+          rel_err_median: 0.006055583406365583
+          rel_err_p95: 0.04147227519225855
+        calibration:
+          n: 159
+          coverage:
+            '0.5': 0.660377358490566
+            '0.68': 0.7672955974842768
+            '0.9': 0.9308176100628931
+            '0.95': 0.9685534591194969
+          std_of_standardized_residual: 1.1629207784971998
+          nll: -2.553644872935815
+          miscalibration_area: 0.07426100628930818
+      T05_idle_K:
+        accuracy:
+          n: 159
+          rmse: 10.03983937196507
+          mae: 6.1102946664268405
+          r2: 0.9863182324832935
+          rel_err_median: 0.0031564325132154014
+          rel_err_p95: 0.019623617200420926
+        calibration:
+          n: 159
+          coverage:
+            '0.5': 0.5974842767295597
+            '0.68': 0.7735849056603774
+            '0.9': 0.9371069182389937
+            '0.95': 0.949685534591195
+          std_of_standardized_residual: 0.9921500102600274
+          nll: -1.1533572790633733
+          miscalibration_area: 0.05712264150943394
+      dry_mass_kg:
+        accuracy:
+          n: 159
+          rmse: 0.13949924712358505
+          mae: 0.039224846679480306
+          r2: 0.9999656836904247
+          rel_err_median: 0.00042001038607042407
+          rel_err_p95: 0.012469931116906684
+        calibration:
+          n: 159
+          coverage:
+            '0.5': 0.9622641509433962
+            '0.68': 0.9811320754716981
+            '0.9': 1.0
+            '0.95': 1.0
+          std_of_standardized_residual: 0.3021123185796268
+          nll: -4.856638755964827
+          miscalibration_area: 0.22834905660377358
+      diameter_m:
+        accuracy:
+          n: 159
+          rmse: 0.0004733992846546092
+          mae: 0.0001693699288581189
+          r2: 0.9999758003484592
+          rel_err_median: 0.00014002306779781204
+          rel_err_p95: 0.004170509645533637
+        calibration:
+          n: 159
+          coverage:
+            '0.5': 0.9622641509433962
+            '0.68': 0.9811320754716981
+            '0.9': 1.0
+            '0.95': 1.0
+          std_of_standardized_residual: 0.3021123185847321
+          nll: -4.8566387559960615
+          miscalibration_area: 0.22834905660377358
+    test_by_tip_speed_regime:
+      validated:
+        Fn_design_N:
+          rel_err_median: 0.005920065510576389
+          r2: 0.9996275446582553
+          coverage_95: 0.9594594594594594
+        TSFC_design:
+          rel_err_median: 0.005530223122986455
+          r2: 0.9956658742441463
+          coverage_95: 0.9594594594594594
+        pr_c_design:
+          rel_err_median: 0.00013282556734384166
+          r2: 0.999861156761865
+          coverage_95: 1.0
+        T05_design_K:
+          rel_err_median: 0.0001636331922442169
+          r2: 0.9999163517942633
+          coverage_95: 0.9864864864864865
+        Fn_cruise_N:
+          rel_err_median: 0.026501096512701106
+          r2: 0.9939319236627463
+          coverage_95: 0.918918918918919
+        TSFC_cruise:
+          rel_err_median: 0.02327080189256281
+          r2: 0.3029199722005226
+          coverage_95: 0.9054054054054054
+        Fn_idle_N:
+          rel_err_median: 0.006209278768169846
+          r2: 0.9996473390008274
+          coverage_95: 0.9594594594594594
+        T05_idle_K:
+          rel_err_median: 0.00265063633142798
+          r2: 0.984796034384944
+          coverage_95: 0.9459459459459459
+        dry_mass_kg:
+          rel_err_median: 0.0004915855344608255
+          r2: 0.9999659361631917
+          coverage_95: 1.0
+        diameter_m:
+          rel_err_median: 0.0001638349597243849
+          r2: 0.9999903887463447
+          coverage_95: 1.0
+      extrapolated:
+        Fn_design_N:
+          rel_err_median: 0.0058541727855236925
+          r2: 0.9990464498516115
+          coverage_95: 0.9647058823529412
+        TSFC_design:
+          rel_err_median: 0.0034830689730434017
+          r2: 0.7907119666078273
+          coverage_95: 0.9764705882352941
+        pr_c_design:
+          rel_err_median: 0.0003299447822910917
+          r2: 0.9977787950541014
+          coverage_95: 0.9294117647058824
+        T05_design_K:
+          rel_err_median: 0.00027659649073763504
+          r2: 0.9997321407845339
+          coverage_95: 0.9764705882352941
+        Fn_cruise_N:
+          rel_err_median: 0.020336747628654617
+          r2: 0.9913183777570026
+          coverage_95: 0.9880952380952381
+        TSFC_cruise:
+          rel_err_median: 0.013875593961962807
+          r2: -0.3332780493690235
+          coverage_95: 0.9761904761904762
+        Fn_idle_N:
+          rel_err_median: 0.006055583406365583
+          r2: 0.9986215164233316
+          coverage_95: 0.9764705882352941
+        T05_idle_K:
+          rel_err_median: 0.003482586076450578
+          r2: 0.9859709458058371
+          coverage_95: 0.9529411764705882
+        dry_mass_kg:
+          rel_err_median: 0.0004072899875569025
+          r2: 0.9999639771558579
+          coverage_95: 1.0
+        diameter_m:
+          rel_err_median: 0.00013578176567974332
+          r2: 0.9999603905131218
+          coverage_95: 1.0
+  ensemble:
+    val:
+      Fn_design_N:
+        accuracy:
+          n: 125
+          rmse: 2.26501624823417
+          mae: 1.097449429212927
+          r2: 0.9998566846134481
+          rel_err_median: 0.003014951343983885
+          rel_err_p95: 0.021410842285042166
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.816
+            '0.68': 0.888
+            '0.9': 0.984
+            '0.95': 1.0
+          std_of_standardized_residual: 0.5864837513732893
+          nll: -3.391274092426556
+          miscalibration_area: 0.16449999999999998
+      TSFC_design:
+        accuracy:
+          n: 125
+          rmse: 8.08346061297391e-07
+          mae: 3.584980270295584e-07
+          r2: 0.9960122427702066
+          rel_err_median: 0.0022694084849484986
+          rel_err_p95: 0.017453185081937845
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.6
+            '0.68': 0.76
+            '0.9': 0.936
+            '0.95': 0.968
+          std_of_standardized_residual: 0.8794946525882443
+          nll: -2.453394287718045
+          miscalibration_area: 0.058499999999999996
+      pr_c_design:
+        accuracy:
+          n: 125
+          rmse: 0.00279752561720313
+          mae: 0.001632955344521104
+          r2: 0.9999288752135961
+          rel_err_median: 0.0005368398440447342
+          rel_err_p95: 0.0019524545043531941
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.96
+            '0.68': 0.984
+            '0.9': 1.0
+            '0.95': 1.0
+          std_of_standardized_residual: 0.3579267406938603
+          nll: -3.2680893664150794
+          miscalibration_area: 0.22849999999999998
+      T05_design_K:
+        accuracy:
+          n: 125
+          rmse: 9.777742477929447
+          mae: 3.6489057642456557
+          r2: 0.985465285325418
+          rel_err_median: 0.00026261253389592287
+          rel_err_p95: 0.023551045666354353
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.848
+            '0.68': 0.944
+            '0.9': 0.984
+            '0.95': 0.992
+          std_of_standardized_residual: 0.5058365161993307
+          nll: -2.911055194451718
+          miscalibration_area: 0.18449999999999997
+      Fn_cruise_N:
+        accuracy:
+          n: 125
+          rmse: 3.2607317134665275
+          mae: 1.4108644342611822
+          r2: 0.9991987626042413
+          rel_err_median: 0.0070521305362838405
+          rel_err_p95: 0.06115941895433379
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.656
+            '0.68': 0.768
+            '0.9': 0.928
+            '0.95': 0.96
+          std_of_standardized_residual: 0.8557179868405436
+          nll: -2.8423115742531477
+          miscalibration_area: 0.07050000000000001
+      TSFC_cruise:
+        accuracy:
+          n: 125
+          rmse: 6.390419229736979e-05
+          mae: 7.410399801095397e-06
+          r2: 0.5789508817883493
+          rel_err_median: 0.00453723308582743
+          rel_err_p95: 0.05491385077035695
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.592
+            '0.68': 0.736
+            '0.9': 0.896
+            '0.95': 0.944
+          std_of_standardized_residual: 0.9459130392308414
+          nll: -2.3803753254523268
+          miscalibration_area: 0.03949999999999998
+      Fn_idle_N:
+        accuracy:
+          n: 125
+          rmse: 0.1574214685590584
+          mae: 0.0850593906198082
+          r2: 0.9998750242497221
+          rel_err_median: 0.0031287253071302645
+          rel_err_p95: 0.021686945812360314
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.776
+            '0.68': 0.896
+            '0.9': 0.984
+            '0.95': 0.992
+          std_of_standardized_residual: 0.5918312186114182
+          nll: -3.3462951358493984
+          miscalibration_area: 0.1545
+      T05_idle_K:
+        accuracy:
+          n: 125
+          rmse: 6.031286209664767
+          mae: 3.709003508451052
+          r2: 0.9953316645947369
+          rel_err_median: 0.0022108977146750863
+          rel_err_p95: 0.010882740609748517
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.496
+            '0.68': 0.64
+            '0.9': 0.904
+            '0.95': 0.928
+          std_of_standardized_residual: 1.1313312318841071
+          nll: -1.6100984814012296
+          miscalibration_area: 0.017499999999999988
+      dry_mass_kg:
+        accuracy:
+          n: 125
+          rmse: 0.1288811616859844
+          mae: 0.05584294551950192
+          r2: 0.9999722007611735
+          rel_err_median: 0.00202367907961154
+          rel_err_p95: 0.005973021848608328
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 1.0
+            '0.68': 1.0
+            '0.9': 1.0
+            '0.95': 1.0
+          std_of_standardized_residual: 0.22341696070153746
+          nll: -3.7101820187868473
+          miscalibration_area: 0.2425
+      diameter_m:
+        accuracy:
+          n: 125
+          rmse: 0.00034609536515926723
+          mae: 0.00022565577851843777
+          r2: 0.9999872617089923
+          rel_err_median: 0.0008076001922724396
+          rel_err_p95: 0.003077013097712644
+        calibration:
+          n: 125
+          coverage:
+            '0.5': 0.992
+            '0.68': 1.0
+            '0.9': 1.0
+            '0.95': 1.0
+          std_of_standardized_residual: 0.23868153967585354
+          nll: -3.704670801458774
+          miscalibration_area: 0.2405
+    test:
+      Fn_design_N:
+        accuracy:
+          n: 159
+          rmse: 2.3222218519715585
+          mae: 1.0674239594535087
+          r2: 0.9998226058081376
+          rel_err_median: 0.0032591790289733247
+          rel_err_p95: 0.02781876580671046
+        calibration:
+          n: 159
+          coverage:
+            '0.5': 0.7987421383647799
+            '0.68': 0.9056603773584906
+            '0.9': 0.9748427672955975
+            '0.95': 0.9874213836477987
+          std_of_standardized_residual: 0.7885821605697542
+          nll: -3.189676413555429
+          miscalibration_area: 0.15916666666666668
+      TSFC_design:
+        accuracy:
+          n: 159
+          rmse: 5.696195126426553e-06
+          mae: 7.670409415178603e-07
+          r2: 0.8933872398255293
+          rel_err_median: 0.0025627565128116814
+          rel_err_p95: 0.016775776929067295
+        calibration:
+          n: 159
+          coverage:
+            '0.5': 0.5723270440251572
+            '0.68': 0.779874213836478
+            '0.9': 0.9182389937106918
+            '0.95': 0.9433962264150944
+          std_of_standardized_residual: 0.9505871815106386
+          nll: -2.322007552004732
+          miscalibration_area: 0.04926100628930816
+      pr_c_design:
+        accuracy:
+          n: 159
+          rmse: 0.006242358701427389
+          mae: 0.0026282611198199476
+          r2: 0.999691372036091
+          rel_err_median: 0.000668651372669693
+          rel_err_p95: 0.0037880918050480516
+        calibration:
+          n: 159
+          coverage:
+            '0.5': 0.8867924528301887
+            '0.68': 0.9559748427672956
+            '0.9': 0.9874213836477987
+            '0.95': 0.9937106918238994
+          std_of_standardized_residual: 0.5048137264238552
+          nll: -3.165861222925624
+          miscalibration_area: 0.1984748427672956
+      T05_design_K:
+        accuracy:
+          n: 159
+          rmse: 9.006146124839148
+          mae: 3.4121259780803523
+          r2: 0.986888716004651
+          rel_err_median: 0.00024279118663184107
+          rel_err_p95: 0.021940990854235436
+        calibration:
+          n: 159
+          coverage:
+            '0.5': 0.8113207547169812
+            '0.68': 0.9559748427672956
+            '0.9': 1.0
+            '0.95': 1.0
+          std_of_standardized_residual: 0.4681031670953608
+          nll: -2.914956059394602
+          miscalibration_area: 0.1843238993710692
+      Fn_cruise_N:
+        accuracy:
+          n: 158
+          rmse: 2.0299537171517756
+          mae: 1.1347548344420497
+          r2: 0.9996135464291162
+          rel_err_median: 0.007487281078064789
+          rel_err_p95: 0.07937011614726003
+        calibration:
+          n: 158
+          coverage:
+            '0.5': 0.6329113924050633
+            '0.68': 0.7974683544303798
+            '0.9': 0.9177215189873418
+            '0.95': 0.9367088607594937
+          std_of_standardized_residual: 0.9092025993491175
+          nll: -2.7221808891926433
+          miscalibration_area: 0.07034810126582278
+      TSFC_cruise:
+        accuracy:
+          n: 158
+          rmse: 0.00021685778826175975
+          mae: 2.752952703773948e-05
+          r2: 0.31505886855669196
+          rel_err_median: 0.005267248123067114
+          rel_err_p95: 0.08361594923271609
+        calibration:
+          n: 158
+          coverage:
+            '0.5': 0.5506329113924051
+            '0.68': 0.6772151898734177
+            '0.9': 0.8987341772151899
+            '0.95': 0.9430379746835443
+          std_of_standardized_residual: 1.005345055201674
+          nll: -2.2330263040172884
+          miscalibration_area: 0.015411392405063312
+      Fn_idle_N:
+        accuracy:
+          n: 159
+          rmse: 0.21786642286990104
+          mae: 0.10811413841261407
+          r2: 0.9997245390295169
+          rel_err_median: 0.004284772525716574
+          rel_err_p95: 0.026461677722339705
+        calibration:
+          n: 159
+          coverage:
+            '0.5': 0.710691823899371
+            '0.68': 0.8805031446540881
+            '0.9': 0.9811320754716981
+            '0.95': 0.9874213836477987
+          std_of_standardized_residual: 0.8492442076869193
+          nll: -3.102220443596428
+          miscalibration_area: 0.13243710691823898
+      T05_idle_K:
+        accuracy:
+          n: 159
+          rmse: 5.4633402238936535
+          mae: 3.59998909553315
+          r2: 0.9959485995629266
+          rel_err_median: 0.002131861032041993
+          rel_err_p95: 0.011377513033769365
+        calibration:
+          n: 159
+          coverage:
+            '0.5': 0.5471698113207547
+            '0.68': 0.6855345911949685
+            '0.9': 0.9119496855345912
+            '0.95': 0.9433962264150944
+          std_of_standardized_residual: 1.000806486565927
+          nll: -1.7097460490243461
+          miscalibration_area: 0.01781446540880499
+      dry_mass_kg:
+        accuracy:
+          n: 159
+          rmse: 0.2614055937079459
+          mae: 0.0818940947194486
+          r2: 0.9998795001232138
+          rel_err_median: 0.0021519437438768385
+          rel_err_p95: 0.014126146548353745
+        calibration:
+          n: 159
+          coverage:
+            '0.5': 0.9937106918238994
+            '0.68': 1.0
+            '0.9': 1.0
+            '0.95': 1.0
+          std_of_standardized_residual: 0.26145489694771906
+          nll: -3.6408989354926273
+          miscalibration_area: 0.24092767295597484
+      diameter_m:
+        accuracy:
+          n: 159
+          rmse: 0.0004991506890517611
+          mae: 0.00029294709290689973
+          r2: 0.9999730959743889
+          rel_err_median: 0.0008271471033929334
+          rel_err_p95: 0.004843131111482843
+        calibration:
+          n: 159
+          coverage:
+            '0.5': 0.9748427672955975
+            '0.68': 1.0
+            '0.9': 1.0
+            '0.95': 1.0
+          std_of_standardized_residual: 0.28245984356996584
+          nll: -3.639795757291749
+          miscalibration_area: 0.23621069182389937
+    test_by_tip_speed_regime:
+      validated:
+        Fn_design_N:
+          rel_err_median: 0.0036695565877957748
+          r2: 0.9998838764526811
+          coverage_95: 1.0
+        TSFC_design:
+          rel_err_median: 0.003024269009188174
+          r2: 0.9970214782749853
+          coverage_95: 0.9594594594594594
+        pr_c_design:
+          rel_err_median: 0.0005729138448746784
+          r2: 0.999829330540259
+          coverage_95: 1.0
+        T05_design_K:
+          rel_err_median: 0.00018559850022237256
+          r2: 0.989395928990224
+          coverage_95: 1.0
+        Fn_cruise_N:
+          rel_err_median: 0.009229282316064458
+          r2: 0.9993665670753266
+          coverage_95: 0.8918918918918919
+        TSFC_cruise:
+          rel_err_median: 0.0071724879961870824
+          r2: 0.2775406952607494
+          coverage_95: 0.918918918918919
+        Fn_idle_N:
+          rel_err_median: 0.0038967031519551165
+          r2: 0.9998902897301462
+          coverage_95: 1.0
+        T05_idle_K:
+          rel_err_median: 0.0015619904902854365
+          r2: 0.9947191368479985
+          coverage_95: 0.9324324324324325
+        dry_mass_kg:
+          rel_err_median: 0.002004384826833183
+          r2: 0.9998527023076957
+          coverage_95: 1.0
+        diameter_m:
+          rel_err_median: 0.0007850979709159156
+          r2: 0.9999729976972014
+          coverage_95: 1.0
+      extrapolated:
+        Fn_design_N:
+          rel_err_median: 0.002697047966746524
+          r2: 0.9997845658220389
+          coverage_95: 0.9764705882352941
+        TSFC_design:
+          rel_err_median: 0.0023203612702991094
+          r2: 0.8075027444980141
+          coverage_95: 0.9294117647058824
+        pr_c_design:
+          rel_err_median: 0.0007794680253172537
+          r2: 0.9991292980886134
+          coverage_95: 0.9882352941176471
+        T05_design_K:
+          rel_err_median: 0.00029059623574867466
+          r2: 0.9840228586041844
+          coverage_95: 1.0
+        Fn_cruise_N:
+          rel_err_median: 0.00565031708180852
+          r2: 0.999712568914814
+          coverage_95: 0.9761904761904762
+        TSFC_cruise:
+          rel_err_median: 0.0036924864967685656
+          r2: 0.912014887222829
+          coverage_95: 0.9642857142857143
+        Fn_idle_N:
+          rel_err_median: 0.004810834905733641
+          r2: 0.9995934932086875
+          coverage_95: 0.9764705882352941
+        T05_idle_K:
+          rel_err_median: 0.0024723235740717886
+          r2: 0.9962600863102032
+          coverage_95: 0.9529411764705882
+        dry_mass_kg:
+          rel_err_median: 0.0025389620420300796
+          r2: 0.9999159996880352
+          coverage_95: 1.0
+        diameter_m:
+          rel_err_median: 0.0009452883092073705
+          r2: 0.9999718978263283
+          coverage_95: 1.0
+  feasibility_classifier:
+    val:
+      n: 255
+      positives: 75
+      accuracy: 0.9294117647058824
+      brier: 0.05539768561720848
+      roc_auc: 0.9751851851851852
+      ece: 0.04123563626233269
+      reliability:
+      - bin: 0.0-0.1
+        n: 155
+        mean_p: 0.007
+        freq: 0.026
+      - bin: 0.1-0.2
+        n: 12
+        mean_p: 0.154
+        freq: 0.167
+      - bin: 0.2-0.3
+        n: 6
+        mean_p: 0.253
+        freq: 0.167
+      - bin: 0.3-0.4
+        n: 4
+        mean_p: 0.356
+        freq: 0.25
+      - bin: 0.4-0.5
+        n: 3
+        mean_p: 0.471
+        freq: 0.333
+      - bin: 0.5-0.6
+        n: 5
+        mean_p: 0.541
+        freq: 0.2
+      - bin: 0.6-0.7
+        n: 3
+        mean_p: 0.66
+        freq: 1.0
+      - bin: 0.7-0.8
+        n: 1
+        mean_p: 0.72
+        freq: 1.0
+      - bin: 0.8-0.9
+        n: 9
+        mean_p: 0.872
+        freq: 0.667
+      - bin: 0.9-1.0
+        n: 57
+        mean_p: 0.986
+        freq: 0.965
+    test:
+      n: 300
+      positives: 93
+      accuracy: 0.9533333333333334
+      brier: 0.04233521223068237
+      roc_auc: 0.9761570827489481
+      ece: 0.032906867079436776
+      reliability:
+      - bin: 0.0-0.1
+        n: 183
+        mean_p: 0.008
+        freq: 0.027
+      - bin: 0.1-0.2
+        n: 11
+        mean_p: 0.155
+        freq: 0.182
+      - bin: 0.2-0.3
+        n: 7
+        mean_p: 0.237
+        freq: 0.0
+      - bin: 0.3-0.4
+        n: 6
+        mean_p: 0.332
+        freq: 0.167
+      - bin: 0.4-0.5
+        n: 4
+        mean_p: 0.46
+        freq: 0.25
+      - bin: 0.5-0.6
+        n: 1
+        mean_p: 0.572
+        freq: 0.0
+      - bin: 0.6-0.7
+        n: 7
+        mean_p: 0.641
+        freq: 0.714
+      - bin: 0.7-0.8
+        n: 5
+        mean_p: 0.764
+        freq: 0.8
+      - bin: 0.8-0.9
+        n: 9
+        mean_p: 0.867
+        freq: 1.0
+      - bin: 0.9-1.0
+        n: 67
+        mean_p: 0.984
+        freq: 0.985
+    test_by_tip_speed_regime:
+      validated:
+        n: 130
+        positives: 52
+        accuracy: 0.9692307692307692
+        brier: 0.02927355095744133
+        roc_auc: 0.993836291913215
+        ece: 0.053558932832227325
+        reliability:
+        - bin: 0.0-0.1
+          n: 59
+          mean_p: 0.01
+          freq: 0.0
+        - bin: 0.1-0.2
+          n: 6
+          mean_p: 0.159
+          freq: 0.0
+        - bin: 0.2-0.3
+          n: 5
+          mean_p: 0.234
+          freq: 0.0
+        - bin: 0.3-0.4
+          n: 4
+          mean_p: 0.336
+          freq: 0.0
+        - bin: 0.4-0.5
+          n: 2
+          mean_p: 0.477
+          freq: 0.5
+        - bin: 0.5-0.6
+          n: 1
+          mean_p: 0.572
+          freq: 0.0
+        - bin: 0.6-0.7
+          n: 3
+          mean_p: 0.62
+          freq: 1.0
+        - bin: 0.7-0.8
+          n: 3
+          mean_p: 0.755
+          freq: 0.667
+        - bin: 0.8-0.9
+          n: 4
+          mean_p: 0.874
+          freq: 1.0
+        - bin: 0.9-1.0
+          n: 43
+          mean_p: 0.986
+          freq: 0.977
+      extrapolated:
+        n: 170
+        positives: 41
+        accuracy: 0.9411764705882353
+        brier: 0.05232354253530502
+        roc_auc: 0.9646435999243714
+        ece: 0.054839393134941065
+        reliability:
+        - bin: 0.0-0.1
+          n: 124
+          mean_p: 0.007
+          freq: 0.04
+        - bin: 0.1-0.2
+          n: 5
+          mean_p: 0.149
+          freq: 0.4
+        - bin: 0.2-0.3
+          n: 2
+          mean_p: 0.245
+          freq: 0.0
+        - bin: 0.3-0.4
+          n: 2
+          mean_p: 0.326
+          freq: 0.5
+        - bin: 0.4-0.5
+          n: 2
+          mean_p: 0.444
+          freq: 0.0
+        - bin: 0.6-0.7
+          n: 4
+          mean_p: 0.657
+          freq: 0.5
+        - bin: 0.7-0.8
+          n: 2
+          mean_p: 0.777
+          freq: 1.0
+        - bin: 0.8-0.9
+          n: 5
+          mean_p: 0.862
+          freq: 1.0
+        - bin: 0.9-1.0
+          n: 24
+          mean_p: 0.98
+          freq: 1.0
+ood:
+  thresholds:
+    knn_mean_distance: 0.5532199107595206
+  test_flag_rate:
+    outside_bounds: 0.0
+    extrapolated_tip: 0.535
+    sparse_region: 0.0
+    high_epistemic: 0.17
+    any: 0.616
+  ensemble_test_flagged:
+    Fn_design_N:
+      rel_err_median: 0.003259563696111467
+      coverage_95: 0.9795918367346939
+      n: 98
+    TSFC_design:
+      rel_err_median: 0.00261891138916015
+      coverage_95: 0.9387755102040817
+      n: 98
+    pr_c_design:
+      rel_err_median: 0.0007946117282817688
+      coverage_95: 0.9897959183673469
+      n: 98
+    T05_design_K:
+      rel_err_median: 0.00034411700241893106
+      coverage_95: 1.0
+      n: 98
+    Fn_cruise_N:
+      rel_err_median: 0.007023576699842549
+      coverage_95: 0.9381443298969072
+      n: 97
+    TSFC_cruise:
+      rel_err_median: 0.004314513991679481
+      coverage_95: 0.9484536082474226
+      n: 97
+    Fn_idle_N:
+      rel_err_median: 0.005054472824587153
+      coverage_95: 0.9795918367346939
+      n: 98
+    T05_idle_K:
+      rel_err_median: 0.0024516361728781355
+      coverage_95: 0.9489795918367347
+      n: 98
+    dry_mass_kg:
+      rel_err_median: 0.0026711342763796053
+      coverage_95: 1.0
+      n: 98
+    diameter_m:
+      rel_err_median: 0.0009573370702904982
+      coverage_95: 1.0
+      n: 98
+  ensemble_test_not_flagged:
+    Fn_design_N:
+      rel_err_median: 0.0032591790289733247
+      coverage_95: 1.0
+      n: 61
+    TSFC_design:
+      rel_err_median: 0.0022512374453731443
+      coverage_95: 0.9508196721311475
+      n: 61
+    pr_c_design:
+      rel_err_median: 0.0005329960886286678
+      coverage_95: 1.0
+      n: 61
+    T05_design_K:
+      rel_err_median: 0.00017368344920931644
+      coverage_95: 1.0
+      n: 61
+    Fn_cruise_N:
+      rel_err_median: 0.007860896041584353
+      coverage_95: 0.9344262295081968
+      n: 61
+    TSFC_cruise:
+      rel_err_median: 0.007063063919108825
+      coverage_95: 0.9344262295081968
+      n: 61
+    Fn_idle_N:
+      rel_err_median: 0.0033069820720050824
+      coverage_95: 1.0
+      n: 61
+    T05_idle_K:
+      rel_err_median: 0.0015204755125475256
+      coverage_95: 0.9344262295081968
+      n: 61
+    dry_mass_kg:
+      rel_err_median: 0.00174270739591742
+      coverage_95: 1.0
+      n: 61
+    diameter_m:
+      rel_err_median: 0.0007283675636685638
+      coverage_95: 1.0
+      n: 61
+timing_s:
+  gp_fit_s: 195.0
+  ensemble_fit_s: 147.4
+  classifier_fit_s: 12.8

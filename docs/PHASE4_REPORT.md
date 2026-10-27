@@ -590,3 +590,89 @@ Card: `docs/dataset_cards/phase4_v5.md`.
 3. **KJ-66 turbine geometry:** keep F (fits V5, idle 60–90 K hot) as the reference, or Q (fits the flow map and the
    idle, contradicts V5)? Any source for the KJ-66 turbine hub diameter or blade height would settle it.
 4. **Go for Phase 5** (surrogates) on `phase4_v5`.
+
+# Phase 4, round 6 (2026-10-27): R2 test (Galvas), turbine loss multiplier, T-A / T-B, v6 prepared
+
+Phase 5 pipeline status: `docs/PHASE5_REPORT.md` (built and tested on v5; provisional).
+
+## (a) R2: Galvas (1973), NASA TN D-7487 — fetched, tested. **Proposal: do not adopt**
+- Fetched from NTRS without problems (no allowlist change needed).
+- **The report contains no loss term that grows with inducer relative Mach or tip speed.**
+  - p. 2: "Shock losses in the rotor are neglected."
+  - p. 10: "For inducers with relative Mach numbers appreciably in excess of unity the predicted compressor total
+    pressure ratio and efficiency are greater than that attainable experimentally. This is a result of neglecting
+    shock losses in the inducer inlet."
+- Mach-dependent pieces that do exist (equations and tables in D-065):
+  1. An **inducer choke criterion**: choking incidence vs rms relative Mach for rms blade angles 40–60°
+     (listing p. 26/29). This is a flow limit, not a loss.
+  2. A **vaned-diffuser recovery table** vs throat Mach. Recovery *rises* with Mach and is subsonic only.
+     It needs vane geometry that is unpublished for the KJ-66.
+- **Test on Murray's held-out lines:**
+  - Galvas never flags choke. At 120 krpm (inducer tip relative Mach 0.92, rms 0.72) the incidence is 15° away
+    from the choking incidence.
+  - **Held-out errors with the term = without it** (PR +5.0 % / flow +4.4 % / η +6.1 pts at 120 krpm).
+  - On v5 it would flag 4 of 1031 designs.
+- So Galvas gives nothing that explains or corrects the high-speed bias. Keep R3 (flag + widened band).
+- Aungier (2000) was not accessible here. If you can provide its choke/shock-loss section, I can test it the same way.
+
+## (b) Turbine loss multiplier k_loss (approved; fitted; held-out errors)
+One factor on the total turbine loss coefficient, fitted on Murray's efficiency lines 26/38/50/62 krpm with
+32/44/56/68 held out. Geometry is fixed at each variant.
+
+| variant | k_loss | held-out η error: published losses → fitted | held-out flow error |
+|---|---|---|---|
+| T-A | **1.955** (1σ 1.8–2.0) | +11.3 → **+1.7 pts** (rms 3.5; every held-out line within Murray's uncertainty) | −5.7 → −9.4 % |
+| T-B | **1.762** (2σ 1.6–1.7) | +12.8 → **+6.6 pts** (rms 7.2) | −1.7 → −5.9 % |
+
+**v6 proposal:** k_loss = **1.86**, band **[1.6, 2.0]**. The band is the union of the two variants' intervals, so
+it carries the geometry spread. The 20 % calibration-sampled designs draw k_loss in the band.
+
+Caveats:
+- The meanline solver fails to converge at isolated high-loss / high-speed points.
+  - The fit uses a bracketing workaround.
+  - The upper edges of both intervals are set by such failures (T-A: a bracket jump at 50 krpm; T-B: the 68 krpm
+    line cannot reach the measured PR).
+- More loss lowers the fixed KJ-66 geometry's flow capacity, because the geometry was fitted with k = 1. A joint
+  geometry + k refit would fix this; the dataset is not affected, because its turbines are sized per design.
+
+**Effect on the dataset (probe: 120 v5 designs re-evaluated, not a regeneration):**
+- design turbine efficiency −7.3 pts mean;
+- design TSFC +19 % mean (+6 … +100 %);
+- 3 of 61 designed engines become design failures, 1 feasible → infeasible;
+- 6 cruise points newly fail, 3 of them `turbine_no_convergence`.
+
+## (c) T-A / T-B bracketing variants
+| variant (k_loss) | idle EGT err | idle TIT | thrust @ 120 krpm | TSFC @ 120 krpm [g/kN/s] | η_t,ts @ 120 krpm |
+|---|---|---|---|---|---|
+| T-A (1) | +78 K | 877 K | 56.1 N | 43.5 | 0.66 |
+| T-B (1) | **−13 K** | **785 K** | 53.9 N | 47.1 | 0.79 |
+| T-A (1.955) | +109 K | 897 K | 47.4 N | 50.4 | 0.61 |
+| T-B (1.762) | **−0.3 K** (1 run) | 815 K | – | – | – |
+
+- The geometry choice matters most for idle (~90–110 K in EGT) and for turbine efficiency.
+- Thrust and TSFC at the top speed differ by 4–8 %.
+- With the fitted k_loss the replica cannot run 2 of 3 runs per variant at the top speed (`turbine_no_convergence` at
+  every nozzle area). That is the same solver weakness again.
+- Hobbyist hint (hub/tip ≈ 0.56, *hobbyist CAD, unverified*) is closer to T-B (0.52) than to T-A (0.74).
+- Measured thrust is not in our data, so thrust is not validated.
+
+## v6: prepared, NOT generated
+`configs/dataset_phase4_v6.yaml`:
+- v5 + k_loss 1.86 (`engine_overrides`) + per-design k_loss sampling in [1.6, 2.0];
+- new seed 20261117, own frozen split;
+- R2 not included, per the proposal.
+
+Generator support is tested; v1–v5 samples are unchanged (bit-identical). Run command, after your answer:
+`uv run python scripts/phase4/pilot_then_full.py --config configs/dataset_phase4_v6.yaml`.
+
+## Decisions I need from you
+1. **R2:** agree not to adopt Galvas (it has no high-Mach loss), keeping R3? Or send Aungier's section for a test?
+2. **v6 regeneration** with k_loss 1.86, band [1.6, 2.0] (D-064): go?
+3. **Turbine solver robustness before v6 (recommended).**
+   - At high loss the meanline root finder fails at isolated points: ~5 % of probe designs gained a failure, and
+     the replica's top speed fails.
+   - Option: add a retry with a different starting pressure ratio / bracket inside the engine's turbine evaluation
+     before declaring `turbine_no_convergence`. It is numerical only: results change only where the solver now
+     fails. Do it before v6, or accept the failures (they are recorded as data)?
+4. Optional: joint refit of the KJ-66 turbine geometry together with k_loss (fixes the flow-capacity side effect on
+   the reference engine; does not affect the dataset).

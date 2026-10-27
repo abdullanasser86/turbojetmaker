@@ -616,3 +616,31 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
   (19–30° at lower speeds). Held-out errors with the term = without (no point changes); the +5 % PR bias at 120 krpm
   is not choke. phase4_v5: 4 of 1031 designs would be flagged inducer-choked (all extrapolated, M_W,rms up to 1.10).
 - Proposal: **do not adopt R2 from Galvas** (nothing to adopt). Keep R3. Aungier (2000) not accessible here.
+
+### D-064 · 2026-10-27 · Turbine loss multiplier k_loss (user decision: approved, bundled into v6)
+- One effective factor on every row's total Benner loss coefficient (`AxialTurbineMeanline(loss_multiplier=)`,
+  engine config `turbine_design.loss_multiplier`, per-design override in the generator). Default 1.0 = v1–v5,
+  bit-identical (checked on all v4/v5 samples).
+- Fit (`scripts/phase4/turbine_loss_multiplier_fit.py`): Murray Fig 5.18 efficiency, calibration lines 26/38/50/62,
+  held out 32/44/56/68 krpm corrected; geometry fixed at T-A or T-B. The meanline solver fails at isolated operating
+  points, so the PR matching brackets the target between converged neighbours (`at_pr_tt_robust`); remaining failures
+  counted. Profile over k = 0.8 … 3.0.
+- **T-A: k = 1.955** (1σ 1.8–2.0; the upper edge is a root-bracket jump on the 50 krpm line, a solver artifact).
+  Held-out η error +11.3 → **+1.7 pts** mean (rms 3.5); held-out flow −5.7 → −9.4 % (more loss lowers the
+  fixed geometry's flow capacity; the geometry was fitted with k = 1).
+  **T-B: k = 1.762** (2σ 1.6–1.7; for k ≥ 1.8 the 68 krpm line cannot reach the measured PR — model limit).
+  Held-out η +12.8 → **+6.6 pts**; flow −1.7 → −5.9 %.
+- Proposed for v6: **k_loss = 1.86, band [1.6, 2.0]** (mean of the variants; union of their intervals: the geometry
+  spread is carried as turbine-model uncertainty). The 20 % calibration-sampled designs draw k in the band (own random
+  stream). Dataset turbines are sized per design to pass the required flow, so the flow-capacity side effect seen on
+  the fixed KJ-66 geometry does not carry over; the efficiency drop does.
+- Probe (120 v5 designs re-evaluated, NOT a regeneration): design η_t −7.3 pts mean (−5.5 … −9.5), design TSFC +19 %
+  mean, 3/61 designed engines now fail in design mode, 1 feasible → infeasible, 6 cruise points newly fail
+  (3 `turbine_no_convergence`).
+
+### D-066 · 2026-10-27 · KJ-66 turbine carried as two bracketing variants T-A / T-B (user decision)
+- T-A = fit F (flow + exit velocity, hub/tip 0.743), T-B = fit Q (flow only, hub/tip 0.519). Both calibrated, not
+  measured. Hobbyist hint (cults3d KJ66 CAD, NGV inner ~37 mm → hub/tip ≈ 0.56; "hobbyist CAD, unverified"): closer to
+  T-B (Δ 0.04) than to T-A (Δ 0.18). Weak evidence only.
+- Replica outputs (`scripts/phase4/kj66_turbine_variants.py`): see VALIDATION round 6. The spread is part of the
+  turbine-model uncertainty (via the k_loss band, D-064).

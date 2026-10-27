@@ -1,0 +1,25 @@
+# Turbine loss multiplier k_loss (D-064): multiplies every row's total Benner loss coefficient in the meanline turbine
+# (turboml.physics.turbine_meanline.AxialTurbineMeanline(loss_multiplier=...)). EFFECTIVE calibration factor (like the
+# compressor's diffuser Cf): it absorbs what the published correlations miss at micro-turbine scale.
+# Produced by scripts/phase4/turbine_loss_multiplier_fit.py -> validation/phase4/turbine_loss_multiplier.yaml.
+# STATUS: PROPOSED for v6 (user decision 2026-10-27: turbine multiplier approved, bundled with R2 into one v6 regeneration;
+# do not regenerate before the R2 answer). Datasets v1-v5 use k_loss = 1.
+#
+# Data: Murray 2009 Fig 5.18 (turbine efficiency, digitized [MEAS]; DERIVED by Murray from the compressor work, +-0.08 ... +-0.34).
+# Split: calibration lines 26/38/50/62 krpm corrected, held out 32/44/56/68 krpm. Geometry fixed at each KJ-66 variant.
+
+T-A:   # adopted geometry (flow + exit velocity), calibrated, not measured
+  k_loss: 1.955
+  interval_profile_1sigma: [1.8, 2.0]   # upper edge: a root-bracket jump on the 50 krpm line at k = 2.1 (solver artifact)
+  held_out_eta_err_pts: {k1: "+11.3 mean / 11.8 rms", fitted: "+1.7 mean / 3.5 rms"}
+  held_out_flow_err_pct: {k1: "-5.7 mean", fitted: "-9.4 mean"}
+T-B:   # flow-only geometry, calibrated, not measured
+  k_loss: 1.762
+  interval_profile_2sigma: [1.6, 1.7]   # upper edge: the 68 krpm line cannot reach the measured PR for k >= 1.8 (model limit)
+  held_out_eta_err_pts: {k1: "+12.8 mean / 13.4 rms", fitted: "+6.6 mean / 7.2 rms"}
+  held_out_flow_err_pct: {k1: "-1.7 mean", fitted: "-5.9 mean"}
+
+proposed_for_v6:
+  value: 1.86          # mean of the T-A and T-B fits
+  band: [1.6, 2.0]     # union of the variants' profile intervals: geometry spread as part of the turbine model uncertainty
+  sampling: "same 20 % calibration-sampled designs as the compressor factors, uniform in the band (own random stream)"

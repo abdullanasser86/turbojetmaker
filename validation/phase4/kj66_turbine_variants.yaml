@@ -1,0 +1,111 @@
+hobbyist_hint:
+  ngv_hub_tip: 0.561
+  label: hobbyist CAD, unverified (cults3d KJ66 model, NGV inner part ~37 mm)
+T-A:
+  hub_tip: 0.743
+  hub_tip_distance_to_hobbyist_hint: 0.182
+  k_loss=1:
+    idle_lt_50krpm:
+      EGT_err_K_mean: 77.7872
+      TIT_K_mean: 876.5515
+    all_speeds:
+      EGT_err_K_mean: 52.4324
+      EGT_err_K_rms: 58.7989
+      air_flow_err_pct_mean: -13.8061
+      converged: 38/39
+    run2_top_120krpm:
+      speed_krpm: 120.0
+      Fn_N: 56.14
+      TSFC_g_kN_s: 43.5
+      eta_t_ts: 0.6576
+      TIT_K: 918.6
+      EGT_err_K: 0.0
+      air_flow_err_pct: -8.2
+    run2_48krpm:
+      speed_krpm: 47.9
+      Fn_N: 6.78
+      TSFC_g_kN_s: 127.77
+      eta_t_ts: 0.6314
+      TIT_K: 869.8
+      EGT_err_K: 87.8
+      air_flow_err_pct: -14.5
+    A9_m2:
+      Nozzle Run 1, June 25 2009: 0.001202
+      Nozzle Run 2, June 30 2009: 0.001255
+      Nozzle Run 3, June 30 2009: 0.001225
+  k_loss=1.955:
+    idle_lt_50krpm:
+      EGT_err_K_mean: 108.8237
+      TIT_K_mean: 896.8739
+    all_speeds:
+      EGT_err_K_mean: 71.0681
+      EGT_err_K_rms: 79.5658
+      air_flow_err_pct_mean: -15.4333
+      converged: 14/14
+    run2_top_120krpm:
+      speed_krpm: 120.0
+      Fn_N: 47.35
+      TSFC_g_kN_s: 50.41
+      eta_t_ts: 0.6077
+      TIT_K: 919.2
+      EGT_err_K: -0.0
+      air_flow_err_pct: -10.3
+    run2_48krpm:
+      speed_krpm: 47.9
+      Fn_N: 5.71
+      TSFC_g_kN_s: 154.42
+      eta_t_ts: 0.5663
+      TIT_K: 896.9
+      EGT_err_K: 115.0
+      air_flow_err_pct: -17.3
+    A9_m2:
+      Nozzle Run 2, June 30 2009: 0.001442
+T-B:
+  hub_tip: 0.5191
+  hub_tip_distance_to_hobbyist_hint: 0.042
+  k_loss=1:
+    idle_lt_50krpm:
+      EGT_err_K_mean: -12.9446
+      TIT_K_mean: 784.7815
+    all_speeds:
+      EGT_err_K_mean: -13.4464
+      EGT_err_K_rms: 18.4685
+      air_flow_err_pct_mean: -11.0043
+      converged: 38/39
+    run2_top_120krpm:
+      speed_krpm: 120.0
+      Fn_N: 53.9
+      TSFC_g_kN_s: 47.1
+      eta_t_ts: 0.7872
+      TIT_K: 908.8
+      EGT_err_K: -0.0
+      air_flow_err_pct: -2.7
+    run2_48krpm:
+      speed_krpm: 47.9
+      Fn_N: 5.33
+      TSFC_g_kN_s: 135.2
+      eta_t_ts: 0.8051
+      TIT_K: 776.1
+      EGT_err_K: -4.8
+      air_flow_err_pct: -13.0
+    A9_m2:
+      Nozzle Run 1, June 25 2009: 0.001305
+      Nozzle Run 2, June 30 2009: 0.001464
+      Nozzle Run 3, June 30 2009: 0.001395
+  k_loss=1.762:
+    idle_lt_50krpm:
+      EGT_err_K_mean: -0.3328
+      TIT_K_mean: 815.4831
+    all_speeds:
+      EGT_err_K_mean: -9.5817
+      EGT_err_K_rms: 11.4144
+      air_flow_err_pct_mean: -13.3687
+      converged: 9/9
+    run2_top_120krpm: {}
+    run2_48krpm: {}
+    A9_m2:
+      Nozzle Run 1, June 25 2009: 0.001531
+variant_spread_with_fitted_k:
+  idle_EGT_err_K:
+    T-A: 108.8237
+    T-B: -0.3328

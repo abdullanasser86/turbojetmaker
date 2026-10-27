@@ -14,12 +14,12 @@ physics models.
 > testing by qualified people before anything is built or run.
 
 ## Status
-Phase 4 (training dataset) complete: `phase4_v5`, 2000 designs (compressor refit on Murray's measured speed lines,
-designs above 415 m/s tip speed flagged "extrapolated", buildable-range turbine, 15 % high-TIT), 604 feasible, pyCycle
-cross-check passed. A KJ-66 replica with the calibrated (not measured) turbine reproduces the idle EGT; the turbine
-efficiency gap to Murray (+11–13 pts) is open. See `docs/PHASE4_REPORT.md` (round 5) and
-`docs/dataset_cards/phase4_v5.md` (earlier: `docs/PHASE0_REPORT.md` … `docs/PHASE3_REPORT.md`). Phase 5 (surrogates)
-starts after the user's go.
+Phase 4 dataset `phase4_v5` complete (2000 designs, 604 feasible, pyCycle cross-check passed). Round 6: Galvas R2
+tested (no high-Mach loss to adopt), turbine loss multiplier fitted on Murray's turbine efficiency (k_loss ≈ 1.86),
+two bracketing KJ-66 turbine variants; `phase4_v6` prepared, awaiting the user's decision. Phase 5 surrogate pipeline
+(exact GP, deep ensemble, feasibility classifier, calibration, OOD flags) built and tested on v5, **provisional
+(pre-v6 calibration)**. See `docs/PHASE4_REPORT.md` (round 6), `docs/PHASE5_REPORT.md`,
+`docs/surrogate_cards/phase4_v5.md` (earlier: `docs/PHASE0_REPORT.md` … `docs/PHASE3_REPORT.md`).
 
 What exists now: a 0-D cycle (plus pyCycle-CEA cross-check), meanline compressor and axial-turbine models, a coupled
 engine model with design mode (sizing) and off-design matching, turbine creep checks from NiDI No. 393 rupture data,
