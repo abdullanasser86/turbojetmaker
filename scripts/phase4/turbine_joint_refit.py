@@ -26,7 +26,6 @@ import math
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 import yaml
 from scipy.optimize import least_squares
 
@@ -90,7 +89,9 @@ def run_start(name: str) -> dict:
     d.assign(start=name).to_csv(OUT / f"turbine_joint_refit_{name}.csv", index=False)
     out = {"x0": list(STARTS[name]), **sm}
     out = json.loads(json.dumps(out, default=lambda v: v.item() if hasattr(v, "item") else str(v)))
-    (OUT / f"turbine_joint_refit_{name}.yaml").write_text(yaml.safe_dump(out, sort_keys=False), encoding="utf-8")
+    (OUT / f"turbine_joint_refit_{name}.yaml").write_text(
+        yaml.safe_dump(out, sort_keys=False), encoding="utf-8"
+    )
     print(name, sm["params"], "rss", sm["rss"], "held-out eta", sm["held_out_eta_err_pts"], "flow", sm["held_out_flow_err_pct"],
           "V5", sm["V5_check_not_fitted_err_pct"], flush=True)  # fmt: skip
     return out
@@ -110,8 +111,15 @@ def merge() -> dict:
                                               (jp["rotor_gauging_deg"] - r[2]) / 10.0])), 2) for lab, r in (("T-A", ta), ("T-B", tb))}  # fmt: skip
     res["closer_to"] = {"scaled_distance (hub/tip per 0.1, NGV per 5 deg, rotor per 10 deg)": dist,
                         "variant": min(dist, key=dist.get), "hobbyist_hint_hub_tip_0.56_distance": round(abs(jp["hub_tip"] - 37 / 66), 3)}  # fmt: skip
-    (OUT / "turbine_joint_refit.yaml").write_text(yaml.safe_dump(res, sort_keys=False), encoding="utf-8")
-    print(yaml.safe_dump({"joint_fit": res["joint_fit"]["params"], "closer_to": res["closer_to"]}, sort_keys=False))
+    (OUT / "turbine_joint_refit.yaml").write_text(
+        yaml.safe_dump(res, sort_keys=False), encoding="utf-8"
+    )
+    print(
+        yaml.safe_dump(
+            {"joint_fit": res["joint_fit"]["params"], "closer_to": res["closer_to"]},
+            sort_keys=False,
+        )
+    )
     return res
 
 
@@ -119,8 +127,12 @@ def main() -> int:
     import argparse
 
     ap = argparse.ArgumentParser()
-    ap.add_argument("--start", choices=list(STARTS), help="run one start (several can run in parallel)")
-    ap.add_argument("--merge", action="store_true", help="merge the per-start results into the joint fit")
+    ap.add_argument(
+        "--start", choices=list(STARTS), help="run one start (several can run in parallel)"
+    )
+    ap.add_argument(
+        "--merge", action="store_true", help="merge the per-start results into the joint fit"
+    )
     a = ap.parse_args()
     if a.start:
         run_start(a.start)

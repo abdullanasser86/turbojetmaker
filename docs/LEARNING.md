@@ -502,3 +502,22 @@ trustworthy. A surrogate trained on v5 can be told which designs lie beyond the 
 
 **Why it matters:** Calibrating the turbine changes engine fuel consumption by ~20 %. That is why the dataset must be
 regenerated (v6) before the surrogates' numbers mean anything, and why the pipeline was built to retrain in one command.
+
+### Phase 4, round 7 + Phase 5 — The calibrated dataset v6 and surrogates on it (2026-10-27)
+**What we did**
+1. Recorded why the 1973 NASA (Galvas) compressor terms were rejected: they change nothing on the held-out speed
+   lines.
+2. Made the turbine solver try again from different starting points before giving up. It rescued only a few
+   points: the remaining failures are features of the model's turbine characteristic, not bad starting guesses, so
+   they stay in the data as failures.
+3. Checked that the calibrated turbine (losses ×1.86) still gives believable efficiencies: every design lies
+   inside Murray's measured range ± its uncertainty.
+4. Generated v6 (2000 designs, 28 % feasible) and retrained the surrogates on it in one command. Predicting fuel
+   flow and thrust separately works much better than predicting their ratio (fuel consumption), which blows up for
+   engines that barely make thrust.
+5. Refitted the KJ-66 turbine's shape and losses together. The measured maps can be matched by quite different blade
+   heights; only the measured exhaust velocity picks one, and that one is hot at idle. So the idle problem is
+   probably not in the turbine shape.
+
+**Why it matters:** The surrogates are now trained on the calibrated physics and say when to distrust them. The
+remaining KJ-66 mismatch is pinned down to a few candidate causes outside the turbine geometry.

@@ -535,3 +535,22 @@ Frozen v6 test set, deep ensemble:
 
 95 % coverage is 0.93–1.00. Feasibility classifier: accuracy 0.923, AUC 0.970, ECE 0.032. The TSFC targets have
 heavy tails (low-thrust designs), so TSFC should be derived as Wf/Fn.
+
+### Joint KJ-66 turbine refit (geometry + k_loss) and idle EGT (D-068)
+`validation/phase4/turbine_joint_refit.yaml`, `kj66_joint_variants_idle_egt.yaml`.
+
+| joint solution | hub/tip | k_loss | held-out η / flow err | V5 err (not fitted) | idle EGT err (< 50 krpm) | idle TIT | replica runs built |
+|---|---|---|---|---|---|---|---|
+| near T-A | 0.735 | 1.95 | +2.2 pts / −1.2 % | **−5 %** | +100 K | 917 K | 1 of 3 |
+| middle (lowest RSS) | 0.649 | 2.33 | +1.7 pts / −1.1 % | −29 % | +87 K | 885 K | 3 of 3 |
+| near T-B | 0.482 | 2.10 | +3.8 pts / −3.0 % | −51 % | **+29 K** | 845 K | 1 of 3 |
+
+- The geometry that matches the measured exit velocity runs ~90–100 K hot at idle. The geometry closest to the idle
+  EGT misses the exit velocity by half. **The joint refit does not resolve the conflict.**
+- Since the turbine model cannot satisfy both with any geometry, the cause probably lies outside the turbine
+  geometry. Candidates:
+  - low-power combustion efficiency (fixed 0.95; Murray correlated it with fuel-air ratio);
+  - the station-5 location assumption behind V5;
+  - the replica's low air flow (−12 % at idle).
+- Missing replica runs: top-speed `turbine_no_convergence` at the higher k_loss (same as round 6).
+- Middle solution at 120 krpm (run 2): thrust 47.9 N, TSFC 53.5 g/kN/s, η_t,ts 0.68.

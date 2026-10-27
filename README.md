@@ -14,12 +14,15 @@ physics models.
 > testing by qualified people before anything is built or run.
 
 ## Status
-Phase 4 dataset `phase4_v5` complete (2000 designs, 604 feasible, pyCycle cross-check passed). Round 6: Galvas R2
-tested (no high-Mach loss to adopt), turbine loss multiplier fitted on Murray's turbine efficiency (k_loss ≈ 1.86),
-two bracketing KJ-66 turbine variants; `phase4_v6` prepared, awaiting the user's decision. Phase 5 surrogate pipeline
-(exact GP, deep ensemble, feasibility classifier, calibration, OOD flags) built and tested on v5, **provisional
-(pre-v6 calibration)**. See `docs/PHASE4_REPORT.md` (round 6), `docs/PHASE5_REPORT.md`,
-`docs/surrogate_cards/phase4_v5.md` (earlier: `docs/PHASE0_REPORT.md` … `docs/PHASE3_REPORT.md`).
+Phase 5 (surrogates) complete on **`phase4_v6`**:
+- v6 is the calibrated dataset: R1 compressor, R3 flag, turbine k_loss 1.86, solver restarts; 2000 designs,
+  568 feasible, pyCycle cross-check passed.
+- Exact GP + deep ensemble + feasibility classifier: median errors < 1 %, classifier AUC 0.97, with
+  out-of-distribution flags.
+
+See `docs/PHASE5_REPORT.md`, `docs/surrogate_cards/phase4_v6.md`, `docs/dataset_cards/phase4_v6.md` and
+`docs/PHASE4_REPORT.md` (round 7) (earlier: `docs/PHASE0_REPORT.md` … `docs/PHASE3_REPORT.md`). Phase 6
+(optimisation) starts after the user's go.
 
 What exists now: a 0-D cycle (plus pyCycle-CEA cross-check), meanline compressor and axial-turbine models, a coupled
 engine model with design mode (sizing) and off-design matching, turbine creep checks from NiDI No. 393 rupture data,

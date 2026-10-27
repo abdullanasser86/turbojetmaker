@@ -58,9 +58,13 @@ def main() -> int:
         print(start, res[start]["idle_lt_50krpm"], res[start]["all_speeds"], flush=True)
     REP.turbine_params = orig
     if frames:
-        pd.concat(frames, ignore_index=True).to_csv(OUT / "kj66_joint_variants_idle_egt.csv", index=False)
+        pd.concat(frames, ignore_index=True).to_csv(
+            OUT / "kj66_joint_variants_idle_egt.csv", index=False
+        )
     res = json.loads(json.dumps(res, default=lambda v: v.item() if hasattr(v, "item") else str(v)))
-    (OUT / "kj66_joint_variants_idle_egt.yaml").write_text(yaml.safe_dump(res, sort_keys=False), encoding="utf-8")
+    (OUT / "kj66_joint_variants_idle_egt.yaml").write_text(
+        yaml.safe_dump(res, sort_keys=False), encoding="utf-8"
+    )
     return 0
 
 

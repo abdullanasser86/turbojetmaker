@@ -676,3 +676,78 @@ Generator support is tested; v1–v5 samples are unchanged (bit-identical). Run 
      fails. Do it before v6, or accept the failures (they are recorded as data)?
 4. Optional: joint refit of the KJ-66 turbine geometry together with k_loss (fixes the flow-capacity side effect on
    the reference engine; does not affect the dataset).
+
+# Phase 4, round 7 + end of Phase 5 (2026-10-27): v6 generated, surrogates retrained, joint turbine refit
+
+## What was done, item by item
+| # | Your instruction | Done |
+|---|---|---|
+| 1 | R2: record why Galvas was rejected (held-out evidence); Aungier open | D-065a; Aungier = open item |
+| 2 | v6 with k_loss 1.86, band [1.6, 2.0]; sanity-check turbine efficiencies first (range from Murray and DePaola); k_loss sampled for the ~20 % subset; held-out turbine errors in DECISIONS | Range [0.58, 0.93] from Murray (**DePaola's turbine-efficiency values are not in our extracts**; please send if available), D-069. Pilot: 0 flagged; full v6: 0 flagged. Held-out turbine errors in D-064 |
+| 3 | Turbine solver restarts (2–3), retry count + converged_on_retry logged, failures kept; report v5 pilot recoveries | D-067. **v5 pilot: nothing to recover** (no turbine-solver failures at k_loss 1); at k_loss 1.86, 1 of 9 recovered |
+| 4 | Joint KJ-66 geometry + k_loss refit with held-out lines; closer to T-A or T-B; resolves the conflict? | D-068. Closer to T-A (best RSS). **Does not resolve the conflict** |
+| 5 | v6 pilot → full; Phase 5 retrain on v6; compare with v5 | v6: 2000 designs, 568 feasible (28.4 %). Surrogates retrained (one command) |
+
+## v6 dataset card and statistics (`docs/dataset_cards/phase4_v6.md`)
+| | v5 | v6 |
+|---|---|---|
+| designed / feasible | 1031 / 604 (30.2 %) | 1028 / **568 (28.4 %)** |
+| feasible, validated / extrapolated tip speed | 40.2 % / 22.6 % | 38.0 % / 21.0 % |
+| feasible, TIT > 1150 K | 1.0 % | 1.3 % |
+| design η_t,tt (median, range) | – | 0.789 (0.62–0.86), **0 outside [0.58, 0.93]** |
+| design η_t,ts median | 0.71 (pilot) | 0.64 (pilot) |
+| feasible design TSFC best / median [g/kN/s] | 43.9 / 61.3 | 43.2 / 72.5 (JetCat claims 40–52) |
+| cruise point converged | 1027 / 1031 | 946 / 1028 (38 no net thrust, 37 turbine non-convergence) |
+| converged on retry / failed after retries | – | 3 / 44 |
+| k_loss subset | – | 397 sampled in [1.6, 2.0] (114 feasible); 1603 nominal 1.86 (454 feasible) |
+| pyCycle cross-check | 0 / 21 flagged | 0 / 21 flagged |
+
+## Surrogates on v6 vs provisional v5 (frozen test sets)
+Details: `docs/PHASE5_REPORT.md`, `validation/phase5/compare_phase4_v5_vs_phase4_v6.md`.
+
+| target (ensemble) | median relative error: v5 → v6 |
+|---|---|
+| Fn design | 0.33 → 0.60 % |
+| Fn idle | 0.43 → 0.59 % |
+| T05 idle | 0.21 → 0.30 % |
+| **Wf design (new)** | 0.36 % |
+| **Wf cruise (new)** | 0.58 % |
+
+- 95 % coverage 0.93–1.00 for all targets.
+- TSFC targets have heavy tails in v6 (low-thrust designs; design TSFC R² 0.63, cruise 0.06). **Derive TSFC as
+  Wf/Fn.**
+- Classifier: accuracy 0.953 → 0.923, AUC 0.976 → 0.970, ECE 0.033 → 0.032.
+
+## Joint KJ-66 turbine refit (D-068)
+| start | hub/tip | k_loss | held-out η / flow | V5 (not fitted) | idle EGT |
+|---|---|---|---|---|---|
+| near T-A | 0.735 | 1.95 | +2.2 pts / −1.2 % | −5 % | +100 K |
+| middle (lowest RSS) | 0.649 | 2.33 | +1.7 pts / −1.1 % | −29 % | +87 K |
+| near T-B | 0.482 | 2.10 | +3.8 pts / −3.0 % | −51 % | +29 K |
+
+- The maps don't identify the geometry: all three fit about equally well.
+- The best fit is closer to T-A.
+- Fitting jointly removes the flow penalty of the fixed-geometry k_loss fit.
+- **It does not resolve the exit-velocity vs idle-EGT conflict:** whatever matches V5 is hot at idle. The cause is
+  probably outside the turbine geometry.
+- The joint fits want k_loss 1.95–2.33, at or above the v6 band.
+
+## Open issues
+- Idle EGT vs exit velocity for the KJ-66 reference engine (see above).
+- `turbine_no_convergence` at high loss: structural in the meanline's regime logic. It costs ~4 % of the cruise points
+  in v6. A fix needs a change in the meanline (not done).
+- DePaola's turbine-efficiency value (not in our extracts); Aungier (R2) not accessible.
+- k_loss: joint fits suggest 1.95–2.33 vs the v6 band [1.6, 2.0].
+
+## Decisions I need from you
+1. **k_loss band:** keep [1.6, 2.0] (fixed-geometry fits), or widen to [1.6, 2.35] to cover the joint fits (would be
+   a v7)? I'd keep v6 for Phase 6 and note the band as an uncertainty.
+2. **Idle-EGT conflict:** pursue it (test low-power combustion efficiency, the station-5 assumption, the replica's
+   low air flow), or accept it as a known limit of the KJ-66 reference case?
+3. **Meanline regime fix** for the remaining turbine non-convergence (~4 % of cruise points): do it, or keep the
+   failures as data?
+4. **Surrogate set for Phase 6:**
+   - targets: Fn, Wf (→ TSFC), T05, mass, diameter + P(feasible);
+   - models: ensemble for thrust/temperatures, GP for fuel flow and geometry, chosen on validation data only.
+   - Agree?
+5. **Go for Phase 6** (multi-objective optimisation with physics verification of every Pareto design).

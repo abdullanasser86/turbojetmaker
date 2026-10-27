@@ -1,0 +1,63 @@
+near_T-A:
+  params:
+    hub_tip: 0.7348
+    ngv_gauging_deg: 63.8698
+    rotor_gauging_deg: 44.9562
+    k_loss: 1.949
+  rotor_le_deg: 30.0
+  idle_lt_50krpm:
+    EGT_err_K_mean: 99.9361
+    TIT_K_mean: 916.6999
+  all_speeds:
+    EGT_err_K_mean: 67.9552
+    EGT_err_K_rms: 71.2981
+    air_flow_err_pct_mean: -13.0784
+    converged: 9/9
+  run2_top_120krpm: {}
+  runs_built:
+  - Nozzle Run 1, June 25 2009
+middle:
+  params:
+    hub_tip: 0.6488
+    ngv_gauging_deg: 67.8272
+    rotor_gauging_deg: 54.256
+    k_loss: 2.3329
+  rotor_le_deg: 30.0
+  idle_lt_50krpm:
+    EGT_err_K_mean: 86.6344
+    TIT_K_mean: 884.5849
+  all_speeds:
+    EGT_err_K_mean: 55.466
+    EGT_err_K_rms: 61.6616
+    air_flow_err_pct_mean: -11.6924
+    converged: 38/39
+  run2_top_120krpm:
+    speed_krpm: 120.0
+    Fn_N: 47.92
+    TSFC_g_kN_s: 53.52
+    eta_t_ts: 0.6789
+    TIT_K: 912.2
+    EGT_err_K: 0.0
+    air_flow_err_pct: -2.5
+  runs_built:
+  - Nozzle Run 1, June 25 2009
+  - Nozzle Run 2, June 30 2009
+  - Nozzle Run 3, June 30 2009
+near_T-B:
+  params:
+    hub_tip: 0.4817
+    ngv_gauging_deg: 70.9606
+    rotor_gauging_deg: 67.9019
+    k_loss: 2.1035
+  rotor_le_deg: 30.0
+  idle_lt_50krpm:
+    EGT_err_K_mean: 29.4597
+    TIT_K_mean: 845.1162
+  all_speeds:
+    EGT_err_K_mean: 12.2557
+    EGT_err_K_rms: 15.0146
+    air_flow_err_pct_mean: -11.9469
+    converged: 9/9
+  run2_top_120krpm: {}
+  runs_built:
+  - Nozzle Run 1, June 25 2009

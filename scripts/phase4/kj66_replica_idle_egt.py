@@ -68,8 +68,12 @@ def turbine_params(variant: str) -> tuple[float, float, float, float]:
     if variant == "J":
         import importlib.util
 
-        jp = yaml.safe_load((OUT / "turbine_joint_refit.yaml").read_text(encoding="utf-8"))["joint_fit"]["params"]
-        sp = importlib.util.spec_from_file_location("tcal", ROOT / "scripts" / "phase4" / "turbine_calibration_murray.py")
+        jp = yaml.safe_load((OUT / "turbine_joint_refit.yaml").read_text(encoding="utf-8"))[
+            "joint_fit"
+        ]["params"]
+        sp = importlib.util.spec_from_file_location(
+            "tcal", ROOT / "scripts" / "phase4" / "turbine_calibration_murray.py"
+        )
         tc = importlib.util.module_from_spec(sp)
         sp.loader.exec_module(tc)
         p = (jp["hub_tip"], jp["ngv_gauging_deg"], jp["rotor_gauging_deg"])

@@ -26,7 +26,12 @@ def fmt(x, pct=False):
 
 
 def main(a: str, b: str) -> int:
-    ra, rb = (yaml.safe_load((ROOT / "validation" / "phase5" / f"surrogates_{n}.yaml").read_text(encoding="utf-8")) for n in (a, b))
+    ra, rb = (
+        yaml.safe_load(
+            (ROOT / "validation" / "phase5" / f"surrogates_{n}.yaml").read_text(encoding="utf-8")
+        )
+        for n in (a, b)
+    )
     L = [f"# Surrogates: `{a}` vs `{b}` (frozen test set of each version)", "",
          f"- `{a}`: {ra['label']}", f"- `{b}`: {rb['label']}", "",
          "Test sets differ (own frozen split and own calibration per version): this compares how well each surrogate "
@@ -38,19 +43,36 @@ def main(a: str, b: str) -> int:
         ta, tb = ra["models"][model]["test"], rb["models"][model]["test"]
         for t in [t for t in tb if t in ta] + [t for t in tb if t not in ta]:
             cells = []
-            for key, sub, pct in (("accuracy", "rel_err_median", True), ("accuracy", "rel_err_p95", True), ("accuracy", "r2", False)):
+            for key, sub, pct in (
+                ("accuracy", "rel_err_median", True),
+                ("accuracy", "rel_err_p95", True),
+                ("accuracy", "r2", False),
+            ):
                 va = ta.get(t, {}).get(key, {}).get(sub)
                 vb = tb[t][key].get(sub)
                 cells.append(f"{fmt(va, pct)} → {fmt(vb, pct)}")
             ca = ta.get(t, {}).get("calibration", {})
             cb = tb[t]["calibration"]
-            cells.append(f"{fmt(ca.get('coverage', {}).get('0.95'))} → {fmt(cb.get('coverage', {}).get('0.95'))}")
-            cells.append(f"{fmt(ca.get('std_of_standardized_residual'))} → {fmt(cb.get('std_of_standardized_residual'))}")
+            cells.append(
+                f"{fmt(ca.get('coverage', {}).get('0.95'))} → {fmt(cb.get('coverage', {}).get('0.95'))}"
+            )
+            cells.append(
+                f"{fmt(ca.get('std_of_standardized_residual'))} → {fmt(cb.get('std_of_standardized_residual'))}"
+            )
             L.append(f"| {t}{'' if t in ta else ' (new)'} | {model} | " + " | ".join(cells) + " |")
-    ca, cb = ra["models"]["feasibility_classifier"]["test"], rb["models"]["feasibility_classifier"]["test"]
-    L += ["", "| classifier | accuracy | ROC AUC | Brier | ECE | n (feasible) |", "|---|---|---|---|---|---|"]
+    ca, cb = (
+        ra["models"]["feasibility_classifier"]["test"],
+        rb["models"]["feasibility_classifier"]["test"],
+    )
+    L += [
+        "",
+        "| classifier | accuracy | ROC AUC | Brier | ECE | n (feasible) |",
+        "|---|---|---|---|---|---|",
+    ]
     for n, c in ((a, ca), (b, cb)):
-        L.append(f"| {n} | {c['accuracy']:.3f} | {c['roc_auc']:.3f} | {c['brier']:.3f} | {c['ece']:.3f} | {c['n']} ({c['positives']}) |")
+        L.append(
+            f"| {n} | {c['accuracy']:.3f} | {c['roc_auc']:.3f} | {c['brier']:.3f} | {c['ece']:.3f} | {c['n']} ({c['positives']}) |"
+        )
     out = ROOT / "validation" / "phase5" / f"compare_{a}_vs_{b}.md"
     out.write_text("\n".join(L) + "\n", encoding="utf-8")
     print("\n".join(L))
