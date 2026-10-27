@@ -1,0 +1,41 @@
+n_designs: 200
+v5_settings_k1:
+  design_status:
+    design_failed -> design_failed: 97
+    ok -> ok: 103
+  points_recovered: {}
+  points_newly_failed: {}
+  points_still_failed:
+    'design: design_failed': 97
+    'cruise_M05_3km: design_failed': 97
+    'part_speed_80: design_failed': 97
+    'idle_35: design_failed': 97
+    'idle_35: choke_compressor_impeller_exit': 1
+  points_converged_on_retry: 0
+  unchanged_points_max_rel_Fn_change: 0.0
+v6_nominal_k1.86:
+  design_status:
+    design_failed -> design_failed: 97
+    ok -> ok: 100
+    ok -> design_failed: 3
+  points_recovered: {}
+  points_newly_failed:
+    'cruise_M05_3km: turbine_no_convergence': 6
+    'design: design_failed': 3
+    'cruise_M05_3km: design_failed': 3
+    'part_speed_80: design_failed': 3
+    'idle_35: design_failed': 3
+    'part_speed_80: turbine_no_convergence': 2
+    'cruise_M05_3km: no_nozzle_pressure_ratio': 1
+    'cruise_M05_3km: no_net_thrust': 2
+    'part_speed_80: turbine_limit_loading': 1
+    'idle_35: turbine_limit_loading': 1
+    'cruise_M05_3km: no_convergence: line search failed': 1
+  points_still_failed:
+    'design: design_failed': 97
+    'cruise_M05_3km: design_failed': 97
+    'part_speed_80: design_failed': 97
+    'idle_35: design_failed': 97
+    'idle_35: choke_compressor_impeller_exit': 1
+  points_converged_on_retry: 1
+  unchanged_points_max_rel_Fn_change: 0.9455030283165269

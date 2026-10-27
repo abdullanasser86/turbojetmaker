@@ -655,3 +655,20 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
   - 40/60/80/100 krpm: unchanged from D-059.
 - **R3 stays:** U2 > 415 m/s flagged "extrapolated" with the one-sided widened band (D-060).
 - **OPEN ITEM:** Aungier (2000) choke/shock loss. Not accessible to the user or to TurboML; not waited on.
+
+### D-067 · 2026-10-27 · Turbine-solver restarts (user decision), and what they recover
+- Off-design: a point failing with `turbine_no_convergence` is re-solved directly at the target speed from the
+  continuation guess with the turbine PR guess changed, (PR − 1) × {0.85, 1.2, 1.5}. Design mode: the turbine sizing
+  Newton restarts with its starting PR guess × the same factors after a meanline `no_convergence`.
+- Every point records `retries` and `converged_on_retry` (EnginePoint, dataset points.csv). Points still failing
+  after all restarts stay as recorded failures (feasibility classifier data).
+- Recovery check (`scripts/phase4/retry_recovery_check.py` → `validation/phase4/retry_recovery_check.yaml`;
+  the v5 pilot = first 200 designs, re-evaluated, nothing written to datasets/):
+  - **k_loss = 1 (v5 settings):** the v5 pilot has **no turbine-solver failures to recover**. Its failures are 97
+    design-mode buildability failures plus 1 idle compressor choke. Converged points are unchanged (max |ΔFn| = 0).
+  - **k_loss = 1.86 (v6 nominal):** 1 point recovered on retry; 8 still end as `turbine_no_convergence` (6 cruise,
+    2 part speed).
+- Why the restarts recover little: the failures are not starting-point problems. At the failing operating points the
+  meanline's monotone root finder finds a discontinuity or non-monotone stretch in the modelled characteristic
+  (between its subsonic and choked branches); raising its iteration budget from 100 to 400 changes nothing. A fix
+  would be a change to the meanline's regime logic (not done; option in the report).
