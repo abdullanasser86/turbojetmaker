@@ -188,3 +188,27 @@ high_tit_infeasibility_phase4_v4:
   - 1082.5
   - 1310.7
   in713c_rotor_data_top_K_100h: 1366.48
+high_tit_infeasibility_phase4_v5:
+  designed_engines_TIT_above_1150K: 150
+  infeasible: 147
+  cause_counts:
+    physics: 131
+    missing_data: 16
+  physics_detail_in713c:
+    AN2: 100
+    AN2;ngv_above_solidus: 31
+  physics_detail_marm247:
+    AN2: 128
+    creep_rotor: 3
+  missing_data_detail:
+    'marm247: in713c[] marm247[ngv_above_data]': 7
+    'marm247: in713c[ngv_above_data] marm247[ngv_above_data]': 5
+    'in713c;marm247: in713c[ngv_above_data] marm247[ngv_above_data]': 3
+    'marm247: in713c[ngv_above_data] marm247[rotor_above_data;ngv_above_data]': 1
+  ngv_metal_T_K_range_missing_data:
+  - 1341.5
+  - 1588.4
+  rotor_metal_T_K_range_all:
+  - 1085.8
+  - 1313.6
+  in713c_rotor_data_top_K_100h: 1366.48

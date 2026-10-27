@@ -524,3 +524,70 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
 - Consequence for the datasets: designs with U2 above ~380–415 m/s (sampled up to 500 m/s) use a compressor model
   that is optimistic in PR and efficiency there.
 - Options for the user (Phase 4 report): refit on more speed lines, add a high-Mach loss, or flag/limit high tip speed.
+
+### D-059 · 2026-10-27 · Compressor refit R1 on Murray's measured speed lines (user decision, round 5 item 1a)
+- Same model and the same two effective factors (Δσ slip correction, diffuser Cf). Refit on Murray Ch.5 Figs 5.12/5.14
+  (digitized [MEAS]) at **50/70/90/110 krpm**; **40/60/80/100/120 krpm held out** (120 = top measured line, an
+  extrapolation test). Residuals PR/PR_meas − 1 and η/η_meas − 1, every calibration line weighted equally.
+  `scripts/phase4/compressor_refit_murray.py` → `validation/phase4/compressor_refit_murray.*`.
+- Result: **Δσ −0.1041 → −0.1176, Cf 0.0937 → 0.1002** (σ1 0.0136 / 0.0071, correlation −0.21). Inflation rule as
+  before (≥ 95 % of held-out points inside the 3×3 envelope) → **k = 3.5** (was 2.75): the held-out set now spans
+  40–120 krpm. Band: Δσ [−0.213, −0.022], Cf [0.050, 0.150].
+- Held-out errors (mean per line): 40: PR −2.0 %, flow −5.9 %, η +14.2 pts · 60: −1.8 / −2.2 / −0.6 · 80: −1.6 / −0.7 /
+  −2.3 · 100: +0.6 / +0.2 / +0.6 · **120: +5.0 % / +4.4 % / +6.1 pts** (was +7.1 / +6.1 / +6.1).
+- **Model-form limit:** two factors cannot follow the trend with speed (−1.5 … −1.9 % PR at 50–90 krpm, +2.4 % at 110,
+  +5.0 % at 120). The refit tilts the error, it does not remove it. No R2 term (no source in hand; proposal in the
+  round-5 report).
+- The old calibration is frozen as `kj66_compressor_calibration_v1_xiang90k.yaml`; dataset configs v1–v4 point to it
+  (their samples reproduce bit-for-bit: checked on all 2000 v4 designs).
+
+### D-060 · 2026-10-27 · Tip speed > 415 m/s flagged "extrapolated", wider one-sided band (user decision R3, item 1b)
+- Validated limit: the top measured line, 120 krpm × r2 33 mm = 414.7 m/s → 415 m/s.
+- Growth law: signed mean PR error per line vs U2, quadratic fit on lines 50–120 krpm (residual rms 0.19 %; 40 krpm
+  excluded: single marker, far below any design). Extrapolated PR error 7.0 / 8.9 / 10.9 / 13.1 % at 440/460/480/500 m/s.
+  Widening factor W(U2) = e(U2)/e(U_top): 1.43 / 1.81 / 2.22 / 2.67. (A straight line through the 100/110/120 lines gives
+  W(500) = 2.13 — reported, not used.)
+- **One-sided**, in the direction of the measured bias (the model over-predicts PR and η above 100 krpm): the lower Δσ
+  bound and the upper Cf bound move out by W; the other bounds stay. This also keeps slip < 1 and Cf > 0 at every W
+  (a symmetric Cf widening would go negative above W ≈ 2).
+- Every design records `tip_speed_regime` (validated / extrapolated), `compressor_band_scale` W and its band; the
+  calibration-sampled 20 % draw from it (`turboml.data.generator.compressor_band`).
+
+### D-061 · 2026-10-27 · KJ-66 turbine rebuilt from published counts (round 5 item 2)
+- Published (Xu, Wu, Liu & Piao, GPPS-TC-2021-0117, CC BY 4.0; **a redesigned KJ66 variant**, not certainly Murray's
+  ArtesJet engine): rotor diameter 66 mm, 18 NGV, 24 rotor blades, tip clearance 1 % of blade height
+  (`configs/components/kj66_turbine.yaml`).
+- Construction (`turbine_design.stage_from_counts`): cylindrical annulus (assumption), pitch from blade count,
+  opening = s·cos(gauging), Zweifel axial chord (Z 0.8) on metal angles, rotor metal inlet angle = relative inflow at
+  Murray's D.10 point (zero incidence at 120 krpm; rule, not fitted).
+- Calibrated, not measured: hub/tip, NGV gauging angle, rotor gauging angle.
+
+### D-062 · 2026-10-27 · Turbine calibration: hub/tip from exit velocity; efficiency NOT matched by geometry
+- Data: Murray Fig 5.16 (corrected flow) lines 26/38/50/62 krpm (held out 20/32/44/56/68), Fig 5.18 (derived
+  efficiency), App D V5 (turbine-exit mid-span velocity) D.odd (held out D.even). Assumption: station 5 = rotor exit
+  plane of the annulus.
+- **Adopted fit F (flow + V5): hub/tip 0.743 (profile range 0.65–0.745), NGV gauging 64.8° (64.8–71.1°), rotor gauging
+  43.6° (36.1–43.6°).** Blade height 8.5 mm, hub diameter 49 mm. V5 within uncertainty on 11/15 points. Flow −10 % … +11 %
+  across speed lines (too flat with speed); efficiency **+11.2 pts** mean (+10.9 at ≤ 44 krpm corrected).
+- Identifiability: the flow map alone fixes only the NGV throat area (flow-only fit Q: hub/tip 0.52 ± 0.60, flow
+  within ±4 % on every line, V5 −47 %). Jacobian sigmas are meaningless (condition number 1e8, hub/tip~rotor angle
+  correlation −1.0); ranges are from the hub/tip profile. Above hub/tip ≈ 0.745 the model cannot reach the measured
+  points (upper edge = model limit).
+- Fitting efficiency as well (fit FE) drives hub/tip to the 0.40 bound with 48° exit swirl and V5 −38 %: geometry is
+  being used as a loss knob. Rejected. **Conclusion: the ~11–13 pt efficiency gap is a loss-model (or data-derivation)
+  issue, not geometry.** No turbine loss calibration added (not requested; option in the report).
+- The dataset's turbines are still sized per design (unchanged); this calibration informs validation only.
+
+### D-063 · 2026-10-27 · Nickel 337 ingested; it does not change the 100 h creep check
+- Transcribed (not digitized): p. 7 rupture table (10/100/1000/10,000 h), Table II individual tests [MEAS], AMS 5391
+  minima, melting range. Digitized: Fig 7 Larson–Miller curve (`scripts/data/digitize_ni337_lm.py`).
+- Cross-checks: identical to Nickel 393 at all 7 common (T, life) points; the user's 1350 °F anchors match
+  (76 / 56 ksi; 97 ksi at 100 h is extrapolated); **AMS 5391 passes** (65 h test, 72 h table, 67 h LM curve, 49 h
+  model vs ≥ 30 h). The LM master curve over-predicts the 2000 °F tests by 12–37 % (non-conservative there), so the LM
+  curve is not used to extend the tables.
+- Nickel 337's 100 h column adds no temperature above Nickel 393's (both end at 2000 °F = 1366 K). The creep model's
+  data stay Nickel 393; Nickel 337 is the cross-check. New: IN-713C solidus 1533 K (2300 °F) used to label hot-streak
+  temperatures that would melt an uncooled vane as physics.
+- **Physics vs missing data** (`turboml/analysis/feasibility.py`): v4 157 infeasible TIT > 1150 K designs → 141
+  physics (AN² at the rotor-relative temperature with both alloys; 33 also melt an IN-713C NGV), 16 missing data
+  (MAR-M 247 NGV above its 1311 K data). v5: 147 → 131 physics, 16 missing data.

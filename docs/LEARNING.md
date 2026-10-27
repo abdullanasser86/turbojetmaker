@@ -240,6 +240,30 @@ terms and a short "what we did and why".
   above it. The measured 120 krpm line showed the extrapolation is optimistic, a reason not to trust a model far
   beyond its data.
 
+### Added in Phase 4, round 5
+- **Refit / held-out speed line** – Re-estimating calibration factors on some measured speed lines and keeping the
+  others aside. The error on the held-out lines tells how well the model predicts speeds it was not tuned on.
+- **Extrapolation** – Using a model outside the range of the data it was checked against. Our compressor data stop at
+  120 krpm (tip speed 415 m/s). Designs above that are labelled "extrapolated" and carry a wider uncertainty band, sized
+  by how fast the error grew toward the last measured line.
+- **Model-form error** – Error that no choice of parameter values can remove, because the equations miss some physics.
+  Example: two calibration factors cannot follow an error that changes sign with speed.
+- **Identifiability** – Whether the data can pin down a parameter. If two parameters change the prediction in the same
+  way (hub/tip and NGV angle both set the turbine's throat area), only their combination is identified. Signs: a huge
+  condition number, correlations near ±1, and very different answers from different starting points.
+- **Profile (likelihood) scan** – Fix one parameter at a series of values, re-fit the others each time, and watch how
+  the fit quality changes. The range where it stays within ~1 standard error is an honest uncertainty, even when the
+  usual Jacobian formula fails.
+- **Gauging angle** – For a blade row, cos(g) = throat opening / pitch. It sets the exit flow angle and, with the blade
+  height, the throat area that limits (chokes) the flow.
+- **Solidus** – The temperature at which an alloy starts to melt (IN-713C: 2300 °F, 1533 K). An uncooled vane in gas
+  hotter than that melts, whatever its stress: no rupture data can help.
+- **Specification minimum (AMS 5391)** – A purchase requirement every batch must meet (e.g. ≥ 30 h at 1800 °F and
+  22 ksi). Handbook "typical" values are averages and sit above such minima.
+- **Physics vs missing data** – An infeasible design fails on *physics* if some check that the data do cover fails
+  (stress above strength at that temperature). It fails on *missing data* if the only problem is a temperature beyond
+  the data, so new data could change the verdict.
+
 ### ML and optimization (expanded from Phase 4 on)
 - **Surrogate model** – A fast ML approximation of a slow physics model. Here it runs in
   microseconds instead of seconds.
