@@ -29,6 +29,26 @@ def md_table(d: dict, h1: str, h2: str = "count") -> list[str]:
     return [f"| {h1} | {h2} |", "|---|---|"] + [f"| {k or '(none)'} | {v} |" for k, v in d.items()]
 
 
+def regime_split(D: pd.DataFrame, ok: pd.DataFrame, thr: float | None) -> dict:
+    """Feasibility by tip-speed regime (validated <= 415 m/s, extrapolated above) and, if set, by TIT band."""
+    out = {}
+    bands = [("all TIT", lambda x: x.in_tit_K > 0)]
+    if thr is not None:
+        bands += [
+            (f"TIT <= {thr:g} K", lambda x: x.in_tit_K <= thr),
+            (f"TIT > {thr:g} K", lambda x: x.in_tit_K > thr),
+        ]
+    for reg in ("validated", "extrapolated"):
+        for lab, f in bands:
+            dm = (D.tip_speed_regime == reg) & f(D)
+            om = (ok.tip_speed_regime == reg) & f(ok)
+            nf = int(ok[om].feasible.astype(bool).sum())
+            out[f"{reg} / {lab}"] = {"designs": int(dm.sum()), "designed": int(om.sum()), "feasible": nf,
+                                     "feasible_%_of_designs": round(100 * nf / max(int(dm.sum()), 1), 1),
+                                     "feasible_%_of_designed": round(100 * nf / max(int(om.sum()), 1), 1)}  # fmt: skip
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default=str(ROOT / "configs" / "dataset_phase4_v2.yaml"))
@@ -95,6 +115,19 @@ def main() -> int:
         stats["infeasible_high_tit_by_constraint"] = counts(
             hi_inf.active_constraints.fillna("") + " (" + hi_inf.material_status.fillna("") + ")"
         )
+    if (
+        "tip_speed_regime" in D and D.tip_speed_regime.notna().any()
+    ):  # R3 (user decision 2026-10-27)
+        stats["tip_speed_regime"] = regime_split(D, ok, thr)
+    if thr is not None:  # round 5 item 3b: physics or missing data?
+        from turboml.analysis.feasibility import classify
+
+        cl = classify(D, P[P.point == "design"])
+        hi_c = cl[cl.in_tit_K > thr]
+        stats["high_tit_infeasibility_cause"] = {"infeasible": len(hi_c), "cause": counts(hi_c.cause),
+                                                 "physics_in713c": counts(hi_c[hi_c.cause == "physics"].in713c_physics),
+                                                 "physics_marm247": counts(hi_c[hi_c.cause == "physics"].marm247_physics),
+                                                 "missing_data_limited_materials": counts(hi_c[hi_c.cause == "missing_data"].data_limited_materials)}  # fmt: skip
     if "derived_turb_hub_tip_mach_binding" in ok:
         stats["t1_hub_tip"] = {
             "sampled_hub_tip_range": [round(float(ok.derived_turb_hub_tip.min()), 3), round(float(ok.derived_turb_hub_tip.max()), 3)],
@@ -153,7 +186,7 @@ def main() -> int:
             f"| {spec['key']} | {b.lower:g} – {b.upper:g} | {spec['scale']} | {b.source[:120]} |"
         )
     L += ["", f"Compressor calibration factors: {stats['calibration_sampled']} of {n_done} designs sample (Δσ, Cf) uniformly in the "
-          "inflated band (configs/components/kj66_compressor_calibration.yaml); the others use the nominal values.", "",
+          f"inflated band (`{dcfg['calibration_sampling']}`); the others use the nominal values.", "",
           "Fixed assumptions: component losses `configs/engine_baseline.yaml` (DePaola values as summarised by the user, "
           "off-design loss scaling with corrected flow²); materials and creep settings `configs/materials.yaml` "
           f"(life {life:g} h, safety factor {sf}, blade taper At/Ah {at_ah} (K = {0.5 * (1 + at_ah):.2f}), pattern factor {pf}; "
@@ -182,6 +215,29 @@ def main() -> int:
         L += md_table(
             stats["infeasible_high_tit_by_constraint"], "active constraints (material status)"
         ) + [""]
+    if "high_tit_infeasibility_cause" in stats:
+        c = stats["high_tit_infeasibility_cause"]
+        L += ["Infeasible high-TIT designs: PHYSICS or MISSING DATA (`turboml/analysis/feasibility.py`; physics = every "
+              "material fails a check its rupture data cover, or IN-713C metal above its solidus; missing data = some "
+              "material fails only because a metal temperature is above its data):", ""]  # fmt: skip
+        L += md_table(c["cause"], "cause") + [""]
+        L += (
+            ["Physics, IN-713C checks failed:", ""] + md_table(c["physics_in713c"], "checks") + [""]
+        )
+        L += (
+            ["Missing data, data-limited material(s):", ""]
+            + md_table(c["missing_data_limited_materials"], "materials")
+            + [""]
+        )
+    if "tip_speed_regime" in stats:
+        L += ["Compressor tip-speed regime (R3, D-060): **validated** = U2 <= 415 m/s (top measured Murray speed line), "
+              "**extrapolated** = above it (wider calibration band, one-sided toward lower slip / higher loss):", "",
+              "| regime / TIT band | designs | designed | feasible | % of designs | % of designed |", "|---|---|---|---|---|---|"]  # fmt: skip
+        for k, v in stats["tip_speed_regime"].items():
+            L.append(
+                f"| {k} | {v['designs']} | {v['designed']} | {v['feasible']} | {v['feasible_%_of_designs']} | {v['feasible_%_of_designed']} |"
+            )
+        L.append("")
     if "t1_hub_tip" in stats:
         t = stats["t1_hub_tip"]
         L += [f"Turbine hub/tip (option T1, D-055): sampled {t['sampled_hub_tip_range'][0]} – {t['sampled_hub_tip_range'][1]}; "

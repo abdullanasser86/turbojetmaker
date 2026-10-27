@@ -74,6 +74,7 @@ def flatten(jsonl: Path, out_dir: Path, split_csv: Path) -> tuple[pd.DataFrame, 
         base = {"design_id": r["design_id"], "split": split[r["design_id"]], "status": r["status"],
                 "failure_reason": r["failure_reason"], "calibration_sampled": r["calibration_sampled"],
                 "delta_sigma": r["delta_sigma"], "diffuser_cf": r["diffuser_cf"], "time_s": r.get("time_s"),
+                "tip_speed_regime": r.get("tip_speed_regime"), "compressor_band_scale": r.get("compressor_band_scale"),
                 **{f"in_{k}": v for k, v in r["inputs"].items()}}  # fmt: skip
         g = r.get("geometry", {})
         m = r.get("mechanical", {})

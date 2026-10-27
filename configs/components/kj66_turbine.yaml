@@ -1,0 +1,28 @@
+# KJ-66 axial turbine stage (single stage, NGV + rotor) for the Murray (2009) KJ-66 validation case (D-061).
+#
+# kind: published  = printed in the source below
+#       calibrated, not measured = fitted to Murray's MEASURED turbine maps (scripts/phase4/turbine_calibration_murray.py);
+#                    NOT a measured dimension of any engine. Keep this label wherever the value is used.
+#       assumption   = engineering choice
+#
+# [XU21] Xu, Wu, Liu & Piao, GPPS-TC-2021-0117, GPPS Xi'an 2021, CC BY 4.0, "New KJ66" micro turbine engine.
+#        CAUTION (user, 2026-10-27): a REDESIGNED one-spool KJ66 derived from Teixeira et al. (GT2018); its compressor
+#        differs from Xiang's. Treat the counts as "a published KJ66 variant", not certain for Murray's ArtesJet KJ-66.
+# [HOB]  hobby build sources: 66 mm turbine wheel, NGV and wheel in Inconel 713C (supporting evidence only).
+
+rotor_tip_radius_m: {value: 0.033, kind: published, source: "[XU21] rotor diameter 66 mm; [HOB] 66 mm wheel"}
+n_ngv: {value: 18, kind: published, source: "[XU21]"}
+n_rotor: {value: 24, kind: published, source: "[XU21]"}
+tip_clearance_height_ratio: {value: 0.01, kind: published, source: "[XU21] tip clearance 1 % of blade height"}
+design_speed_rpm: {value: 80000, kind: published, source: "[XU21] design speed of the redesigned variant (Murray's KJ-66 runs to 120 krpm); reference only, not used"}
+engine_length_m: {value: 0.240, kind: published, source: "[XU21]"}
+engine_diameter_m: {value: 0.108, kind: published, source: "[XU21]"}
+engine_mass_kg: {value: 0.93, kind: published, source: "[XU21]"}
+annulus: {value: cylindrical, kind: assumption, source: "same hub and tip radius for NGV and rotor (no flare published)"}
+rotor_le_rule: {value: zero_incidence_at_murray_D10, kind: assumption, source: "rotor metal inlet angle = relative inflow angle at Murray App D point D.10 (120 krpm)"}
+
+# Calibrated, not measured (filled by scripts/phase4/turbine_calibration_murray.py; null until calibrated)
+hub_tip: {value: null, kind: "calibrated, not measured", sigma_1: null}
+ngv_gauging_deg: {value: null, kind: "calibrated, not measured", sigma_1: null}
+rotor_gauging_deg: {value: null, kind: "calibrated, not measured", sigma_1: null}
+rotor_le_deg: {value: null, kind: "derived from the calibrated values (rotor_le_rule)"}

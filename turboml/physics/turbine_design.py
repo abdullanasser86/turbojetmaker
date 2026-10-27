@@ -370,3 +370,57 @@ def max_hub_tip_for_exit_mach(mdot_kg_s: float, T0_in_K: float, p0_in_Pa: float,
     rho3 = p03 * gas.p_ratio_isentropic(T03, T3) / (gas.R * T3)
     h = mdot_kg_s / (rho3 * cx) / (2 * math.pi * r_m)
     return (r_m - h / 2) / (r_m + h / 2)
+
+
+def stage_from_counts(r_tip_m: float, hub_tip: float, n_ngv: int, n_rotor: int, ngv_gauging_deg: float,
+                      rotor_gauging_deg: float, rotor_le_deg: float, tip_clearance_height_ratio: float,
+                      **overrides) -> AxialStageGeometry:  # fmt: skip
+    """Geometry of an EXISTING single axial stage known by its counts and angles (analysis mode, not design mode).
+
+    Used to rebuild a real turbine (e.g. the KJ-66) whose tip radius and blade counts are published but whose hub
+    radius and blade angles are not (those are then calibrated against measured maps; scripts/phase4/
+    turbine_calibration_murray.py). Construction (all ASSUMPTIONS where marked; preliminary design only):
+
+    * cylindrical annulus: the same hub and tip radius for NGV and rotor, inlet and exit (ASSUMPTION: no flare data);
+    * pitch s = 2 pi r_m / N from the blade count, r_m = r_tip (1 + hub/tip) / 2;
+    * throat opening o = s cos(g) from the gauging angle g (cos g = o/s; constant blade height);
+    * NGV metal inlet angle = axial (0 deg, as `stator_inlet_angle_deg`); rotor metal inlet angle `rotor_le_deg`;
+    * axial chord from Zweifel's tangential loading coefficient Z (Dixon & Hall Ch. 3) with the METAL angles:
+      c_x = Z s / (2 cos^2(a_out) |tan a_in - tan a_out|); stagger = (inlet + signed gauging)/2;
+    * thickness, leading edge and trailing edge from configs/components/axial_turbine_design.yaml rules
+      (as `size_axial_stage`); rotor tip clearance = `tip_clearance_height_ratio` x blade height (no floor).
+    Angles: degrees from axial, TurboFlow convention (rotor exit negative; pass `rotor_gauging_deg` unsigned).
+    """
+    d = {**load_design_defaults(), **overrides}
+    r_hub = hub_tip * r_tip_m
+    r_m, h = 0.5 * (r_tip_m + r_hub), r_tip_m - r_hub
+    fr = d["throat_location_fraction"]
+    le = [d["stator_inlet_angle_deg"], rotor_le_deg]
+    gs = [ngv_gauging_deg, -rotor_gauging_deg]
+    geom: dict = {k: [0.0, 0.0] for k in (
+        "pitch", "chord", "stagger_angle", "opening", "leading_edge_angle", "leading_edge_wedge_angle",
+        "leading_edge_diameter", "trailing_edge_thickness", "maximum_thickness", "tip_clearance",
+        "throat_location_fraction")}  # fmt: skip
+    for i, n in enumerate((n_ngv, n_rotor)):
+        pitch = 2 * math.pi * r_m / n
+        ta, tb = math.tan(le[i] * _D2R), math.tan(gs[i] * _D2R)
+        cx = 2 * pitch * math.cos(gs[i] * _D2R) ** 2 * abs(ta - tb) / d["zweifel_coefficient"]
+        stagger = 0.5 * (le[i] + gs[i])
+        chord = cx / math.cos(stagger * _D2R)
+        opening = pitch * math.cos(gs[i] * _D2R)
+        geom["pitch"][i], geom["chord"][i], geom["stagger_angle"][i], geom["opening"][i] = (
+            pitch,
+            chord,
+            stagger,
+            opening,
+        )
+        geom["leading_edge_angle"][i] = le[i]
+        geom["leading_edge_wedge_angle"][i] = d["leading_edge_wedge_angle_deg"]
+        geom["leading_edge_diameter"][i] = d["leading_edge_diameter_chord_ratio"] * chord
+        geom["trailing_edge_thickness"][i] = max(d["trailing_edge_thickness_opening_ratio"] * opening,
+                                                 d["min_trailing_edge_thickness_m"])  # fmt: skip
+        geom["maximum_thickness"][i] = _thickness_rule(abs(le[i] - gs[i]), chord)
+        geom["tip_clearance"][i] = 0.0 if i == 0 else tip_clearance_height_ratio * h
+        geom["throat_location_fraction"][i] = fr
+    return AxialStageGeometry(radius_hub_in=[r_hub, r_hub], radius_hub_out=[r_hub, r_hub],
+                              radius_tip_in=[r_tip_m, r_tip_m], radius_tip_out=[r_tip_m, r_tip_m], **geom)  # fmt: skip

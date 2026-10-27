@@ -29,7 +29,7 @@ points:
 
 # Compressor calibration uncertainty (configs/components/kj66_compressor_calibration.yaml `phase4_sampling`):
 # this fraction of designs gets (delta_sigma, diffuser_cf) uniform in the inflated band; the rest the nominal values.
-calibration_sampling: configs/components/kj66_compressor_calibration.yaml
+calibration_sampling: configs/components/kj66_compressor_calibration_v1_xiang90k.yaml  # frozen, superseded by R1 (D-059)
 
 # Frozen held-out test set (user decision 2026-10-25): fraction of design ids, chosen once from the seed and
 # written to data/splits/phase4_v1_split.csv before any surrogate work. Never used for training or tuning.

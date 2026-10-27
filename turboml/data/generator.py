@@ -5,7 +5,8 @@ How a design is evaluated
 -------------------------
 1. Design variables come from a scrambled Sobol sequence (even coverage of the design box; the box and the
    sources of its bounds are in configs/bounds.yaml). A seeded 20 % of the designs also sample the compressor
-   calibration factors inside their inflated uncertainty band (configs/components/kj66_compressor_calibration.yaml).
+   calibration factors inside their inflated uncertainty band (configs/components/kj66_compressor_calibration.yaml);
+   designs above the validated tip speed (415 m/s) are flagged "extrapolated" and get a wider band (`compressor_band`).
 2. Design mode (`turboml.physics.engine.design_engine`) sizes compressor, turbine and nozzle. If that fails,
    the design is recorded with its failure label and all four points are marked "design_failed".
 3. Mechanical/creep checks at the design point (`turboml.physics.mechanical`): feasibility, selected material,
@@ -67,11 +68,10 @@ def sample_designs(spec: DatasetSpec) -> list[dict]:
     rng = np.random.default_rng(cfg["seed"] + 1)  # separate stream for the calibration sampling
     cal = spec.calibration
     frac = float(cal["phase4_sampling"]["fraction_of_designs"])
-    ds_lo, ds_hi = cal["delta_sigma"][cal["phase4_sampling"]["range"]]
-    cf_lo, cf_hi = cal["diffuser_cf"][cal["phase4_sampling"]["range"]]
     sampled = rng.random(n) < frac
-    ds = np.where(sampled, rng.uniform(ds_lo, ds_hi, n), cal["delta_sigma"]["value"])
-    cf = np.where(sampled, rng.uniform(cf_lo, cf_hi, n), cal["diffuser_cf"]["value"])
+    u_ds, u_cf = rng.random(n), rng.random(
+        n
+    )  # same stream and order as rng.uniform(lo, hi, n) before R3
     out = []
     for i in range(n):
         x = {}
@@ -91,9 +91,60 @@ def sample_designs(spec: DatasetSpec) -> list[dict]:
             else:
                 x[key] = lo * (hi / lo) ** u[i, j] if scale == "log" else lo + (hi - lo) * u[i, j]
         x.update({k: float(v) for k, v in spec.cfg["design_condition"].items()})
-        out.append({"design_id": i, "inputs": x, "calibration_sampled": bool(sampled[i]),
-                    "delta_sigma": float(ds[i]), "diffuser_cf": float(cf[i])})  # fmt: skip
+        band = compressor_band(cal, x.get("impeller_tip_speed_m_s"))
+        (ds_lo, ds_hi), (cf_lo, cf_hi) = band["delta_sigma"], band["diffuser_cf"]
+        ds = ds_lo + (ds_hi - ds_lo) * u_ds[i] if sampled[i] else cal["delta_sigma"]["value"]
+        cf = cf_lo + (cf_hi - cf_lo) * u_cf[i] if sampled[i] else cal["diffuser_cf"]["value"]
+        rec = {"design_id": i, "inputs": x, "calibration_sampled": bool(sampled[i]),
+               "delta_sigma": float(ds), "diffuser_cf": float(cf)}  # fmt: skip
+        if (
+            band["tip_speed_regime"] is not None
+        ):  # calibration files with an `extrapolation` section (R1/R3)
+            rec.update(tip_speed_regime=band["tip_speed_regime"], compressor_band_scale=band["scale"],
+                       compressor_band={"delta_sigma": list(band["delta_sigma"]), "diffuser_cf": list(band["diffuser_cf"])})  # fmt: skip
+        out.append(rec)
     return out
+
+
+def compressor_band(cal: dict, u2_m_s: float | None) -> dict:
+    """Sampling range of the compressor calibration factors for a design with impeller tip speed `u2_m_s`.
+
+    Inside the validated tip-speed range (U2 <= top measured speed line, 415 m/s for the KJ-66 data) this is the
+    inflated band of the calibration file. Above it the design is "extrapolated" (R3, user decision 2026-10-27) and
+    the band is widened by W(U2) = e(U2) / e(U_top), where e is the fitted growth of the refit PR error with tip speed
+    (scripts/phase4/compressor_refit_murray.py), one-sided in the direction of the measured bias (lower slip, higher
+    diffuser loss). Calibration files without an `extrapolation` section (v1, frozen) give the plain band and
+    regime None.
+    """
+    rng_name = cal["phase4_sampling"]["range"]
+    ds_c, cf_c = cal["delta_sigma"]["value"], cal["diffuser_cf"]["value"]
+    (ds_lo, ds_hi), (cf_lo, cf_hi) = cal["delta_sigma"][rng_name], cal["diffuser_cf"][rng_name]
+    ext = cal.get("extrapolation")
+    if ext is None or u2_m_s is None:
+        return {
+            "tip_speed_regime": None,
+            "scale": 1.0,
+            "delta_sigma": (ds_lo, ds_hi),
+            "diffuser_cf": (cf_lo, cf_hi),
+        }
+    w = 1.0
+    if u2_m_s > ext["validated_tip_speed_max_m_s"]:
+        g = ext["growth_law"]
+        w = max(
+            1.0,
+            float(
+                np.polyval(g["pr_coef_c2_c1_c0"], u2_m_s)
+                / np.polyval(g["pr_coef_c2_c1_c0"], g["U_top_m_s"])
+            ),
+        )
+        ds_lo, cf_hi = ds_c - w * (ds_c - ds_lo), cf_c + w * (cf_hi - cf_c)
+    regime = "extrapolated" if u2_m_s > ext["validated_tip_speed_max_m_s"] else "validated"
+    return {
+        "tip_speed_regime": regime,
+        "scale": w,
+        "delta_sigma": (ds_lo, ds_hi),
+        "diffuser_cf": (cf_lo, cf_hi),
+    }
 
 
 def make_test_split(n: int, fraction: float, seed: int) -> np.ndarray:

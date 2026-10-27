@@ -1,0 +1,190 @@
+vs_ni393:
+  common_points: 7
+  rows:
+  - T_F: 1500
+    life_h: 100
+    ksi_393: 60.0
+    ksi_337: 60.0
+    diff_pct: 0.0
+  - T_F: 1700
+    life_h: 100
+    ksi_393: 30.0
+    ksi_337: 30.0
+    diff_pct: 0.0
+  - T_F: 1800
+    life_h: 100
+    ksi_393: 21.0
+    ksi_337: 21.0
+    diff_pct: 0.0
+  - T_F: 2000
+    life_h: 100
+    ksi_393: 6.4
+    ksi_337: 6.4
+    diff_pct: 0.0
+  - T_F: 1500
+    life_h: 1000
+    ksi_393: 44.0
+    ksi_337: 44.0
+    diff_pct: 0.0
+  - T_F: 1700
+    life_h: 1000
+    ksi_393: 18.0
+    ksi_337: 18.0
+    diff_pct: 0.0
+  - T_F: 1800
+    life_h: 1000
+    ksi_393: 13.0
+    ksi_337: 13.0
+    diff_pct: 0.0
+  new_in_337:
+  - '1350 F / 100 h: 97.0 ksi (extrapolated)'
+  - '1350 F / 1000 h: 76.0 ksi'
+  - '1350 F / 10000 h: 56.0 ksi'
+  - '1500 F / 10 h: 86.0 ksi (extrapolated)'
+  - '1500 F / 10000 h: 30.0 ksi'
+  - '1700 F / 10 h: 42.0 ksi (extrapolated)'
+  - '1700 F / 10000 h: 12.0 ksi'
+  - '1800 F / 10 h: 29.0 ksi'
+  - '2000 F / 10 h: 9.5 ksi'
+user_anchors_1350F:
+  1000h_ksi: 76.0
+  10000h_ksi: 56.0
+  100h_ksi: 97.0
+  100h_extrapolated: true
+  match: true
+ams5391_check:
+  requirement: '>= 30 h at 1800 F / 22 ksi (982 C / 152 MPa), as cast'
+  table_II_test_h:
+  - 65
+  p7_table_loglog_h: 71.8
+  larson_miller_fig7_h: 66.6
+  P_at_22ksi: 49.32
+  creep_model_h: 49.1
+  pass: true
+larson_miller_consistency:
+  p7_table:
+    n: 13
+    mean_dev_pct: -6.2
+    rms_dev_pct: 10.7
+    max_abs_dev_pct: 31.0
+    outside_curve_range: 0
+  p7_table_extrapolated:
+    n: 2
+    mean_dev_pct: 1.7
+    rms_dev_pct: 3.9
+    max_abs_dev_pct: 5.2
+    outside_curve_range: 1
+  table_II:
+    n: 36
+    mean_dev_pct: -5.3
+    rms_dev_pct: 10.8
+    max_abs_dev_pct: 37.5
+    outside_curve_range: 1
+larson_miller_curve_range_P:
+  vmvc_solid:
+  - 40.05
+  - 51.95
+  vmvc_dashed_extrapolated_to: 54.64
+creep_model_vs_ni337:
+- T_F: 1350
+  life_h: 1000
+  ni337_ksi: 76.0
+  model_ksi: 65.0
+  method: below_data_held
+  diff_pct: -14.5
+- T_F: 1350
+  life_h: 10000
+  ni337_ksi: 56.0
+  model_ksi: 57.91
+  method: larson_miller_fit
+  diff_pct: 3.4
+- T_F: 1500
+  life_h: 100
+  ni337_ksi: 60.0
+  model_ksi: 60.0
+  method: table
+  diff_pct: -0.0
+- T_F: 1500
+  life_h: 1000
+  ni337_ksi: 44.0
+  model_ksi: 44.0
+  method: table
+  diff_pct: -0.0
+- T_F: 1500
+  life_h: 10000
+  ni337_ksi: 30.0
+  model_ksi: 32.12
+  method: larson_miller_fit
+  diff_pct: 7.1
+- T_F: 1700
+  life_h: 100
+  ni337_ksi: 30.0
+  model_ksi: 30.0
+  method: table
+  diff_pct: -0.0
+- T_F: 1700
+  life_h: 1000
+  ni337_ksi: 18.0
+  model_ksi: 18.0
+  method: table
+  diff_pct: -0.0
+- T_F: 1700
+  life_h: 10000
+  ni337_ksi: 12.0
+  model_ksi: 12.02
+  method: larson_miller_fit
+  diff_pct: 0.2
+- T_F: 1800
+  life_h: 10
+  ni337_ksi: 29.0
+  model_ksi: 29.74
+  method: larson_miller_fit
+  diff_pct: 2.5
+- T_F: 1800
+  life_h: 100
+  ni337_ksi: 21.0
+  model_ksi: 21.0
+  method: table
+  diff_pct: 0.0
+- T_F: 1800
+  life_h: 1000
+  ni337_ksi: 13.0
+  model_ksi: 13.0
+  method: table
+  diff_pct: 0.0
+- T_F: 2000
+  life_h: 10
+  ni337_ksi: 9.5
+  model_ksi: 12.52
+  method: larson_miller_fit
+  diff_pct: 31.8
+- T_F: 2000
+  life_h: 100
+  ni337_ksi: 6.4
+  model_ksi: 6.4
+  method: table
+  diff_pct: 0.0
+solidus_K: 1533.15
+high_tit_infeasibility_phase4_v4:
+  designed_engines_TIT_above_1150K: 160
+  infeasible: 157
+  cause_counts:
+    physics: 141
+    missing_data: 16
+  physics_detail_in713c:
+    AN2: 108
+    AN2;ngv_above_solidus: 33
+  physics_detail_marm247:
+    AN2: 139
+    creep_rotor: 2
+  missing_data_detail:
+    'marm247: in713c[ngv_above_data] marm247[ngv_above_data]': 8
+    'in713c;marm247: in713c[ngv_above_data] marm247[ngv_above_data]': 5
+    'marm247: in713c[] marm247[ngv_above_data]': 3
+  ngv_metal_T_K_range_missing_data:
+  - 1339.0
+  - 1449.2
+  rotor_metal_T_K_range_all:
+  - 1082.5
+  - 1310.7
+  in713c_rotor_data_top_K_100h: 1366.48

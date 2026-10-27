@@ -1,0 +1,12 @@
+# Nickel Institute publication No. 337, "Engineering Properties of Alloy 713C". TRANSCRIBED as printed.
+# kind: spec_minimum = AMS 5391 requirement for as-cast 713C (p. 3); typical = handbook typical value.
+property,value,unit,value_SI,unit_SI,condition,kind,page,note
+ams5391_rupture_test_temperature,1800,F,1255.37,K,as cast,spec_minimum,3,AMS 5391 stress-rupture test
+ams5391_rupture_test_stress,22000,psi,151.68,MPa,as cast,spec_minimum,3,
+ams5391_rupture_life_min,30,h,30,h,as cast,spec_minimum,3,life >= 30 h
+ams5391_rupture_elongation_min,5,% in 4D,5,%,as cast,spec_minimum,3,
+ams5391_yield_strength_70F_min,100000,psi,689.48,MPa,as cast,spec_minimum,3,0.2 % yield
+ams5391_tensile_strength_70F_min,110000,psi,758.42,MPa,as cast,spec_minimum,3,
+density,0.286,lb/in3,7913,kg/m3,,typical,4,printed 7.913 g/cm3
+melting_range_low,2300,F,1533.15,K,,typical,4,printed 1260 C (solidus end of the range)
+melting_range_high,2350,F,1561.15,K,,typical,4,printed 1288 C

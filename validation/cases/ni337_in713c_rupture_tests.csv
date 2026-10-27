@@ -1,0 +1,45 @@
+# Nickel Institute publication No. 337, "Engineering Properties of Alloy 713C", Table II "Long-Time Stress-Rupture Data
+# on Alloy 713C (as cast, vacuum melted, vacuum cast)", p. 9. TRANSCRIBED as printed: individual test results [MEAS].
+# heat_note: 1800F_other_heat = "* This data obtained on a different heat"; condition: as_cast, or
+#   as_cast_plus_1700F_16h_AC ("† Test bars in as cast plus 1700 F-16 hrs-AC condition").
+# runout: the 1700 F / 12,500 psi / 9602 h test ended when the pull rod broke (life is a lower bound, not a rupture).
+# Elongation / reduction of area in %; "-" printed = empty.
+T_F,T_K,stress_psi,stress_MPa,life_h,elong_pct,ra_pct,condition,heat_note,runout
+2000,1366.48,10000,68.95,9,20,26,as_cast,,false
+2000,1366.48,7500,51.71,17,50,73,as_cast,,false
+2000,1366.48,7500,51.71,33,18,56,as_cast,,false
+2000,1366.48,6000,41.37,176,19,65,as_cast,,false
+1800,1255.37,27500,189.61,15,8,21,as_cast,1800F_other_heat,false
+1800,1255.37,25000,172.37,25,8,22,as_cast,1800F_other_heat,false
+1800,1255.37,22000,151.68,65,6,13,as_cast,1800F_other_heat,false
+1800,1255.37,20000,137.90,132,7,21,as_cast,1800F_other_heat,false
+1800,1255.37,18000,124.11,191,8,,as_cast,1800F_other_heat,false
+1800,1255.37,16000,110.32,381,3.5,12,as_cast,1800F_other_heat,false
+1800,1255.37,13000,89.63,943,5,11.5,as_cast,1800F_other_heat,false
+1700,1199.82,35000,241.32,33,12,23,as_cast,,false
+1700,1199.82,30000,206.84,103,16,15,as_cast,,false
+1700,1199.82,30000,206.84,109,7,14,as_cast,,false
+1700,1199.82,25000,172.37,266,8.5,25,as_cast,,false
+1700,1199.82,25000,172.37,327,12,19,as_cast,,false
+1700,1199.82,20000,137.90,496,22,34,as_cast,,false
+1700,1199.82,20000,137.90,867,12,31,as_cast,,false
+1700,1199.82,15000,103.42,1896,25,40,as_cast,,false
+1700,1199.82,15000,103.42,2376,12,27,as_cast,,false
+1700,1199.82,12500,86.18,6905,14,25,as_cast,,false
+1700,1199.82,12500,86.18,9602,,,as_cast,,true
+1500,1088.71,65000,448.16,42,9,11,as_cast,,false
+1500,1088.71,65000,448.16,66,7,9,as_cast,,false
+1500,1088.71,55000,379.21,292,6.5,9,as_cast,,false
+1500,1088.71,45000,310.26,795,7,14,as_cast,,false
+1500,1088.71,40000,275.79,1738,10,12.5,as_cast,,false
+1500,1088.71,35000,241.32,3765,12.5,19,as_cast,,false
+1500,1088.71,29000,199.95,12182,12.5,17,as_cast,,false
+1500,1088.71,29000,199.95,19862,11,12,as_cast,,false
+1350,1005.37,90000,620.53,221,7,10,as_cast,,false
+1350,1005.37,80000,551.58,656,8,9,as_cast,,false
+1350,1005.37,70000,482.63,2380,6,10,as_cast,,false
+1350,1005.37,60000,413.69,5832,6,10,as_cast,,false
+1350,1005.37,90000,620.53,210,7.5,7.5,as_cast_plus_1700F_16h_AC,,false
+1350,1005.37,80000,551.58,562,8,8.5,as_cast_plus_1700F_16h_AC,,false
+1350,1005.37,70000,482.63,2594,7,6.5,as_cast_plus_1700F_16h_AC,,false
+1350,1005.37,55000,379.21,12033,12,12,as_cast_plus_1700F_16h_AC,,false

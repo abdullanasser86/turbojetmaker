@@ -1,0 +1,22 @@
+# Nickel Institute publication No. 337, "Engineering Properties of Alloy 713C", p. 7, table "Stress-Rupture Properties
+# (See Figure 6 and Table II)": stress (psi) for rupture in 10 / 100 / 1000 / 10,000 h. TRANSCRIBED as printed.
+# Material: as cast, vacuum melted, vacuum cast (Figure 6 and Table II captions). TYPICAL (average) values, not minima.
+# extrapolated = value printed in parentheses ("( ) Denotes extrapolated values"); not used for allowables.
+# "-" in the source (no value) is omitted. strength_MPa = ksi x 6.894757 (derived).
+alloy,T_F,T_K,life_h,strength_ksi,strength_MPa,extrapolated,page
+in713c,1350,1005.37,100,97,668.79,true,7
+in713c,1350,1005.37,1000,76,524.00,false,7
+in713c,1350,1005.37,10000,56,386.11,false,7
+in713c,1500,1088.71,10,86,592.95,true,7
+in713c,1500,1088.71,100,60,413.69,false,7
+in713c,1500,1088.71,1000,44,303.37,false,7
+in713c,1500,1088.71,10000,30,206.84,false,7
+in713c,1700,1199.82,10,42,289.58,true,7
+in713c,1700,1199.82,100,30,206.84,false,7
+in713c,1700,1199.82,1000,18,124.11,false,7
+in713c,1700,1199.82,10000,12,82.74,false,7
+in713c,1800,1255.37,10,29,199.95,false,7
+in713c,1800,1255.37,100,21,144.79,false,7
+in713c,1800,1255.37,1000,13,89.63,false,7
+in713c,2000,1366.48,10,9.5,65.50,false,7
+in713c,2000,1366.48,100,6.4,44.13,false,7

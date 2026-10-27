@@ -1,57 +1,79 @@
 # Calibrated effective parameters of the TurboML centrifugal-compressor meanline model, from the KJ-66.
-# STATUS: PROVISIONAL DEFAULTS for every new compressor design (user decision 2026-10-25, item 1).
-# Recalibrate when new data arrive (DePaola 2020, Murray 2009 thesis, Xiang 2015 thesis are requested).
-# If Xiang's geometry makes these factors unnecessary, switch to the geometry-based model and report the change.
+# STATUS: R1 REFIT (user decision 2026-10-27, round 5 item 1a; D-059). Provisional defaults for every new compressor design.
+# Previous calibration (90 krpm only, Murray data as re-plotted by Xiang 2016): kj66_compressor_calibration_v1_xiang90k.yaml
+# (frozen; used by datasets phase4 v1-v4).
 #
-# Produced by scripts/phase2/kj66_compressor_validation.py (fit) and
-# scripts/phase3/compressor_calibration_band.py (uncertainty band).
+# Produced by scripts/phase4/compressor_refit_murray.py -> validation/phase4/compressor_refit_murray.yaml/.csv/.png
 #
-# What the factors are: EFFECTIVE values. delta_sigma corrects the Wiesner slip factor (it absorbs the
-# unknown real backsweep/slip of the KJ-66 wheel); diffuser_cf (~19x a plain vaneless-diffuser value)
-# absorbs the unmodelled wedge-vane diffuser and 90-degree-turn losses. Applying them to other designs
-# assumes those designs have KJ-66-like losses. That is the provisional assumption.
+# What the factors are: EFFECTIVE values. delta_sigma corrects the Wiesner slip factor (it absorbs the unknown real
+# backsweep/slip of the KJ-66 wheel); diffuser_cf (~20x a plain vaneless-diffuser value) absorbs the unmodelled
+# wedge-vane diffuser and 90-degree-turn losses. Applying them to other designs assumes KJ-66-like losses.
+# KNOWN MODEL-FORM LIMIT: with only these two factors the model cannot follow the measured trend with speed. The refit
+# PR error is about -1.5 to -1.9 % at 50-90 krpm and grows to +2.4 % at 110 and +5.0 % at 120 krpm (model too high).
+# No high-tip-speed loss term is added (R2: needs a published source, user decision 2026-10-27).
 
 model: turboml.physics.compressor.CentrifugalCompressor (slip wiesner, incidence blade_relative, loss_convention oh_aungier)
 geometry: configs/components/kj66_compressor.yaml
 
 delta_sigma:
-  value: -0.1041
+  value: -0.1176
   kind: calibrated
-  slip_factor_on_kj66: 0.7031
-  sigma_1: 0.0074
-  band_2sigma: [-0.1189, -0.0893]
-  band_inflated: [-0.1448, -0.0634]   # statistical + model-form, see `band_inflation` below
+  slip_factor_on_kj66: 0.6896
+  sigma_1: 0.0136
+  band_2sigma: [-0.1448, -0.0904]
+  band_inflated: [-0.2128, -0.0224]   # centre +- k * 2 sigma, k = 3.5 (see band_inflation)
 diffuser_cf:
-  value: 0.0937
+  value: 0.1002
   kind: calibrated
-  sigma_1: 0.0039
-  band_2sigma: [0.0860, 0.1015]
-  band_inflated: [0.0724, 0.1150]
-parameter_correlation: -0.14
+  sigma_1: 0.0071
+  band_2sigma: [0.0860, 0.1144]
+  band_inflated: [0.0505, 0.1499]
+parameter_correlation: -0.206
 
 fit:
-  method: "least squares (scipy least_squares, bounds delta_sigma [-0.25, 0.10], Cf [0.002, 0.5]); residuals PR/PR_meas - 1 and eta/eta_meas - 1"
-  band_method: "cov = s^2 (J^T J)^-1 from the LSQ Jacobian, s^2 = RSS/(n-p), n = 10, p = 2; residual rms 0.0123"
-  band_caveat: "STATISTICAL band from 10 digitized points only. It excludes model-form error: the held-out speeds show PR errors up to 4.6 % and efficiency up to 3.1 pts (docs/VALIDATION.md)."
-  source: "Murray 2009 MSc thesis (Queen's University), engine-test MEASURED data as plotted in Xiang, Schlueter & Duan 2016, Proc IMechE G, doi:10.1177/0954410016644632, Figs 6-7; digitized by TurboML (validation/cases/kj66_compressor_exp_murray2009.csv)"
-  # calibration/validation split (also in docs/VALIDATION.md). Validation errors are only ever reported
-  # on the held-out speeds.
-  calibration_points: {speed_rpm: [90000], rows: "5 pressure-ratio + 5 efficiency rows at 90 krpm (m = 0.140-0.155 kg/s)"}
-  validation_points: {speed_rpm: [70000, 80000, 100000, 110000], rows: "all other measured rows of the same file"}
+  method: "least squares (scipy least_squares, bounds delta_sigma [-0.25, 0.10], Cf [0.002, 0.5]); residuals PR/PR_meas - 1 at the measured corrected flow and eta/eta_meas - 1; every calibration line weighted equally, PR and eta groups equally within a line (1/sqrt(n_group))"
+  band_method: "cov = s^2 (J^T J)^-1 from the LSQ Jacobian, s^2 = RSS/(n-p), n = 23, p = 2; weighted residual rms 0.0191"
+  inlet: "standard day 288.15 K / 101.325 kPa (model flow and speed = Murray's corrected values)"
+  source: "Murray 2009 MSc thesis (Queen's University) Figs 5.12 (PR) and 5.14 (efficiency), engine-test MEASURED maps, digitized [MEAS] by TurboML (validation/cases/murray2009/murray2009_ch5_maps_digitized.csv)"
+  # calibration/validation split (also in docs/VALIDATION.md). Validation errors are only ever reported on held-out lines.
+  calibration_points: {speed_rpm: [50000, 70000, 90000, 110000], rows: "Fig 5.12: 7 PR points; Fig 5.14: 16 efficiency points"}
+  validation_points: {speed_rpm: [40000, 60000, 80000, 100000, 120000], rows: "Fig 5.12: 8 PR points; Fig 5.14: 16 efficiency points"}
+  held_out_errors:   # validation/phase4/compressor_refit_murray.yaml `per_speed_line_refit` (mean per line)
+    "40":  {PR_err_pct: -2.0, Mcorr_err_pct: -5.9, eta_err_pts: 14.2}
+    "60":  {PR_err_pct: -1.8, Mcorr_err_pct: -2.2, eta_err_pts: -0.6}
+    "80":  {PR_err_pct: -1.6, Mcorr_err_pct: -0.7, eta_err_pts: -2.3}
+    "100": {PR_err_pct: 0.6, Mcorr_err_pct: 0.2, eta_err_pts: 0.6}
+    "120": {PR_err_pct: 5.0, Mcorr_err_pct: 4.4, eta_err_pts: 6.1}
 
 band_inflation:
-  # User decision 2026-10-25: widen the statistical band until >= 95 % of the held-out measured points lie inside
-  # the model's prediction envelope (min/max over a 3 x 3 grid of the band, evaluated at each point's mass flow and
-  # speed). Common factor k on both 2-sigma half-widths; smallest k on the grid {1, 2, 2.25, 2.5, 2.75, 3, ...}
-  # with coverage >= 95 %. scripts/phase4/compressor_band_inflation.py -> validation/phase4/compressor_band_*.
+  # Same rule as the user decision of 2026-10-25: widen the statistical band until >= 95 % of the held-out measured
+  # points (here: held-out lines with U2 <= 414.7 m/s, i.e. all of 40-120 krpm) lie inside the model's prediction
+  # envelope (min/max over a 3 x 3 grid of the band at each point's mass flow and speed). Common factor k on both
+  # 2-sigma half-widths, smallest k on the grid {1, 1.5, 2, 2.25, 2.5, 2.75, 3, 3.5, ...} with coverage >= 95 %.
   method: "band = centre +- k * (2-sigma half-width); envelope over 3 x 3 grid; measured value inside [min, max] prediction"
-  k: 2.75
-  coverage_held_out: "34/34 (k = 2.5: 32/34 = 94 %)"
+  k: 3.5
+  coverage_held_out: "23/24 (k = 3.0: 22/24 = 92 %)"
   caveat: "the held-out points size this band, so they are no longer independent evidence for its width (they still are for the point calibration)"
+
+extrapolation:
+  # R3 (user decision 2026-10-27, item 1b): designs above the top measured speed line are flagged "extrapolated" and
+  # get a wider band, sized by how the refit error grows toward that line.
+  validated_tip_speed_max_m_s: 415.0   # top measured line 120 krpm x r2 33 mm = 414.7 m/s (Murray Fig 5.12)
+  growth_law:
+    form: "signed mean PR error per line [%] = c2 U2^2 + c1 U2 + c0 (U2 in m/s), fitted on lines 50-120 krpm"
+    pr_coef_c2_c1_c0: [2.1465050e-4, -1.0037994e-1, 9.6082475]
+    residual_rms_pct: 0.185
+    U_top_m_s: 414.7
+    extrapolated_PR_err_pct: {"440": 7.0, "460": 8.9, "480": 10.9, "500": 13.1}
+    alternative: "straight line through the 100/110/120 krpm lines gives W(500) = 2.13 instead of 2.67 (reported, not used)"
+  widening:
+    factor: "W(U2) = max(1, e(U2) / e(U_top)); W(440) = 1.43, W(460) = 1.81, W(480) = 2.22, W(500) = 2.67"
+    sides: "ONE-SIDED, in the direction of the measured bias: above 100 krpm the model over-predicts PR and efficiency, so the band is widened toward lower slip (delta_sigma lower bound) and higher loss (diffuser_cf upper bound): ds_lo' = c - W (c - ds_lo), cf_hi' = c + W (cf_hi - c); the other bounds stay. This also keeps sigma < 1 and Cf > 0 at every W."
+    applies_to: "the calibration-sampled designs (phase4_sampling.fraction_of_designs) with U2 > validated_tip_speed_max_m_s; every design records tip_speed_regime and compressor_band_scale = W"
 
 phase4_sampling:
   # Carry the factors as uncertain parameters: a subset of the dataset samples them inside the band.
   fraction_of_designs: 0.2   # approved by the user 2026-10-25
   distribution: uniform
   range: band_inflated
-  independent: true          # correlation -0.14 neglected
+  independent: true          # correlation -0.21 neglected
