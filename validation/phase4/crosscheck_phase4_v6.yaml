@@ -1,0 +1,37 @@
+designed_engines: 1028
+checked: 21
+fraction: 0.02
+seed: 20261120
+simple_vs_pycycle:
+  flagged: 0
+  flagged_frac: 0.0
+  gate_passed: true
+coupled_vs_pycycle:
+  flagged: 0
+  flagged_frac: 0.0
+  gate_passed: true
+  max_abs_Fn_pct: 0.042
+  max_abs_TSFC_pct: 0.1116
+secondary_dFn_over_Fg_max_abs: 0.00042
+design_ids:
+- 108
+- 155
+- 290
+- 295
+- 667
+- 796
+- 820
+- 904
+- 905
+- 912
+- 1031
+- 1159
+- 1290
+- 1371
+- 1443
+- 1458
+- 1474
+- 1647
+- 1841
+- 1888
+- 1983
