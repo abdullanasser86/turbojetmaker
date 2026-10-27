@@ -59,6 +59,10 @@ def _val(x):
     return x["value"] if isinstance(x, dict) and "value" in x else x
 
 
+# Turbine-solver restarts (D-067): factors on (PR_t - 1) of the starting guess, tried in this order after a failure.
+TURBINE_RETRY_PR_FACTORS = (0.85, 1.2, 1.5)
+
+
 def turbine_loss_multiplier(cfg: dict) -> float:
     """k_loss on the turbine loss coefficients (D-064); 1.0 if the config predates it."""
     return float(_val(cfg.get("turbine_design", {}).get("loss_multiplier", 1.0)))
@@ -495,6 +499,7 @@ class EnginePoint:
     tit_K: float = float("nan")
     pr_t_ts: float = float("nan")
     eta_t_ts: float = float("nan")
+    eta_t_tt: float = float("nan")  # turbine total-to-total efficiency (as Murray's measured maps)
     P_turb_W: float = float("nan")
     turbine_choked: str = ""
     T02_K: float = float("nan")
@@ -516,6 +521,8 @@ class EnginePoint:
     iterations: int = 0
     max_residual: float = float("nan")
     time_s: float = float("nan")
+    retries: int = 0  # turbine-solver restarts used (D-067); 0 = first attempt
+    converged_on_retry: bool = False  # True if the point only converged after a restart
     tags: list = field(default_factory=list)
 
     @property
@@ -651,6 +658,7 @@ class Engine:
         pt = EnginePoint(n_rpm=n_rpm, alt_m=ctx["alt_m"], mach=ctx["mach"], converged=True, W_air_kg_s=m, far=s4.far,
                          Wf_kg_s=Wf, Fn_N=Fn, Fg_N=Fg, TSFC_kg_N_s=Wf / Fn if Fn > 0 else float("nan"), pr_c=cp.pr_tt,
                          eta_c=eta_c, P_comp_W=state["P_c"], tit_K=s4.Tt, pr_t_ts=tp.pr_ts, eta_t_ts=eta_t,
+                         eta_t_tt=tp.eta_tt + diag.get("turbine", 0.0),
                          P_turb_W=state["P_t"], turbine_choked=tp.choked, T02_K=ctx["T02"], p02_Pa=ctx["p02"],
                          T03_K=state["T03"], p03_Pa=cp.pr_tt * ctx["p02"], p04_Pa=s4.Pt, T05_K=state["T05"],
                          T05_static_K=state["T5s"], turbine_exit_mach=tp.exit_mach,
@@ -748,14 +756,50 @@ class Engine:
                 x, st, it, rmax = self._solve(n_rpm, ctx, x0)
             pt = self._point(x, st, n_rpm, ctx, it, rmax, t0)
         except EngineFailure as e:
-            pt = EnginePoint(
-                n_rpm=n_rpm,
-                alt_m=alt_m,
-                mach=mach,
-                failure_reason=str(e),
-                time_s=time.perf_counter() - t0,
-            )
+            pt = self._retry_turbine(n_rpm, ctx, key, str(e), t0) if x0 is None else None
+            if pt is None:
+                pt = EnginePoint(
+                    n_rpm=n_rpm,
+                    alt_m=alt_m,
+                    mach=mach,
+                    failure_reason=str(e),
+                    time_s=time.perf_counter() - t0,
+                    retries=(
+                        len(TURBINE_RETRY_PR_FACTORS)
+                        if str(e).startswith("turbine_no_convergence")
+                        else 0
+                    ),
+                )
         return pt
+
+    def _retry_turbine(self, n_rpm, ctx, key, reason, t0) -> EnginePoint | None:
+        """Turbine-solver restarts (user decision 2026-10-27, D-067). The meanline turbine's root finder fails at
+        isolated operating points, more often with high loss multipliers. Before a point is recorded as
+        `turbine_no_convergence`, the engine Newton solve is restarted directly at the target speed from the usual
+        continuation guess with the turbine pressure-ratio guess changed, (PR - 1) x f for f in
+        TURBINE_RETRY_PR_FACTORS. The first converged restart is returned with its retry count and
+        converged_on_retry = True; None if all restarts fail (the point stays a recorded failure).
+        """
+        if not reason.startswith("turbine_no_convergence"):
+            return None
+        dp = self.design.design_point
+        hist = self._last.get(key) or [(dp.n_rpm, [1.0, 1.0, 1.0])]
+        n_prev, x_prev = min(hist, key=lambda h: abs(h[0] - n_rpm))
+        x_prev = x_prev if x_prev is not None else [1.0, 1.0, 1.0]
+        base = self._guess(key, n_prev, x_prev, n_rpm) if n_prev != n_rpm else list(x_prev)
+        prd = self.scale[2]
+        for i, f in enumerate(TURBINE_RETRY_PR_FACTORS, start=1):
+            x0 = list(base)
+            x0[2] = max(1.0 + 1e-3, 1.0 + (x0[2] * prd - 1.0) * f) / prd
+            try:
+                x, st, it, rmax = self._solve(n_rpm, ctx, x0)
+            except EngineFailure:
+                continue
+            pt = self._point(x, st, n_rpm, ctx, it, rmax, t0)
+            pt.retries, pt.converged_on_retry = i, True
+            self._last.setdefault(key, []).append((n_rpm, list(x)))
+            return pt
+        return None
 
     def _guess(self, key, n_from, x_from, n_to):
         """Initial guess at speed n_to: linear extrapolation from the two nearest solved speeds if available,
@@ -936,11 +980,14 @@ def design_engine(
     dp = EnginePoint(n_rpm=N, alt_m=x.get("alt_m", 0.0), mach=x.get("mach", 0.0), converged=Fn > 0,
                      failure_reason="" if Fn > 0 else "no_net_thrust", W_air_kg_s=m, far=s4.far, Wf_kg_s=Wf, Fn_N=Fn,
                      Fg_N=noz.Fg, TSFC_kg_N_s=Wf / Fn if Fn > 0 else float("nan"), pr_c=cpt.pr_tt, eta_c=cpt.eta_tt,
-                     P_comp_W=cpt.power_W, tit_K=tit, pr_t_ts=tpt.pr_ts, eta_t_ts=tpt.eta_ts, P_turb_W=tpt.power_W,
+                     P_comp_W=cpt.power_W, tit_K=tit, pr_t_ts=tpt.pr_ts, eta_t_ts=tpt.eta_ts, eta_t_tt=tpt.eta_tt,
+                     P_turb_W=tpt.power_W,
                      turbine_choked=tpt.choked, T02_K=T02, p02_Pa=p02, T03_K=cpt.T03_K, p03_Pa=s3.Pt, p04_Pa=s4.Pt,
                      T05_K=tpt.T0_out_K, T05_static_K=tpt.T_out_K, turbine_exit_mach=tpt.exit_mach,
                      p05_Pa=tpt.p0_out_Pa, V9_m_s=noz.V, nozzle_choked=noz.choked,
-                     compressor_tip_speed_m_s=cpt.tip_speed_m_s, t0_rel_rotor_K=tpt.T0_rel_rotor_in_K)  # fmt: skip
+                     compressor_tip_speed_m_s=cpt.tip_speed_m_s, t0_rel_rotor_K=tpt.T0_rel_rotor_in_K,
+                     retries=getattr(tpt, "design_retries", 0),
+                     converged_on_retry=getattr(tpt, "design_retries", 0) > 0)  # fmt: skip
     mats = mechanical.MaterialSet.from_yaml()
     from turboml.config import load_config
 

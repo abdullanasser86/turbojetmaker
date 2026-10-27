@@ -6,7 +6,8 @@ What a surrogate sees
   change), mapped to [0, 1] with the same bounds and scale (linear / log / piecewise) the sampler used. Mapping back
   to the sampler's unit cube makes every input equally "wide" for the kernel or network, and a value outside [0, 1]
   means "outside the training box" (an out-of-distribution flag). Optionally the per-design compressor calibration
-  factors (delta_sigma, diffuser_cf), standardized, so model uncertainty can be propagated through the surrogate.
+  factors (delta_sigma, diffuser_cf) and, from v6, the turbine loss multiplier (turbine_loss_multiplier), standardized,
+  so model uncertainty can be propagated through the surrogate.
 * Regression targets y: chosen quantities of DESIGNED engines at a converged operating point (configs/surrogates.yaml),
   log-transformed when strictly positive and multiplicative (thrust, SFC, mass), then standardized with the TRAINING
   mean/std. Non-converged points are not imputed: that row is simply missing for that target (failures are data,
@@ -190,8 +191,10 @@ def load(dataset: str, cfg: dict | None = None) -> SurrogateData:
     X_raw = pd.DataFrame(Xd, columns=names)
     cal_std = None
     if cfg["inputs"].get("include_calibration_factors", False):
-        C = D[["delta_sigma", "diffuser_cf"]].to_numpy(float)
-        X_raw[["delta_sigma", "diffuser_cf"]] = C
+        cal_cols = [c for c in ("delta_sigma", "diffuser_cf", "turbine_loss_multiplier")
+                    if c in D and D[c].notna().all()]  # fmt: skip
+        C = D[cal_cols].to_numpy(float)
+        X_raw[cal_cols] = C
     # split: frozen test; seeded validation subset of train_val
     rng = np.random.default_rng(cfg["seed"])
     split = np.where(D.design_id.map(frozen).to_numpy() == "test", "test", "train")
@@ -201,7 +204,7 @@ def load(dataset: str, cfg: dict | None = None) -> SurrogateData:
     if cfg["inputs"].get("include_calibration_factors", False):
         cal_std = Standardizer.fit(C[split == "train"])
         U = np.hstack([U, cal_std.forward(C)])
-        names += ["delta_sigma", "diffuser_cf"]
+        names += cal_cols
     # targets
     ok = (D.status == "ok").to_numpy()
     cols, transforms, tnames = {}, [], []

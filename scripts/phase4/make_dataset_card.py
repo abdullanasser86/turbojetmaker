@@ -128,6 +128,45 @@ def main() -> int:
                                                  "physics_in713c": counts(hi_c[hi_c.cause == "physics"].in713c_physics),
                                                  "physics_marm247": counts(hi_c[hi_c.cause == "physics"].marm247_physics),
                                                  "missing_data_limited_materials": counts(hi_c[hi_c.cause == "missing_data"].data_limited_materials)}  # fmt: skip
+    dpts = P[(P.point == "design") & P.design_id.isin(ok.design_id)]
+    if (
+        "eta_t_tt" in dpts and dpts.eta_t_tt.notna().any()
+    ):  # v6+: turbine efficiency sanity check (D-069)
+        e = dpts.set_index("design_id").eta_t_tt
+        rng = dcfg.get("turbine_eta_tt_plausible", {}).get("range")
+        q = {
+            f"p{int(100 * qq)}": round(float(e.quantile(qq)), 4)
+            for qq in (0.0, 0.05, 0.25, 0.5, 0.75, 0.95, 1.0)
+        }
+        stats["turbine_eta_tt_design"] = {"quantiles": q, "plausible_range": rng}
+        if rng:
+            bad = e[(e < rng[0]) | (e > rng[1])]
+            stats["turbine_eta_tt_design"].update(flagged=len(bad), flagged_feasible=int(ok.set_index("design_id").loc[bad.index].feasible.astype(bool).sum()),
+                                                  flagged_ids=[int(i) for i in bad.index[:50]])  # fmt: skip
+            pd.DataFrame({"design_id": bad.index, "eta_t_tt": bad.values}).to_csv(
+                ROOT / "validation" / "phase4" / f"turbine_eta_flags_{name}.csv", index=False
+            )
+    if "retries" in P:  # v6+: turbine-solver restarts (D-067)
+        pr = {}
+        for pt, g in P.groupby("point"):
+            pr[pt] = {"converged_on_retry": int(g.converged_on_retry.eq(True).sum()),
+                      "failed_after_retries": int((~g.converged.astype(bool) & (g.retries.fillna(0) > 0)).sum()),
+                      "turbine_no_convergence": int(g.failure_reason.fillna("").str.startswith("turbine_no_convergence").sum())}  # fmt: skip
+        stats["turbine_solver_retries"] = pr
+    if (
+        "turbine_loss_multiplier" in D and D.turbine_loss_multiplier.notna().any()
+    ):  # v6+: k_loss subset (D-064)
+        nominal = float(D.turbine_loss_multiplier.mode().iloc[0])
+        sub = {}
+        for lab, m in (
+            ("nominal", D.turbine_loss_multiplier == nominal),
+            ("sampled", D.turbine_loss_multiplier != nominal),
+        ):
+            g = D[m]
+            o = g[g.status == "ok"]
+            sub[lab] = {"designs": len(g), "designed": len(o), "feasible": int(o.feasible.astype(bool).sum()),
+                        "k_loss_range": [round(float(g.turbine_loss_multiplier.min()), 3), round(float(g.turbine_loss_multiplier.max()), 3)]}  # fmt: skip
+        stats["k_loss_subset"] = sub
     if "derived_turb_hub_tip_mach_binding" in ok:
         stats["t1_hub_tip"] = {
             "sampled_hub_tip_range": [round(float(ok.derived_turb_hub_tip.min()), 3), round(float(ok.derived_turb_hub_tip.max()), 3)],
@@ -236,6 +275,33 @@ def main() -> int:
         for k, v in stats["tip_speed_regime"].items():
             L.append(
                 f"| {k} | {v['designs']} | {v['designed']} | {v['feasible']} | {v['feasible_%_of_designs']} | {v['feasible_%_of_designed']} |"
+            )
+        L.append("")
+    if "turbine_eta_tt_design" in stats:
+        t = stats["turbine_eta_tt_design"]
+        L += ["Design-point turbine total-to-total efficiency (sanity check, D-069): quantiles "
+              + ", ".join(f"{k} {v}" for k, v in t["quantiles"].items())
+              + (f"; plausible range {t['plausible_range']} (Murray 2009 measured span +- published uncertainty); "
+                 f"**{t.get('flagged', 0)} designs flagged** ({t.get('flagged_feasible', 0)} of them feasible), list in "
+                 f"`validation/phase4/turbine_eta_flags_{name}.csv`." if t.get("plausible_range") else "."), ""]  # fmt: skip
+    if "turbine_solver_retries" in stats:
+        L += ["Turbine-solver restarts (D-067): points that converged only on a restart / failed after all restarts / "
+              "recorded turbine_no_convergence:", "", "| point | converged on retry | failed after retries | turbine_no_convergence |", "|---|---|---|---|"]  # fmt: skip
+        for pt, v in stats["turbine_solver_retries"].items():
+            L.append(
+                f"| {pt} | {v['converged_on_retry']} | {v['failed_after_retries']} | {v['turbine_no_convergence']} |"
+            )
+        L.append("")
+    if "k_loss_subset" in stats:
+        L += [
+            "Turbine loss multiplier (D-064): nominal vs sampled subset:",
+            "",
+            "| subset | designs | designed | feasible | k_loss |",
+            "|---|---|---|---|---|",
+        ]
+        for lab, v in stats["k_loss_subset"].items():
+            L.append(
+                f"| {lab} | {v['designs']} | {v['designed']} | {v['feasible']} | {v['k_loss_range'][0]} – {v['k_loss_range'][1]} |"
             )
         L.append("")
     if "t1_hub_tip" in stats:

@@ -48,6 +48,10 @@ _RECOMMENDED = {
 }  # fmt: skip
 
 
+# Restart factors on the starting turbine PR guess after a meanline no_convergence (D-067).
+DESIGN_RETRY_PR_FACTORS = (0.85, 1.2, 1.5)
+
+
 def load_design_defaults(path: str | Path = DESIGN_DEFAULTS) -> dict:
     return {
         k: v["value"] for k, v in yaml.safe_load(Path(path).read_text(encoding="utf-8")).items()
@@ -218,6 +222,29 @@ def design_stage(mdot_kg_s: float, T0_in_K: float, p0_in_Pa: float, omega_rad_s:
                  phi: float, psi: float, reaction: float, gas: GasMixture | None = None,
                  incidence_sign: str = "turboflow", tol: float = 1e-6, max_iter: int = 30, **overrides):  # fmt: skip
     """Size the stage, then adjust the annulus (blade-height scale k) and the total-to-static pressure
+    ratio with the meanline model until it passes `mdot_kg_s` and delivers `work_J_kg` exactly
+    (`_design_stage_once`). If the meanline fails to converge (no_convergence), the solve is restarted with the
+    starting PR guess changed, (PR - 1) x f for f in DESIGN_RETRY_PR_FACTORS (D-067). The returned TurbinePoint
+    carries `design_retries` (0 = first attempt). Other failures are raised at once."""
+    err = None
+    for i, f in enumerate((1.0, *DESIGN_RETRY_PR_FACTORS)):
+        try:
+            s, t, pt = _design_stage_once(mdot_kg_s, T0_in_K, p0_in_Pa, omega_rad_s, work_J_kg, phi, psi, reaction,
+                                          gas, incidence_sign, tol, max_iter, pr0_factor=f, **dict(overrides))  # fmt: skip
+            pt.design_retries = i
+            return s, t, pt
+        except ValueError as e:
+            if "no_convergence" not in str(e):
+                raise
+            err = e
+    raise err
+
+
+def _design_stage_once(mdot_kg_s: float, T0_in_K: float, p0_in_Pa: float, omega_rad_s: float, work_J_kg: float,
+                 phi: float, psi: float, reaction: float, gas: GasMixture | None = None,
+                 incidence_sign: str = "turboflow", tol: float = 1e-6, max_iter: int = 30, pr0_factor: float = 1.0,
+                 **overrides):  # fmt: skip
+    """Size the stage, then adjust the annulus (blade-height scale k) and the total-to-static pressure
     ratio with the meanline model until it passes `mdot_kg_s` and delivers `work_J_kg` exactly.
 
     Two unknowns (k, PR_ts), two residuals (mass flow, work); Newton with finite-difference Jacobian.
@@ -240,7 +267,9 @@ def design_stage(mdot_kg_s: float, T0_in_K: float, p0_in_Pa: float, omega_rad_s:
         k,
         **overrides,
     )
-    pr = sz.pr_ts_estimate
+    pr = (
+        1.0 + (sz.pr_ts_estimate - 1.0) * pr0_factor
+    )  # restart factor on the starting PR guess (D-067)
 
     def evaluate(k, pr):
         s = size_axial_stage(

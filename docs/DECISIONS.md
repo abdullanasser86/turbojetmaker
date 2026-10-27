@@ -644,3 +644,14 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
   T-B (Δ 0.04) than to T-A (Δ 0.18). Weak evidence only.
 - Replica outputs (`scripts/phase4/kj66_turbine_variants.py`): see VALIDATION round 6. The spread is part of the
   turbine-model uncertainty (via the k_loss band, D-064).
+
+### D-065a · 2026-10-27 · R2 rejected (user decision), R3 kept; Aungier open
+- **Galvas is not adopted.** Held-out evidence (D-065, `validation/phase4/galvas_r2_test.yaml`):
+  - the report has no Mach-dependent loss (pp. 2 and 10);
+  - its only applicable Mach term, the inducer choke criterion, never triggers on Murray's measured points
+    (margin to choke 14.9° at 120 krpm, 19–30° below);
+  - so the held-out compressor errors are identical with and without it: 120 krpm PR +5.0 %, flow +4.4 %,
+    η +6.1 pts;
+  - 40/60/80/100 krpm: unchanged from D-059.
+- **R3 stays:** U2 > 415 m/s flagged "extrapolated" with the one-sided widened band (D-060).
+- **OPEN ITEM:** Aungier (2000) choke/shock loss. Not accessible to the user or to TurboML; not waited on.

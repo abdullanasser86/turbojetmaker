@@ -124,12 +124,13 @@ def at_pr_tt_robust(t: AxialTurbineMeanline, T04, P04, omega, pr_tt, n_grid: int
             pass
         w = f0 / (f0 - f1) if f0 != f1 else 0.0
         lerp = {k: (1 - w) * getattr(q0, k) + w * getattr(q1, k)
-                for k in ("mass_flow_kg_s", "eta_tt", "rotor_incidence_deg", "stator_exit_mach", "exit_flow_angle_deg")}  # fmt: skip
+                for k in ("mass_flow_kg_s", "eta_tt", "rotor_incidence_deg", "stator_exit_mach", "exit_flow_angle_deg",
+                          "exit_mach", "T_out_K")}  # fmt: skip
         return SimpleNamespace(**lerp, choked=q0.choked, converged=True, interpolated=True)
     return None
 
 
-def build(p, n_le_iter: int = 3):
+def build(p, n_le_iter: int = 3, k_loss: float = 1.0):
     """Geometry for parameters p; rotor LE angle set to the relative inflow angle at the D.10 point (zero incidence)."""
     hub_tip, g_ngv, g_rot = p
     le = 30.0
@@ -138,7 +139,13 @@ def build(p, n_le_iter: int = 3):
     for _ in range(n_le_iter):
         g = stage_from_counts(KJ["rotor_tip_radius_m"]["value"], hub_tip, KJ["n_ngv"]["value"], KJ["n_rotor"]["value"],
                               g_ngv, g_rot, le, KJ["tip_clearance_height_ratio"]["value"])  # fmt: skip
-        q = at_pr_tt(AxialTurbineMeanline(g, gas), TOP.T04_K, TOP.P04_kPa * 1e3, om, TOP.turb_PR)
+        q = at_pr_tt(
+            AxialTurbineMeanline(g, gas, loss_multiplier=k_loss),
+            TOP.T04_K,
+            TOP.P04_kPa * 1e3,
+            om,
+            TOP.turb_PR,
+        )
         if q is None or not math.isfinite(q.rotor_inlet_beta_deg):
             return g, le
         le = float(q.rotor_inlet_beta_deg)
@@ -150,7 +157,7 @@ def build(p, n_le_iter: int = 3):
 def predict(p, k_loss: float = 1.0, geometry=None, robust: bool = False) -> pd.DataFrame:
     """Model vs Figs 5.16/5.18 for parameters p (or a fixed `geometry` = (AxialStageGeometry, rotor LE)), with the
     turbine loss multiplier k_loss (D-064); robust=True uses `at_pr_tt_robust` (round 6b)."""
-    g, le = build(p) if geometry is None else geometry
+    g, le = build(p, k_loss=k_loss) if geometry is None else geometry
     rows = []
     turbs = {}
     for r in PTS.itertuples():
@@ -181,14 +188,14 @@ def predict(p, k_loss: float = 1.0, geometry=None, robust: bool = False) -> pd.D
     return d
 
 
-def predict_v5(p) -> pd.DataFrame:
+def predict_v5(p, k_loss: float = 1.0, robust: bool = False) -> pd.DataFrame:
     """Model rotor-exit absolute velocity at every Appendix D point vs Murray's V5."""
-    g, _le = build(p)
+    g, _le = build(p, k_loss=k_loss)
     rows = []
     for r in AD.itertuples():
         gas = thermo.products(float(r.FAR))
-        q = at_pr_tt(
-            AxialTurbineMeanline(g, gas),
+        q = (at_pr_tt_robust if robust else at_pr_tt)(
+            AxialTurbineMeanline(g, gas, loss_multiplier=k_loss),
             r.T04_K,
             r.P04_kPa * 1e3,
             r.speed_krpm * 1e3 * math.pi / 30,

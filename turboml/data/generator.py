@@ -165,9 +165,10 @@ def make_test_split(n: int, fraction: float, seed: int) -> np.ndarray:
 
 def _point_dict(p) -> dict:
     keys = ("converged", "failure_reason", "n_rpm", "alt_m", "mach", "W_air_kg_s", "far", "Wf_kg_s", "Fn_N", "Fg_N",
-            "TSFC_kg_N_s", "pr_c", "eta_c", "P_comp_W", "tit_K", "pr_t_ts", "eta_t_ts", "P_turb_W", "turbine_choked",
+            "TSFC_kg_N_s", "pr_c", "eta_c", "P_comp_W", "tit_K", "pr_t_ts", "eta_t_ts", "eta_t_tt", "P_turb_W", "turbine_choked",
             "T02_K", "p02_Pa", "T03_K", "p03_Pa", "p04_Pa", "T05_K", "p05_Pa", "V9_m_s", "nozzle_choked", "surge_flag",
-            "compressor_tip_speed_m_s", "t0_rel_rotor_K", "iterations", "max_residual", "time_s")  # fmt: skip
+            "compressor_tip_speed_m_s", "t0_rel_rotor_K", "iterations", "max_residual", "time_s", "retries",
+            "converged_on_retry")  # fmt: skip
     return {k: _plain(getattr(p, k)) for k in keys}
 
 

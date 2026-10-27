@@ -57,3 +57,10 @@ output_dir: datasets/phase4_v6   # git-ignored; the dataset card and split are c
 turbine_loss_sampling: {value: 1.86, band: [1.6, 2.0], source: configs/components/turbine_loss_calibration.yaml}
 engine_overrides:
   turbine_design: {loss_multiplier: {value: 1.86, kind: calibrated, source: "configs/components/turbine_loss_calibration.yaml (D-064)"}}
+
+# Turbine-efficiency sanity range (user request 2026-10-27, D-069): design-point TOTAL-TO-TOTAL turbine efficiency
+# outside it is FLAGGED (not made infeasible). Murray 2009 measured (derived) turbine efficiency spans 0.667-0.823
+# (App D) and 0.684-0.851 (Fig 5.18, digitized); widened by his published uncertainty at the high-speed lines
+# (+-0.083, App D 112 krpm / Fig 5.18 68 krpm) -> [0.58, 0.93]. DePaola 2020 turbine-efficiency values are not in the
+# extracts available to TurboML (open item).
+turbine_eta_tt_plausible: {range: [0.58, 0.93], source: "Murray 2009 App D / Fig 5.18 measured span +- published uncertainty at high speed"}

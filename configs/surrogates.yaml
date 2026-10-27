@@ -5,6 +5,7 @@
 # Label printed on every result of a dataset (metrics files, cards, plots). Datasets not listed get no label.
 result_labels:
   phase4_v5: "provisional (pre-v6 calibration)"
+  phase4_v6: "v6 (R1 compressor, R3 flag, k_loss 1.86); surrogate of the 0-D physics model, physics-verify before use"
 
 # Inputs: the dataset's sampled design variables (from its config `design_variables`, scaled to [0, 1] with the bounds
 # and the same scale - linear/log/piecewise - as the sampling) plus, optionally, the per-design compressor calibration
@@ -21,6 +22,9 @@ targets:
   - {name: T05_design_K,     point: design,         column: T05_K,         transform: none}
   - {name: Fn_cruise_N,      point: cruise_M05_3km, column: Fn_N,          transform: log}
   - {name: TSFC_cruise,      point: cruise_M05_3km, column: TSFC_kg_N_s,   transform: log}
+  # fuel flow at cruise: well behaved where TSFC = Wf/Fn blows up (Fn -> 0 at M 0.5 / 3 km); TSFC_cruise kept for
+  # comparison with v5 (Phase 5 report, D-070)
+  - {name: Wf_cruise_kg_s,   point: cruise_M05_3km, column: Wf_kg_s,       transform: log}
   - {name: Fn_idle_N,        point: idle_35,        column: Fn_N,          transform: log}
   - {name: T05_idle_K,       point: idle_35,        column: T05_K,         transform: none}
   - {name: dry_mass_kg,      design_column: dry_mass_kg, transform: log}
