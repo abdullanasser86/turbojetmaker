@@ -454,3 +454,23 @@ cause. The same "make it buildable by construction" step that fixed the compress
 **Why it matters:** The dataset now mostly contains engines that could exist, and we know where the model is trustworthy
 (KJ-66-like speeds) and where it is optimistic (high tip speed, low-speed turbine).
 
+
+### Phase 4, round 5 — Measured speed lines, a rebuilt KJ-66 turbine, material data (2026-10-27)
+**What we did**
+1. Refitted the compressor's two calibration factors on four of Murray's measured speed lines and tested on the other
+   five. The fit is good from 50 to 100 krpm, but the error still grows toward 120 krpm (+5 % pressure ratio): the
+   model's form, not its numbers, limits it. Designs faster than the last measured line (415 m/s tip speed) are now
+   labelled "extrapolated" and get a wider uncertainty band, sized by how fast that error grows.
+2. Rebuilt the KJ-66 turbine from published blade counts and fitted its unknown hub/tip ratio and blade angles to
+   Murray's turbine measurements. We learned what the data can and cannot tell: the flow map alone only fixes the
+   nozzle throat area; the measured exhaust velocity fixes the hub/tip ratio. The efficiency stays 11–13 points too
+   high whatever the geometry, so that gap is in the loss model (or in Murray's derived efficiency), not the shape.
+3. Rebuilt a whole KJ-66 from these parts. With the turbine that matches the measured flow map, the idle exhaust
+   temperature and Murray's idle TIT are reproduced (within ~15 K); the air flow is still ~13 % low at idle.
+4. Read the Alloy 713C handbook (Nickel 337). It agrees with the earlier data and passes the purchase-spec check, but
+   it has nothing above 2000 °F at 100 h. Most hot designs fail because the spinning blades are over-stressed at their
+   temperature — physics that more data will not change.
+5. Generated the v5 dataset: 30 % feasible, cross-checked against pyCycle.
+
+**Why it matters:** We now know which numbers in the model are measured, which are calibrated, and where each is
+trustworthy. A surrogate trained on v5 can be told which designs lie beyond the validated compressor range.

@@ -1,112 +1,201 @@
-turbine_geometry:
-  hub_tip:
-    value: 0.743
-    kind: calibrated, not measured
-    range_profile:
-    - 0.65
-    - 0.745
-  ngv_gauging_deg:
-    value: 64.8
-    kind: calibrated, not measured
-    range_profile:
-    - 64.8
-    - 71.1
-  rotor_gauging_deg:
-    value: 43.6
-    kind: calibrated, not measured
-    range_profile:
-    - 36.1
-    - 43.6
-  rotor_le_deg:
-    value: 27.33
-    kind: derived from the calibrated values (rotor_le_rule)
 compressor_calibration: R1 refit (configs/components/kj66_compressor_calibration.yaml)
-model:
-  Nozzle Run 1, June 25 2009: 'replica failed: design_turbine: turbine design point
-    failed: no_convergence (T(h) did not converge)'
-  Nozzle Run 2, June 30 2009:
-    A9_fit_m2: 0.001255
-    A9_seed_m2: 0.001477
-    top_speed_krpm: 120.0
-  Nozzle Run 3, June 30 2009:
-    A9_fit_m2: 0.001225
-    A9_seed_m2: 0.001487
-    top_speed_krpm: 119.3
-  validation:
-    EGT_err_K:
-      mean: 53.0973
-      rms: 60.7081
-      max_abs: 101.0115
-      n: 29
-    P03_err_kPa:
-      mean: -1.8094
-      rms: 2.3517
-      max_abs: 3.6005
-      n: 29
-    m_err_pct:
-      mean: -13.7092
-      rms: 13.8994
-      max_abs: 19.1937
-      n: 29
-    EGT_within_digitizing_unc: 3/29
-    converged: 29/30
-    EGT_err_K_below_50krpm:
-      mean: 79.3416
-      rms: 80.4823
-      max_abs: 101.0115
-      n: 5
-    EGT_err_K_28_32krpm:
-      mean: 68.4403
-      rms: 68.4403
-      max_abs: 68.4403
-      n: 1
-    TIT_model_K_below_50krpm:
-      mean: 874.4632
-      rms: 874.4739
-      max_abs: 881.2221
-      n: 5
-diagnostic_turbine_efficiency_gap_removed:
-  eta_shift_pts: -11.21
-  Nozzle Run 1, June 25 2009: 'replica failed: design_turbine: turbine design point
-    failed: no_convergence (T(h) did not converge)'
-  Nozzle Run 2, June 30 2009:
-    A9_fit_m2: 0.001927
-    A9_seed_m2: 0.001477
-    top_speed_krpm: 120.0
-  Nozzle Run 3, June 30 2009:
-    A9_fit_m2: 0.001817
-    A9_seed_m2: 0.001487
-    top_speed_krpm: 119.3
-  validation:
-    EGT_err_K:
-      mean: 83.0655
-      rms: 93.1008
-      max_abs: 150.7284
-      n: 29
-    P03_err_kPa:
-      mean: -1.8698
-      rms: 2.4141
-      max_abs: 3.7052
-      n: 29
-    m_err_pct:
-      mean: -12.5586
-      rms: 12.6832
-      max_abs: 17.5583
-      n: 29
-    EGT_within_digitizing_unc: 1/29
-    converged: 29/30
-    EGT_err_K_below_50krpm:
-      mean: 129.909
-      rms: 130.5181
-      max_abs: 150.7284
-      n: 5
-    EGT_err_K_28_32krpm:
-      mean: 125.741
-      rms: 125.741
-      max_abs: 125.741
-      n: 1
-    TIT_model_K_below_50krpm:
-      mean: 924.8833
-      rms: 924.9144
-      max_abs: 938.4341
-      n: 5
+turbine_F:
+  what: adopted turbine calibration (flow + exit velocity)
+  params_hub_tip_ngv_rotor_le:
+  - 0.743
+  - 64.8
+  - 43.6
+  - 27.33
+  model:
+    Nozzle Run 1, June 25 2009:
+      A9_fit_m2: 0.001202
+      A9_seed_m2: 0.001595
+      top_speed_krpm: 111.8
+    Nozzle Run 2, June 30 2009:
+      A9_fit_m2: 0.001255
+      A9_seed_m2: 0.001477
+      top_speed_krpm: 120.0
+    Nozzle Run 3, June 30 2009:
+      A9_fit_m2: 0.001225
+      A9_seed_m2: 0.001487
+      top_speed_krpm: 119.3
+    validation:
+      EGT_err_K:
+        mean: 52.4324
+        rms: 58.7989
+        max_abs: 101.0115
+        n: 38
+      P03_err_kPa:
+        mean: -1.812
+        rms: 2.3433
+        max_abs: 3.6396
+        n: 38
+      m_err_pct:
+        mean: -13.8061
+        rms: 13.9582
+        max_abs: 19.1937
+        n: 38
+      EGT_within_digitizing_unc: 3/38
+      converged: 38/39
+      EGT_err_K_below_50krpm:
+        mean: 77.7872
+        rms: 78.8343
+        max_abs: 101.0115
+        n: 6
+      EGT_err_K_28_32krpm:
+        mean: 68.4403
+        rms: 68.4403
+        max_abs: 68.4403
+        n: 1
+      TIT_model_K_below_50krpm:
+        mean: 876.5515
+        rms: 876.5729
+        max_abs: 886.9931
+        n: 6
+  diagnostic_turbine_efficiency_gap_removed:
+    eta_shift_pts: -11.21
+    Nozzle Run 1, June 25 2009:
+      A9_fit_m2: 0.001801
+      A9_seed_m2: 0.001595
+      top_speed_krpm: 111.8
+    Nozzle Run 2, June 30 2009:
+      A9_fit_m2: 0.001927
+      A9_seed_m2: 0.001477
+      top_speed_krpm: 120.0
+    Nozzle Run 3, June 30 2009:
+      A9_fit_m2: 0.001817
+      A9_seed_m2: 0.001487
+      top_speed_krpm: 119.3
+    validation:
+      EGT_err_K:
+        mean: 81.1276
+        rms: 90.1021
+        max_abs: 150.7284
+        n: 38
+      P03_err_kPa:
+        mean: -1.8828
+        rms: 2.4114
+        max_abs: 3.7748
+        n: 38
+      m_err_pct:
+        mean: -12.539
+        rms: 12.6366
+        max_abs: 17.5583
+        n: 38
+      EGT_within_digitizing_unc: 1/38
+      converged: 38/39
+      EGT_err_K_below_50krpm:
+        mean: 127.5513
+        rms: 128.1769
+        max_abs: 150.7284
+        n: 6
+      EGT_err_K_28_32krpm:
+        mean: 125.741
+        rms: 125.741
+        max_abs: 125.741
+        n: 1
+      TIT_model_K_below_50krpm:
+        mean: 926.167
+        rms: 926.1973
+        max_abs: 938.4341
+        n: 6
+turbine_Q:
+  what: flow-only turbine fit
+  params_hub_tip_ngv_rotor_le:
+  - 0.5191
+  - 70.91
+  - 67.88
+  - 30.0
+  model:
+    Nozzle Run 1, June 25 2009:
+      A9_fit_m2: 0.001305
+      A9_seed_m2: 0.001595
+      top_speed_krpm: 111.8
+    Nozzle Run 2, June 30 2009:
+      A9_fit_m2: 0.001464
+      A9_seed_m2: 0.001477
+      top_speed_krpm: 120.0
+    Nozzle Run 3, June 30 2009:
+      A9_fit_m2: 0.001395
+      A9_seed_m2: 0.001487
+      top_speed_krpm: 119.3
+    validation:
+      EGT_err_K:
+        mean: -13.4464
+        rms: 18.4685
+        max_abs: 45.9739
+        n: 38
+      P03_err_kPa:
+        mean: -2.1051
+        rms: 2.4541
+        max_abs: 3.8365
+        n: 38
+      m_err_pct:
+        mean: -11.0043
+        rms: 11.5499
+        max_abs: 18.0076
+        n: 38
+      EGT_within_digitizing_unc: 15/38
+      converged: 38/39
+      EGT_err_K_below_50krpm:
+        mean: -12.9446
+        rms: 18.1492
+        max_abs: 26.9902
+        n: 6
+      EGT_err_K_28_32krpm:
+        mean: -25.6421
+        rms: 25.6421
+        max_abs: 25.6421
+        n: 1
+      TIT_model_K_below_50krpm:
+        mean: 784.7815
+        rms: 784.831
+        max_abs: 802.3835
+        n: 6
+  diagnostic_turbine_efficiency_gap_removed:
+    eta_shift_pts: -12.94
+    Nozzle Run 1, June 25 2009:
+      A9_fit_m2: 0.001952
+      A9_seed_m2: 0.001595
+      top_speed_krpm: 111.8
+    Nozzle Run 2, June 30 2009:
+      A9_fit_m2: 0.002278
+      A9_seed_m2: 0.001477
+      top_speed_krpm: 120.0
+    Nozzle Run 3, June 30 2009:
+      A9_fit_m2: 0.002073
+      A9_seed_m2: 0.001487
+      top_speed_krpm: 119.3
+    validation:
+      EGT_err_K:
+        mean: 33.6363
+        rms: 39.0009
+        max_abs: 76.2491
+        n: 38
+      P03_err_kPa:
+        mean: -2.2124
+        rms: 2.5089
+        max_abs: 3.9073
+        n: 38
+      m_err_pct:
+        mean: -9.9866
+        rms: 10.7031
+        max_abs: 17.6421
+        n: 38
+      EGT_within_digitizing_unc: 6/38
+      converged: 38/39
+      EGT_err_K_below_50krpm:
+        mean: 53.2807
+        rms: 54.6603
+        max_abs: 76.2491
+        n: 6
+      EGT_err_K_28_32krpm:
+        mean: 47.6827
+        rms: 47.6827
+        max_abs: 47.6827
+        n: 1
+      TIT_model_K_below_50krpm:
+        mean: 850.8067
+        rms: 850.8418
+        max_abs: 861.6766
+        n: 6

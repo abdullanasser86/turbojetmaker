@@ -426,3 +426,167 @@ AN².
 3. **Higher-temperature rupture data** (open item): any source for MAR-M 247 above 1900 °F, or another cast alloy,
    would open TIT > 1150 K, which currently has 1 % feasible.
 4. "Go" for Phase 5 (surrogates) on `phase4_v4`, or after R1 on a v5.
+
+# Phase 4, round 5 (2026-10-27): compressor refit, KJ-66 turbine calibration, Nickel 337, `phase4_v5`
+
+## What was done, item by item
+| # | Your instruction | Done |
+|---|---|---|
+| 1a | R1: refit on several of Murray's measured speed lines, hold the rest out, report held-out PR / η / flow errors per line | Calibration 50/70/90/110 krpm, held out 40/60/80/100/120 (D-059). Table below |
+| 1b | R3: flag tip speed > 415 m/s "extrapolated", widen its band, justify by the error growth toward the top line | Quadratic growth law of the refit PR error vs U2; W(500 m/s) = 2.67, one-sided toward the measured bias (D-060). Every design carries `tip_speed_regime` |
+| 1c | v5 with a fresh frozen test set; feasible fraction inside / outside the validated tip speed | Seed 20261103, split frozen before evaluation (300 test ids). Table below |
+| — | No R2 term without a published source; propose first | Not added. Proposal below |
+| 2 | KJ-66 turbine: 66 mm / 18 NGV / 24 blades / 1 % clearance; calibrate hub/tip and angles on Murray's maps with held-out lines; uncertainty; low-speed efficiency; "calibrated, not measured" everywhere | D-061/062; `configs/components/kj66_turbine.yaml`. **Low-speed efficiency does not match** (below) |
+| 3 | Re-run the idle-EGT check | Full KJ-66 replica (real compressor + calibrated turbine, A9 fitted at the top speed only) |
+| 4a | Ingest Nickel 337 (table + LM figure), label, cross-check vs 393, anchors, AMS 5391 | Transcribed tables + digitized Fig 7 (D-063). All checks pass |
+| 4b | TIT > 1150 K infeasibility: missing data or physics? | **Physics for ~90 %** (below) |
+| 5 | v5 pilot → full if ≥ 10 % | Pilot 30.5 % → full 2000 run (1277 s, 3 workers) |
+
+## 1. Compressor refit (R1) and extrapolation flag (R3)
+Refit: Δσ −0.1041 → **−0.1176**, Cf 0.0937 → **0.1002**. Held-out lines (mean per line; `validation/phase4/compressor_refit_murray.png`):
+
+| line | U2 [m/s] | PR err | flow err | η err |
+|---|---|---|---|---|
+| 40 krpm | 138 | −2.0 % | −5.9 % | +14.2 pts |
+| 60 krpm | 207 | −1.8 % | −2.2 % | −0.6 pts |
+| 80 krpm | 277 | −1.6 % | −0.7 % | −2.3 pts |
+| 100 krpm | 346 | +0.6 % | +0.2 % | +0.6 pts |
+| **120 krpm** | **415** | **+5.0 %** (was +7.1) | **+4.4 %** (was +6.1) | **+6.1 pts** (unchanged) |
+
+The refit improves the top lines but cannot remove the trend: two constant factors give −1.5 … −1.9 % PR at 50–90 krpm
+and +2.4 % / +5.0 % at 110 / 120 krpm. This is model form, not calibration. Calibration lines: 50 −1.5 %, 70 −1.9 %,
+90 −1.2 %, 110 +2.4 % PR. Inflated band k = 3.5 (was 2.75) because the held-out set now reaches 40 and 120 krpm.
+
+R3 justification: the signed PR error per line grows like a quadratic in U2 (fit residual 0.19 %). Extrapolated:
++7.0 % at 440 m/s, +8.9 % at 460, +10.9 % at 480, +13.1 % at 500. The band is widened by W = e(U2)/e(415): 1.43 /
+1.81 / 2.22 / 2.67, only toward lower slip and higher diffuser loss (the side the measured bias points to).
+
+## 2. KJ-66 turbine calibration (calibrated, not measured)
+- **Adopted (fit F: Murray flow lines 26/38/50/62 krpm + Appendix D exit velocity V5 on odd D-points):**
+  - hub/tip **0.743** (profile range 0.65–0.745);
+  - NGV gauging angle **64.8°** (64.8–71.1°);
+  - rotor gauging angle **43.6°** (36.1–43.6°);
+  - rotor metal inlet angle 27.3° (zero incidence at 120 krpm, a rule);
+  - consequences: blade height 8.5 mm, hub diameter 49 mm.
+- **Uncertainty is large and the fit is barely identifiable.** The flow map alone fixes only the NGV throat area: a
+  flow-only fit gives hub/tip 0.52 ± 0.60. Hub/tip comes from V5, assuming station 5 is the rotor exit plane. The
+  Jacobian sigmas are meaningless (condition number 1e8), so the ranges above come from a profile scan. Above hub/tip
+  0.745 the model cannot reach the measured points.
+- **Held-out errors (F):**
+  - flow +10.9 % (20 krpm), +3.0 (32), −0.7 (44), −7.0 (56), −10.4 % (68);
+  - V5 −3.5 % mean, 5/7 within uncertainty.
+- **Low-speed efficiency: NO, it does not match Murray.**
+  - F is +11.2 pts above Murray's (derived) turbine efficiency over all lines, +10.9 pts at ≤ 44 krpm corrected; the
+    flow-only fit Q is +12.9 pts.
+  - Fitting efficiency as well (fit FE) pushes hub/tip to the 0.40 bound, with 48° exit swirl and V5 −38 %. That is
+    geometry used as a loss knob, so it was rejected.
+  - **The gap is in the loss model or in Murray's derived efficiency (±0.08–0.34), not in the geometry.**
+- **Caution:** the counts are from a published KJ66 variant (Xu et al.), not certainly Murray's engine.
+
+## 3. Idle EGT: KJ-66 replica
+Built from the real compressor (R1 calibration) and the calibrated turbine, with A9 fitted per run at the top speed;
+38 validation points (`validation/phase4/kj66_replica_idle_egt.png`).
+
+| turbine | EGT err, all | EGT err, < 50 krpm | model TIT < 50 krpm | air flow | P03 |
+|---|---|---|---|---|---|
+| F (adopted) | +52 K | +78 K | 877 K | −14 % | −1.8 kPa |
+| Q (flow-only) | **−13 K** (rms 18) | **−13 K** | **785 K** | −11 % | −2.1 kPa |
+| round 4 replicas | | +40 … +80 K | 840–860 K | | |
+
+- With the turbine that reproduces Murray's flow map (Q), the hot idle is gone: low-speed TIT is 785 K against
+  Murray's 780–820 K.
+- Lowering the turbine efficiency to Murray's level (diagnostic only) makes idle hotter, not cooler. So the earlier hot
+  idle came from turbine flow capacity, not from the optimistic efficiency.
+- Caveats:
+  - Both replicas under-predict air flow (−3 % at the top, −13…−17 % at idle). The model speed lines are almost flat,
+    so engine flow follows the turbine + nozzle capacity.
+  - Q's geometry contradicts V5.
+  - Q's agreement may partly be compensating errors.
+- The adopted F geometry is still 60–90 K hot at low speed.
+
+## 4. Nickel 337 and "missing data or physics"
+- **Ingested:**
+  - p. 7 rupture table (10 / 100 / 1000 / 10,000 h, 1350–2000 °F; parentheses = extrapolated, excluded);
+  - Table II individual tests [MEAS];
+  - AMS 5391 minima and melting range (all transcribed);
+  - Fig 7 Larson–Miller curve (digitized).
+- **Checks:**
+  - identical to Nickel 393 at all 7 common points;
+  - your anchors match (1350 °F: 76 ksi / 1000 h, 56 ksi / 10,000 h, (97) ksi / 100 h extrapolated);
+  - AMS 5391 passes: the 1800 °F / 22 ksi test lasted 65 h, and the table, LM curve and model give 72 / 67 / 49 h,
+    all ≥ 30 h.
+  - The LM master curve over-predicts the 2000 °F tests by 12–37 %, so it is not used to extend the data.
+- **TIT > 1150 K, infeasible designed engines: it is PHYSICS.**
+  - v4: 141 of 157 (90 %); v5: 131 of 147 (89 %).
+  - With both alloys, the rotor's centrifugal stress × 1.5 exceeds the 100 h rupture strength at the rotor-relative
+    temperature (1086–1314 K, inside the data). In about 32 of these the IN-713C vane hot streak is also above the
+    alloy's solidus (1533 K): it would melt.
+  - **More rupture data will not open these designs. That is an acceptable result.**
+- **The remaining 16 (both datasets) are MISSING DATA:**
+  - the MAR-M 247 vane hot streak (1342–1588 K) is above its 1311 K data;
+  - Nickel 337 covers only IN-713C up to 2000 °F, so it cannot resolve them;
+  - 7 of the v5 ones would pass with an IN-713C NGV + MAR-M 247 rotor, a mixed material set the model does not use.
+- Nickel 337 changes nothing at the 100 h life; the creep model keeps Nickel 393 (D-063).
+
+## 5. Dataset card and feasibility statistics: `phase4_v5` (2000 designs, full run)
+Card: `docs/dataset_cards/phase4_v5.md`.
+
+| | count |
+|---|---|
+| designs | 2000 (train/val 1700, **test 300, frozen before evaluation**) |
+| design failed | 969: no buildable hub/tip 964, other turbine sizing 5; compressor 0 |
+| designed engines | 1031 (PR 1.62–3.26, 19–254 krpm, design thrust 14–725 N among the feasible) |
+| **feasible** | **604 (30.2 % of designs, 58.6 % of designed)**; test split: 93 |
+| infeasible designed engines | AN² 188; AN² + NGV above data 179; NGV above data 38; rotor creep (± NGV) 21; rotor + NGV above data 1 |
+| material status | IN-713C 515, MAR-M 247 89, fails creep 388, no material data 39 |
+| sensitivity (feasible) | At/Ah 0.34: 839; PF 0.15: 639; PF 0.35: 468 |
+| off-design (designed) | design 1031/1031, M0.5/3 km 1027 (4 no net thrust), 80 % 1031, idle 1029 (2 compressor choke) |
+| calibration-sampled | 399 designs (20 %) |
+| cross-check vs pyCycle-CEA | 21 checked, **0 flagged** (max ΔFn 0.037 %, ΔTSFC 0.094 %) |
+
+**Feasibility by tip-speed regime and TIT band:**
+| regime / TIT band | designs | designed | feasible | % of designs | % of designed |
+|---|---|---|---|---|---|
+| validated (U2 ≤ 415 m/s), TIT ≤ 1150 K | 735 | 409 | 346 | 47.1 | 84.6 |
+| validated, TIT > 1150 K | 131 | 70 | 2 | 1.5 | 2.9 |
+| **validated, all** | 866 | 479 | 348 | **40.2** | 72.7 |
+| extrapolated (U2 > 415 m/s), TIT ≤ 1150 K | 966 | 472 | 255 | 26.4 | 54.0 |
+| extrapolated, TIT > 1150 K | 168 | 80 | 1 | 0.6 | 1.2 |
+| **extrapolated, all** | 1134 | 552 | 256 | **22.6** | 46.4 |
+
+- Extrapolated designs are less often feasible mainly because of AN²: higher tip speed means higher shaft speed for a
+  given flow. That is physics, not the wider band; the design-success rate is 46.7 % with the sampled band vs 49.2 %
+  without.
+- v4 shows the same split (363 vs 262 feasible).
+- 42 % of the feasible v5 engines are extrapolated: the surrogate must carry the flag.
+
+## Open issues
+- Compressor model form: the error trend with speed remains after R1 (+5 % PR at 120 krpm). Every design above
+  415 m/s is labelled; the surrogate should use the label (or a separate error model).
+- Turbine efficiency at KJ-66 scale: the model is 11–13 pts above Murray's derived values. It affects every dataset
+  turbine (sized by the same loss model) as a likely optimism in η_t.
+- Turbine flow capacity vs speed: no single geometry matches both the flow map and V5; the engine replica's air flow
+  is 11–17 % low at idle.
+- MAR-M 247 above 1900 °F (16 missing-data designs per dataset); mixed NGV/rotor materials not modelled.
+- Cross-check of the counts (18/24, 66 mm) against Murray's own engine is still missing.
+
+## Proposals (not implemented)
+- **R2, inducer choke / shock loss.** Published loss models exist:
+  - Aungier, *Centrifugal Compressors: A Strategy for Aerodynamic Design and Analysis* (ASME 2000), choking loss;
+  - Galvas 1973, NASA TN D-7487 (both found cited in meanline-validation literature).
+  The KJ-66 inducer relative tip Mach rises from 0.67 (90 krpm) to 0.92 (120 krpm), so designs above 415 m/s are
+  transonic, which is where such a term acts.
+  - Proposal: implement the Aungier choking loss from the primary source and refit on the same split.
+  - **I have not read either primary source.** I'd need the book chapter or the NASA report to take the equations
+    from (the NASA report is public on NTRS; I can fetch it if you agree).
+- **T-η, turbine efficiency calibration.** One effective loss multiplier on the Benner profile + secondary losses,
+  fitted on Murray's efficiency lines with held-out lines, like the compressor's Cf. Cheap, but Murray's efficiency is
+  derived (±0.08–0.34).
+
+## Decisions I need from you
+1. **R2:** fetch Galvas (NASA TN D-7487) / use Aungier and propose the exact choking-loss term? Or keep R3 only?
+2. **Turbine efficiency (T-η):** add a calibrated loss multiplier to the turbine (it changes every dataset turbine and
+   would need a v6), or keep it as an open item?
+3. **KJ-66 turbine geometry:** keep F (fits V5, idle 60–90 K hot) as the reference, or Q (fits the flow map and the
+   idle, contradicts V5)? Any source for the KJ-66 turbine hub diameter or blade height would settle it.
+4. **Go for Phase 5** (surrogates) on `phase4_v5`.

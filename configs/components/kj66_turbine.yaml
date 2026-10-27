@@ -34,3 +34,6 @@ rotor_gauging_deg: {value: 43.6, kind: "calibrated, not measured", range_profile
 rotor_le_deg: {value: 27.33, kind: "derived from the calibrated values (rotor_le_rule)"}
 # Consequences (fit F): blade height 8.5 mm, hub diameter 49 mm, tip clearance 0.085 mm; NGV choked at 120 krpm.
 # Efficiency is NOT matched: model - Murray = +11.2 pts mean over all lines (+10.9 at <= 44 krpm corrected).
+# Alternative (fit Q, flow map only; NOT adopted): hub/tip 0.52 +- 0.60, NGV 70.9 deg, rotor 67.9 deg -- matches the
+# flow map within +-4 % but the exit velocity V5 by -47 %. Used as a sensitivity case in the idle-EGT replica, where it
+# reproduces Murray's low-speed TIT (D-062, docs/VALIDATION.md round 5).

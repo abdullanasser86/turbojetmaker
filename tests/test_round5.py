@@ -110,3 +110,13 @@ def test_classify_physics_vs_missing_data():
                              creep_marm247_rotor_status="AN2"))  # fmt: skip
     assert tit + 0.25 * (tit - 300.0) > IN713C_SOLIDUS_K and melt["cause"] == "physics"
     assert "ngv_above_solidus" in melt["in713c_physics"]
+
+
+def test_kj66_turbine_labels():
+    kj = yaml.safe_load(open("configs/components/kj66_turbine.yaml", encoding="utf-8"))
+    for k in ("rotor_tip_radius_m", "n_ngv", "n_rotor", "tip_clearance_height_ratio"):
+        assert kj[k]["kind"] == "published"
+    for k in ("hub_tip", "ngv_gauging_deg", "rotor_gauging_deg"):
+        assert kj[k]["kind"] == "calibrated, not measured" and kj[k]["value"] is not None
+        lo, hi = kj[k]["range_profile"]
+        assert lo <= kj[k]["value"] <= hi

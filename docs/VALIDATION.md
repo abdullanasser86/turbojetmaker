@@ -380,3 +380,77 @@ Idle check against Fig 5.3:
 - The indicative turbine check also shows the model's low-PR turbine characteristic departing from the measured one
   (+18 % flow capacity at PR < 1.12). How that maps onto the engine depends on the real turbine geometry, which is
   unknown, so the turbine/nozzle low-PR behaviour remains the prime suspect rather than a proven cause.
+
+## Phase 4 (round 5) — compressor refit, KJ-66 turbine calibration, idle EGT, Nickel 337
+
+Calibration and validation sets are kept separate everywhere; errors are model − measurement.
+
+### Compressor refit R1 (`scripts/phase4/compressor_refit_murray.py` → `validation/phase4/compressor_refit_murray.*`)
+Murray Figs 5.12/5.14 (digitized [MEAS]), standard-day inlet. Calibration lines 50/70/90/110 krpm; held out
+40/60/80/100/120 krpm. Δσ −0.1176, Cf 0.1002 (D-059).
+
+| line [krpm] | U2 [m/s] | set | PR err [%] | flow err [%] | η err [pts] | PR / η within published unc. |
+|---|---|---|---|---|---|---|
+| 40 | 138 | held out | −2.0 | −5.9 | +14.2 | 1/1, 0/1 |
+| 50 | 173 | cal | −1.5 | −4.5 | +0.1 | 2/2, 5/5 |
+| 60 | 207 | held out | −1.8 | −2.2 | −0.6 | 1/1, 4/5 |
+| 70 | 242 | cal | −1.9 | −1.1 | −1.7 | 1/1, 3/4 |
+| 80 | 277 | held out | −1.6 | −0.7 | −2.3 | 2/2, 3/5 |
+| 90 | 311 | cal | −1.2 | −0.5 | −1.2 | 2/2, 3/4 |
+| 100 | 346 | held out | +0.6 | +0.2 | +0.6 | 2/2, 3/3 |
+| 110 | 380 | cal | +2.4 | +2.5 | +2.2 | 0/2, 1/3 |
+| 120 | 415 | held out | **+5.0** | **+4.4** | **+6.1** | 0/2, 0/2 |
+
+Held-out lines together: PR rms 2.8 % (stored calibration 3.8 %), flow rms 3.2 % (3.7 %), η rms 5.0 pts (5.0). The
+trend with speed remains (model-form). Growth law and extrapolation band: D-060.
+
+### KJ-66 turbine calibration (`scripts/phase4/turbine_calibration_murray.py` → `validation/phase4/turbine_calibration_murray.*`)
+Geometry from published counts (Xu et al. 2021, KJ66 variant) + calibrated, not measured hub/tip and angles (D-061/062).
+
+| fit | data fitted | hub/tip | NGV g [°] | rotor g [°] | flow err per line [%] | V5 err [%] | η err [pts] |
+|---|---|---|---|---|---|---|---|
+| **F (adopted)** | flow + V5 | 0.743 (0.65–0.745) | 64.8 | 43.6 | +11 (20) … −10 (68) | −2 (cal), −3 (held out); 11/15 within unc. | **+11.2** (all), +10.9 (≤ 44 krpm) |
+| Q | flow | 0.52 ± 0.60 | 70.9 | 67.9 | −2.8 … +4.3 | −47 | +12.9 |
+| FE | flow + η | 0.40 (bound) | 76.2 | 51.6 | −8.8 … +9.4 | −38 | +2.5 |
+
+**Low-speed turbine efficiency does NOT match Murray** with any geometry consistent with the flow and exit-velocity
+data: the model is 11–13 pts above Murray's (derived, ±0.08–0.34) efficiency on every line from 32 to 68 krpm. Only
+the implausible FE geometry (hub/tip at its bound, 48° exit swirl, V5 −38 %) brings it down.
+
+### Idle EGT re-check: KJ-66 replica (`scripts/phase4/kj66_replica_idle_egt.py` → `validation/phase4/kj66_replica_idle_egt.*`)
+Real compressor geometry (R1), KJ-66 turbine (F or Q), nozzle area A9 fitted per run at the top speed (EGT reading,
+r = 0.68); every other speed is a prediction (38 points, nozzle runs 1–3).
+
+| turbine | EGT err all [K] | EGT err < 50 krpm [K] | model TIT < 50 krpm [K] | EGT within unc. | flow err [%] | P03 err [kPa] |
+|---|---|---|---|---|---|---|
+| F | +52 (rms 59) | +78 | 877 | 3/38 | −14 | −1.8 |
+| Q | **−13 (rms 18)** | **−13** | **785** | 15/38 | −11 | −2.1 |
+| round 4 (replica stages) | | +40 … +80 | 840–860 | | | |
+
+Murray's calculated TIT at 48 krpm is 780–820 K (Fig 5.3): turbine Q reproduces it; turbine F is ~60–90 K hot.
+Diagnostic (not a model change): lowering the turbine efficiency by the calibration gap makes the low-speed EGT hotter
+(F +128 K, Q +53 K), so the hot idle of the earlier replicas was not caused by the optimistic turbine efficiency; it
+follows the turbine flow capacity (F's capacity is 4–10 % low above 50 krpm corrected, Q's within ±4 %).
+Caveats: both replicas under-predict air flow by 3 % (top) to 13–17 % (low speed) at nearly the right delivery
+pressure. The model's speed lines are almost flat (120 krpm: PR 2.40 → 2.29 over 0.12–0.26 kg/s), so the engine's air
+flow is set by the turbine + nozzle swallowing capacity; the idle-EGT agreement of Q may partly be compensating errors.
+Q's geometry also contradicts the measured exit velocity (V5 −47 %).
+
+### Nickel 337 (`scripts/phase4/ni337_rupture_crosscheck.py` → `validation/phase4/ni337_crosscheck.yaml`)
+- vs Nickel 393: identical at all 7 common (T, life) points. User anchors at 1350 °F: 76 ksi (1000 h), 56 ksi
+  (10,000 h), (97) ksi at 100 h extrapolated — all as printed.
+- AMS 5391 (≥ 30 h at 1800 °F / 22 ksi, as cast): Table II test 65 h; p. 7 table 72 h; LM curve 67 h; creep model 49 h.
+  **Pass.**
+- Larson–Miller (Fig 7, digitized) vs the individual tests: rms 10.8 %; the 2000 °F tests lie 12–37 % below the master
+  curve, so extending the tables with the LM curve would be non-conservative. Not done.
+- Creep model vs Nickel 337 at 100 h: exact (same tables). At 10 h, 2000 °F the model's LM fallback is +32 %
+  (non-conservative; not used at the 100 h design life).
+- **Missing data or physics** (TIT > 1150 K, infeasible designed engines): v4 141 physics / 16 missing data; v5 131 / 16.
+  Physics = AN² at the rotor-relative temperature fails for both alloys (rotor metal 1086–1314 K, inside the data);
+  31–33 of them would also melt an IN-713C vane (hot streak above the 1533 K solidus). Missing data = MAR-M 247 NGV
+  above its 1311 K data (NGV hot streak 1342–1588 K); Nickel 337 (IN-713C only, ≤ 2000 °F) cannot resolve them.
+
+### Dataset `phase4_v5` (full, 2000 designs)
+Card `docs/dataset_cards/phase4_v5.md`. 604 feasible (30.2 %); validated tip speed 40.2 % of designs feasible,
+extrapolated 22.6 %; TIT > 1150 K 1.0 %. Cross-check vs pyCycle-CEA: 21 checked, 0 flagged (max |ΔFn| 0.037 %,
+|ΔTSFC| 0.094 %).
