@@ -591,3 +591,28 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
 - **Physics vs missing data** (`turboml/analysis/feasibility.py`): v4 157 infeasible TIT > 1150 K designs → 141
   physics (AN² at the rotor-relative temperature with both alloys; 33 also melt an IN-713C NGV), 16 missing data
   (MAR-M 247 NGV above its 1311 K data). v5: 147 → 131 physics, 16 missing data.
+
+### D-065 · 2026-10-27 · R2 tested against Galvas (1973), NASA TN D-7487 — proposal: do not adopt
+- Primary source fetched from NTRS (public domain). Page numbers = printed report pages.
+- **No high-Mach / shock loss exists in Galvas.** p. 2: "Shock losses in the rotor are neglected." p. 10: "For inducers
+  with relative Mach numbers appreciably in excess of unity the predicted compressor total pressure ratio and
+  efficiency are greater than that attainable experimentally. This is a result of neglecting shock losses in the
+  inducer inlet." p. 10 also: PR and efficiency are over-predicted when the impeller (not the diffuser) limits the flow.
+- Mach-dependent elements that do exist:
+  1. **Inducer choke criterion** (p. 7; listing p. 26 DATA, p. 29 logic): choked when the rms incidence
+     INC = β1MF − β1MFb ≤ CINC(M_W,rms, β1MFb). Tables (his ref. 9; pitch/chord 0.5, t/c 0.05), M_W,rms 0.5 … 1.2:
+     CINC40 = −20, −12, −5, 1.5, 5, 8, 11.5, 14.5; CINC50 = −15, −7.5, −3, 1.5, 4, 6.5, 9, 11;
+     CINC60 = −10.5, −5, −2, 1.5, 2.5, 4, 5, 5 [deg]. Validity: rms blade angle 40–60°. A flow LIMIT, not a loss.
+     Geometry needed: inducer hub/tip radii, rms blade angle, (pitch/chord, t/c as in the source data).
+  2. **Vaned-diffuser recovery** C_p** vs throat Mach 0.2–0.8 and blockage (listing p. 26, PREC1–5): recovery
+     rises slightly with Mach; "valid only in the subsonic flow regime" (p. 10). Needs vane throat area, area ratio,
+     setting angle — unpublished for the KJ-66, so not applicable.
+  Other losses (p. 5–6): incidence Δh = W_L²/2c_p with W_L = W_1MF sin|β_opt − β_1MF|; blade loading
+  0.05 D_f² u₃²; skin friction K_SF C_f (L/D)/(D_hyd/D) (W/u₃)² u₃²; disk friction 0.01356 ρ₃ u₃³ D₃²/(w Re^0.2);
+  recirculation 0.02 √(tan α₃) D_f² u₃². None depends on Mach number.
+- **Test** (`scripts/phase4/galvas_r2_test.py` → `validation/phase4/galvas_r2_test.yaml`): KJ-66 rms blade angle
+  45.9° (digitized midspan 42°, tan β ∝ r; assumption). On every measured Murray point the inducer is far from the
+  Galvas choke: at 120 krpm M_W,rms 0.71–0.73, incidence +12.5…+14.5°, choking incidence −3.3° → margin ≥ 14.9°
+  (19–30° at lower speeds). Held-out errors with the term = without (no point changes); the +5 % PR bias at 120 krpm
+  is not choke. phase4_v5: 4 of 1031 designs would be flagged inducer-choked (all extrapolated, M_W,rms up to 1.10).
+- Proposal: **do not adopt R2 from Galvas** (nothing to adopt). Keep R3. Aungier (2000) not accessible here.

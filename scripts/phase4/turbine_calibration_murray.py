@@ -94,6 +94,40 @@ def at_pr_tt(t: AxialTurbineMeanline, T04, P04, omega, pr_tt):
     return q if q.converged else None
 
 
+def at_pr_tt_robust(t: AxialTurbineMeanline, T04, P04, omega, pr_tt, n_grid: int = 33):
+    """`at_pr_tt` that survives isolated solver failures (round 6b): evaluate on a grid of PR_ts, bracket the target
+    PR_tt between two CONVERGED neighbours, refine with brentq there; if the refinement hits a failure, interpolate
+    linearly between the bracketing converged points (flagged `interpolated`). None if no converged bracket exists."""
+    from types import SimpleNamespace
+
+    grid = pr_tt * np.linspace(1.0005, 1.8, n_grid)
+    pts = []
+    for x in grid:
+        q = t.evaluate(T04, P04, omega, x)
+        if q.converged:
+            pts.append((x, P04 / q.p0_out_Pa - pr_tt, q))
+    for (x0, f0, q0), (x1, f1, q1) in zip(pts, pts[1:], strict=False):
+        if f0 * f1 > 0:
+            continue
+
+        def f(x):
+            q = t.evaluate(T04, P04, omega, x)
+            return (P04 / q.p0_out_Pa - pr_tt) if q.converged else float("nan")
+
+        try:
+            x = brentq(f, x0, x1, xtol=1e-7)
+            q = t.evaluate(T04, P04, omega, x)
+            if q.converged:
+                return q
+        except ValueError:
+            pass
+        w = f0 / (f0 - f1) if f0 != f1 else 0.0
+        lerp = {k: (1 - w) * getattr(q0, k) + w * getattr(q1, k)
+                for k in ("mass_flow_kg_s", "eta_tt", "rotor_incidence_deg", "stator_exit_mach", "exit_flow_angle_deg")}  # fmt: skip
+        return SimpleNamespace(**lerp, choked=q0.choked, converged=True, interpolated=True)
+    return None
+
+
 def build(p, n_le_iter: int = 3):
     """Geometry for parameters p; rotor LE angle set to the relative inflow angle at the D.10 point (zero incidence)."""
     hub_tip, g_ngv, g_rot = p
@@ -112,9 +146,9 @@ def build(p, n_le_iter: int = 3):
     return g, le
 
 
-def predict(p, k_loss: float = 1.0, geometry=None) -> pd.DataFrame:
+def predict(p, k_loss: float = 1.0, geometry=None, robust: bool = False) -> pd.DataFrame:
     """Model vs Figs 5.16/5.18 for parameters p (or a fixed `geometry` = (AxialStageGeometry, rotor LE)), with the
-    turbine loss multiplier k_loss (D-064)."""
+    turbine loss multiplier k_loss (D-064); robust=True uses `at_pr_tt_robust` (round 6b)."""
     g, le = build(p) if geometry is None else geometry
     rows = []
     turbs = {}
@@ -124,7 +158,7 @@ def predict(p, k_loss: float = 1.0, geometry=None) -> pd.DataFrame:
         if far not in turbs:
             turbs[far] = AxialTurbineMeanline(g, thermo.products(far), loss_multiplier=k_loss)
         om = n * 1e3 * math.sqrt(T04 / TREF) * math.pi / 30
-        q = at_pr_tt(turbs[far], T04, P04, om, r.PR)
+        q = (at_pr_tt_robust if robust else at_pr_tt)(turbs[far], T04, P04, om, r.PR)
         row = {"figure": r.figure, "speed_krpm": int(n), "meas_PR": r.PR,
                "meas": r.Mcorr_kg_s if r.figure == "5.16" else r.eta,
                "u_pub": r.u_pub_Mcorr if r.figure == "5.16" else r.u_pub_eta,
