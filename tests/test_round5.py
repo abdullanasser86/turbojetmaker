@@ -168,3 +168,36 @@ def test_galvas_choking_incidence_table():
         -4.0
     )  # halfway between CINC40 (-5) and CINC50 (-3)
     assert math.isnan(m.choking_incidence_deg(0.4, 45.0))  # outside the tabulated Mach range
+
+
+def test_engine_points_carry_retry_fields_and_eta_tt():
+    from turboml.physics.engine import TURBINE_RETRY_PR_FACTORS, Engine, design_engine, load_engine_config
+
+    cfg = load_engine_config()
+    base = {k: (v["value"] if isinstance(v, dict) else v) for k, v in cfg["baseline_design"].items()}
+    d = design_engine(base, cfg)
+    dp = d.design_point
+    assert dp.retries == 0 and dp.converged_on_retry is False
+    assert 0.5 < dp.eta_t_tt < 1.0 and dp.eta_t_tt >= dp.eta_t_ts  # total-to-total >= total-to-static
+    p = Engine(d, cfg).off_design(0.8 * dp.n_rpm)
+    assert p.converged and p.retries == 0 and not p.converged_on_retry
+    assert len(TURBINE_RETRY_PR_FACTORS) >= 2
+
+
+def test_design_stage_retry_wrapper_reraises_non_convergence_reasons():
+    from turboml.physics import turbine_design as td
+
+    calls = []
+
+    def fake(*a, pr0_factor=1.0, **k):
+        calls.append(pr0_factor)
+        raise ValueError("turbine design point failed: no_convergence (root finder did not converge)")
+
+    orig = td._design_stage_once
+    td._design_stage_once = fake
+    try:
+        with pytest.raises(ValueError, match="no_convergence"):
+            td.design_stage(1.0, 1000.0, 3e5, 1e4, 1e5, 0.7, 1.5, 0.5)
+    finally:
+        td._design_stage_once = orig
+    assert calls == [1.0, *td.DESIGN_RETRY_PR_FACTORS]  # first attempt + every restart, then the failure is raised

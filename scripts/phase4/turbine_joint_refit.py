@@ -12,8 +12,10 @@ Solver: robust PR matching (`at_pr_tt_robust`); points without a converged brack
 Starts: near T-A (0.743, 64.8, 43.6, 1.9), near T-B (0.52, 70.9, 67.9, 1.8), and a middle start (0.62, 68, 55, 1.8);
 the best weighted RSS is reported as the joint fit, all starts are listed (multiple minima are expected, D-062).
 
-Usage:  uv run python scripts/phase4/turbine_joint_refit.py
-Output: validation/phase4/turbine_joint_refit.yaml, turbine_joint_refit.csv
+Usage:  uv run python scripts/phase4/turbine_joint_refit.py                 # all starts, then merge
+        uv run python scripts/phase4/turbine_joint_refit.py --start near_T-B   # one start (parallel runs) ...
+        uv run python scripts/phase4/turbine_joint_refit.py --merge            # ... then merge
+Output: validation/phase4/turbine_joint_refit.yaml (+ per-start _<start>.yaml/.csv)
 """
 
 from __future__ import annotations
@@ -81,19 +83,26 @@ def summarize(x, fit=None) -> dict:
     return out, d
 
 
-def main() -> int:
-    res, rows = {"starts": {}}, []
-    best = None
-    for name, x0 in STARTS.items():
-        fit = least_squares(residuals, x0, bounds=(LB, UB), x_scale=[0.05, 2.0, 2.0, 0.1], diff_step=[2e-3] * 4,
-                            max_nfev=80)  # fmt: skip
-        sm, d = summarize(fit.x, fit)
-        res["starts"][name] = {"x0": list(x0), **sm}
-        rows.append(d.assign(start=name))
-        print(name, sm["params"], "rss", sm["rss"], "held-out eta", sm["held_out_eta_err_pts"], "flow", sm["held_out_flow_err_pct"],
-              "V5", sm["V5_check_not_fitted_err_pct"], flush=True)  # fmt: skip
-        if best is None or sm["rss"] < res["starts"][best]["rss"]:
-            best = name
+def run_start(name: str) -> dict:
+    fit = least_squares(residuals, STARTS[name], bounds=(LB, UB), x_scale=[0.05, 2.0, 2.0, 0.1], diff_step=[2e-3] * 4,
+                        max_nfev=80)  # fmt: skip
+    sm, d = summarize(fit.x, fit)
+    d.assign(start=name).to_csv(OUT / f"turbine_joint_refit_{name}.csv", index=False)
+    out = {"x0": list(STARTS[name]), **sm}
+    out = json.loads(json.dumps(out, default=lambda v: v.item() if hasattr(v, "item") else str(v)))
+    (OUT / f"turbine_joint_refit_{name}.yaml").write_text(yaml.safe_dump(out, sort_keys=False), encoding="utf-8")
+    print(name, sm["params"], "rss", sm["rss"], "held-out eta", sm["held_out_eta_err_pts"], "flow", sm["held_out_flow_err_pct"],
+          "V5", sm["V5_check_not_fitted_err_pct"], flush=True)  # fmt: skip
+    return out
+
+
+def merge() -> dict:
+    res = {"starts": {}}
+    for name in STARTS:
+        f = OUT / f"turbine_joint_refit_{name}.yaml"
+        if f.exists():
+            res["starts"][name] = yaml.safe_load(f.read_text(encoding="utf-8"))
+    best = min(res["starts"], key=lambda n: res["starts"][n]["rss"])
     res["joint_fit"] = {"start": best, **res["starts"][best]}
     jp = res["joint_fit"]["params"]
     ta, tb = (0.7433, 64.79, 43.62), (0.5191, 70.91, 67.88)
@@ -101,12 +110,25 @@ def main() -> int:
                                               (jp["rotor_gauging_deg"] - r[2]) / 10.0])), 2) for lab, r in (("T-A", ta), ("T-B", tb))}  # fmt: skip
     res["closer_to"] = {"scaled_distance (hub/tip per 0.1, NGV per 5 deg, rotor per 10 deg)": dist,
                         "variant": min(dist, key=dist.get), "hobbyist_hint_hub_tip_0.56_distance": round(abs(jp["hub_tip"] - 37 / 66), 3)}  # fmt: skip
-    pd.concat(rows, ignore_index=True).to_csv(OUT / "turbine_joint_refit.csv", index=False)
-    res = json.loads(json.dumps(res, default=lambda v: v.item() if hasattr(v, "item") else str(v)))
-    (OUT / "turbine_joint_refit.yaml").write_text(
-        yaml.safe_dump(res, sort_keys=False), encoding="utf-8"
-    )
-    print(yaml.safe_dump({k: res[k] for k in ("closer_to",)}, sort_keys=False))
+    (OUT / "turbine_joint_refit.yaml").write_text(yaml.safe_dump(res, sort_keys=False), encoding="utf-8")
+    print(yaml.safe_dump({"joint_fit": res["joint_fit"]["params"], "closer_to": res["closer_to"]}, sort_keys=False))
+    return res
+
+
+def main() -> int:
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--start", choices=list(STARTS), help="run one start (several can run in parallel)")
+    ap.add_argument("--merge", action="store_true", help="merge the per-start results into the joint fit")
+    a = ap.parse_args()
+    if a.start:
+        run_start(a.start)
+    if a.merge or not a.start:
+        if not a.start and not a.merge:
+            for name in STARTS:
+                run_start(name)
+        merge()
     return 0
 
 

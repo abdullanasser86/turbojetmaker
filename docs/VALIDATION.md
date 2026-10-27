@@ -495,3 +495,43 @@ per variant (T-A runs 1 and 3, T-B runs 2 and 3) at any nozzle area; at k = 1 al
 k = 1: thrust 4 %, TSFC 8 %, idle EGT ~90 K; the turbine efficiency differs most (0.66 vs 0.79 total-to-static:
 T-A's short, choked NGV and fast exit flow). Murray's thrust is not in our data, so thrust is not validated.
 Hobbyist hint (hub/tip ≈ 0.56, hobbyist CAD, unverified): closer to T-B.
+
+## Phase 4 (round 7) — turbine-solver restarts, phase4_v6, surrogates on v6
+
+### Turbine-solver restarts (D-067; `validation/phase4/retry_recovery_check.yaml`)
+| v5 pilot (200 designs) re-evaluated | recovered on retry | still failing | converged points changed |
+|---|---|---|---|
+| k_loss 1 (v5 settings) | 0 (no turbine-solver failures existed) | 0 turbine; 97 design-mode, 1 idle compressor choke | none (max \|ΔFn\| = 0) |
+| k_loss 1.86 (v6 nominal) | 1 | 8 `turbine_no_convergence` (6 cruise, 2 part speed) | – |
+
+In the full v6: 3 points converged on a restart (2 design, 1 cruise); 44 failed after all restarts (37 cruise and
+6 part-speed `turbine_no_convergence`).
+
+### phase4_v6 (`docs/dataset_cards/phase4_v6.md`)
+- 2000 designs: 1028 designed, 568 feasible (28.4 %; v5 30.2 %).
+- Feasible by tip speed: validated 38.0 %, extrapolated 21.0 % of designs. TIT > 1150 K: 1.3 %.
+- Turbine η_t,tt at design: 0.62–0.86 (median 0.789); 0 outside [0.58, 0.93] (Murray-based range, D-069).
+- pyCycle-CEA cross-check: 21 checked, 0 flagged (max |ΔFn| 0.042 %, |ΔTSFC| 0.112 %).
+- Feasible design TSFC: best 43.2, median 72.5 g/kN/s. JetCat claims 40–52 [MFR].
+- Off-design convergence (designed engines):
+
+| point | converged | main failure reasons |
+|---|---|---|
+| design | 1028 / 1028 | – |
+| M 0.5 / 3 km | 946 / 1028 | 38 no net thrust, 37 turbine non-convergence |
+| 80 % speed | 1015 / 1028 | 6 turbine non-convergence |
+| idle (35 %) | 1018 / 1028 | 6 turbine limit loading |
+
+### Surrogates on v6 (`validation/phase5/surrogates_phase4_v6.yaml`, comparison `compare_phase4_v5_vs_phase4_v6.md`)
+Frozen v6 test set, deep ensemble:
+
+| target | median relative error |
+|---|---|
+| Fn design | 0.60 % |
+| Wf design | 0.36 % |
+| Wf cruise | 0.58 % |
+| Fn idle | 0.59 % |
+| T05 idle | 0.30 % |
+
+95 % coverage is 0.93–1.00. Feasibility classifier: accuracy 0.923, AUC 0.970, ECE 0.032. The TSFC targets have
+heavy tails (low-thrust designs), so TSFC should be derived as Wf/Fn.
