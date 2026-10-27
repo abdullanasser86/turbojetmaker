@@ -688,3 +688,22 @@ Format: ID · date · decision · why · alternatives · status. Newest at the b
   - **0 designs flagged**, so the full run was started;
   - the distribution lies inside Murray's measured span;
   - η_t,ts median 0.643 (v5 pilot 0.712).
+
+### D-070 · 2026-10-27 · phase4_v6 generated; surrogate targets for v6
+- v6 = v5 design space and sampling (seed 20261117) with k_loss 1.86 (D-064; the 20 % calibration-sampled designs
+  draw k in [1.6, 2.0]), turbine-solver restarts (D-067), turbine-efficiency flag (D-069). Pilot 28 % feasible → full
+  run (3048 s, 3 workers).
+- Result:
+  - 2000 designs: 1028 designed, **568 feasible (28.4 %)**; v5: 1031 / 604 (30.2 %);
+  - design η_t,tt 0.62–0.86 (median 0.789), 0 outside [0.58, 0.93];
+  - cruise point (M 0.5 / 3 km) converged for 946 / 1028 designed engines (v5: 1027 / 1031); the extra failures are
+    38 no net thrust and 37 `turbine_no_convergence`. Retries: 3 points converged on a restart, 44 failed after
+    all restarts;
+  - pyCycle cross-check: 21 checked, 0 flagged.
+- TSFC: the less efficient turbine leaves some designs with little jet energy.
+  - v6 design TSFC p99 190 g/kN/s, max 574; 13 designs have specific thrust < 100 N·s/kg. v5: p99 107, max 188,
+    none below 100.
+  - The feasible designs still reach JetCat-class SFC: v6 best 43.2 g/kN/s vs JetCat claims 40–52 [MFR] (v5 best
+    43.9); the feasible median moves 61.3 → 72.5.
+- Surrogate targets: design and cruise fuel flow (`Wf_*`) are added, since TSFC = Wf/Fn has the heavy tail. TSFC
+  targets are kept for comparison with v5.

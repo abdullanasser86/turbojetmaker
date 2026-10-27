@@ -39,3 +39,59 @@ Card: `docs/surrogate_cards/phase4_v5.md`. Frozen test set (300 designs, 159 des
 - `train_surrogates.py --dataset phase4_v6` (one command), then decide the target set (fuel flow / net thrust
   split) and the GP vs ensemble choice per target on validation data only.
 - Active learning and multi-objective optimization (qLogNEHVI) on top, with physics verification of every final design.
+
+## v6 retrain (2026-10-27): `phase4_v6`
+One command: `uv run python scripts/phase5/train_surrogates.py --dataset phase4_v6`. Card:
+`docs/surrogate_cards/phase4_v6.md`; comparison table: `validation/phase5/compare_phase4_v5_vs_phase4_v6.md`
+(`scripts/phase5/compare_surrogate_versions.py`).
+
+- New inputs and targets:
+  - k_loss (`turbine_loss_multiplier`) is now an input, next to the compressor calibration factors;
+  - design and cruise fuel flow are new targets (D-070).
+- Run: 1445 train / 255 val / 300 frozen test (757 designed engines in train). CPU timing: GP 174 s,
+  ensemble 137 s, classifier 11 s.
+
+**Frozen test set, v5 (provisional) → v6** — each version's own test set, so this compares how well each surrogate
+reproduces its own dataset (deep ensemble unless noted):
+
+| target | median rel. error | p95 rel. error | R² | 95 % coverage |
+|---|---|---|---|---|
+| Fn design | 0.33 → 0.60 % | 2.8 → 5.1 % | 1.000 → 0.999 | 0.99 → 0.97 |
+| TSFC design | 0.26 → 0.40 % | 1.7 → 6.8 % | 0.89 → 0.63 | 0.94 → 0.95 |
+| **Wf design (new)** | – → **0.36 %** (GP 0.08 %) | – → 1.6 % | – → 1.000 | – → 1.00 |
+| Fn cruise | 0.75 → 1.30 % | 7.9 → 34 % | 1.000 → 0.998 | 0.94 → 0.93 |
+| TSFC cruise | 0.53 → 0.99 % | 8.4 → 47 % | 0.32 → 0.06 | 0.94 → 0.94 |
+| **Wf cruise (new)** | – → **0.58 %** | – → 2.3 % | – → 1.000 | – → 0.99 |
+| Fn idle | 0.43 → 0.59 % | 2.7 → 3.8 % | 1.000 → 0.999 | 0.99 → 0.97 |
+| T05 idle | 0.21 → 0.30 % | 1.1 → 1.3 % | 0.996 → 0.993 | 0.94 → 0.96 |
+| pr_c, T05 design, mass, diameter | ≤ 0.08 % both | ≤ 3.1 % | ≥ 0.97 | 0.99–1.00 |
+
+| feasibility classifier | accuracy | ROC AUC | Brier | ECE |
+|---|---|---|---|---|
+| v5 (provisional), 93 / 300 feasible | 0.953 | 0.976 | 0.042 | 0.033 |
+| v6, 81 / 300 feasible | 0.923 | 0.970 | 0.057 | 0.032 |
+| v6, validated tip speed (n 132) | 0.894 | 0.969 | – | 0.042 |
+| v6, extrapolated tip speed (n 168) | 0.946 | 0.967 | – | 0.048 |
+
+Reading:
+- v6 is a slightly harder dataset: more spread in thrust and SFC because of the k_loss subset and the low-thrust
+  designs (D-070). Medians stay below 1 %. The **ratio** targets (TSFC) carry the heavy tail and their R² collapses at
+  cruise. **Use the fuel-flow and thrust surrogates and derive TSFC = Wf/Fn**; keep the TSFC surrogates only as
+  diagnostics.
+- Uncertainty calibration:
+  - 95 % coverage 0.93–1.00 for every target;
+  - std of standardized residuals ≈ 1 for the thrust/temperature targets;
+  - over-dispersed (0.24–0.54) for the near-deterministic geometry targets (mass, diameter, design fuel flow): the
+    stated uncertainty there is wider than the error. That is conservative, and harmless for optimisation.
+- Classifier:
+  - well calibrated (ECE 0.03; reliability bins track the observed frequency within ~0.1, except sparse mid-bins
+    with 4–9 designs);
+  - the validated-tip-speed subset is the harder one (accuracy 0.89), because the AN² boundary runs through it.
+- OOD on the test set (designed engines): extrapolated tip 51 %, high ensemble disagreement 10.5 %, sparse
+  0.7 %, outside box 0 %.
+
+## Decisions / next steps (for the user)
+- Target set for optimisation: Fn, Wf (→ TSFC), T05, mass, diameter + P(feasible); TSFC surrogates as diagnostics only.
+- Model per target: GP (better calibrated on fuel flow, cheap at this size) vs ensemble (smaller tails on thrust).
+  Proposal: ensemble for thrust/temperatures, GP for fuel flow and geometry, chosen on validation data only.
+- Then Phase 6: multi-objective optimisation (qLogNEHVI) with physics verification of every Pareto design.

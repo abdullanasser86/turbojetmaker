@@ -18,6 +18,9 @@ inputs:
 targets:
   - {name: Fn_design_N,      point: design,         column: Fn_N,          transform: log}
   - {name: TSFC_design,      point: design,         column: TSFC_kg_N_s,   transform: log}
+  # design fuel flow (v6+): TSFC = Wf/Fn has a heavy tail where the net thrust is small (v6: 13 designs below
+  # 100 N s/kg specific thrust); predicting Wf and Fn and dividing avoids fitting that tail directly (D-070)
+  - {name: Wf_design_kg_s,   point: design,         column: Wf_kg_s,       transform: log}
   - {name: pr_c_design,      point: design,         column: pr_c,          transform: none}
   - {name: T05_design_K,     point: design,         column: T05_K,         transform: none}
   - {name: Fn_cruise_N,      point: cruise_M05_3km, column: Fn_N,          transform: log}

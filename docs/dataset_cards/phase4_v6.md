@@ -4,7 +4,7 @@
 
 Status: 2000 of 2000 planned designs evaluated.
 
-Generated with git 31e7999 by `scripts/phase4/generate_dataset.py` (`turboml/data/generator.py`), config `configs/dataset_phase4_v6.yaml`. Raw records: `datasets/<name>/designs.jsonl` (git-ignored, regenerate from seed + config).
+Generated with git 6e7f9a6 by `scripts/phase4/generate_dataset.py` (`turboml/data/generator.py`), config `configs/dataset_phase4_v6.yaml`. Raw records: `datasets/<name>/designs.jsonl` (git-ignored, regenerate from seed + config).
 
 ## What one record is
 
@@ -172,7 +172,9 @@ Derived by the sizing (not sampled): n_rpm 20553.4 – 272276; turb_phi 0.201 �
 
 ## Cross-check (pyCycle-CEA, random 2 % of designed engines)
 
-Not run yet.
+- checked 21 of 1028; coupled model vs pyCycle-CEA: flagged 0 (gate passed: True), max |ΔFn| 0.042 %, max |ΔTSFC| 0.1116 %
+- 0-D cycle_simple vs pyCycle-CEA: flagged 0 (gate passed: True)
+- secondary metric |ΔFn|/Fg (labelled secondary): max 0.00042
 
 ## Cost
 
