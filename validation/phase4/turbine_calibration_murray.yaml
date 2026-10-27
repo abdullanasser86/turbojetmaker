@@ -1,6 +1,7 @@
-status: CALIBRATED, NOT MEASURED (hub/tip and blade angles); counts and tip diameter
-  published (Xu et al. 2021, KJ66 variant)
-data: Murray 2009 Figs 5.16/5.18, digitized [MEAS]; efficiency DERIVED by Murray
+status: CALIBRATED, NOT MEASURED (hub/tip and blade angles); counts, tip diameter
+  and clearance published (Xu et al. 2021, a KJ66 variant)
+data: Murray 2009 Figs 5.16/5.18 digitized [MEAS] (efficiency DERIVED by Murray);
+  App D V5 (CALC_MEAS)
 split:
   calibration_lines_krpm:
   - 26
@@ -13,311 +14,597 @@ split:
   - 44
   - 56
   - 68
-calibrated:
-  hub_tip:
-    value: 0.4
-    sigma_1: 0.1911
-    at_bound: true
-  ngv_gauging_deg:
-    value: 76.18
-    sigma_1: 1.88
-    at_bound: false
-  rotor_gauging_deg:
-    value: 51.59
-    sigma_1: 13.01
-    at_bound: false
-correlation:
-  hub_tip~ngv_gauging_deg: -0.987
-  hub_tip~rotor_gauging_deg: -0.955
-  ngv_gauging_deg~rotor_gauging_deg: 0.932
-jtj_condition_number: 296000.0
-rotor_le_deg_zero_incidence_at_D10: 61.01
-derived_geometry:
-  r_hub_m: 0.0132
-  blade_height_m: 0.0198
-  tip_clearance_m: 0.000198
-  ngv_chord_m: 0.00594
-  rotor_chord_m: 0.01796
-  ngv_throat_area_m2: 0.0006867
-  rotor_throat_area_m2: 0.001785
-at_D10_120krpm:
-  m4_model_kg_s: 0.1863
-  m4_meas_kg_s: 0.2065
-  eta_tt_model: 0.8022
-  eta_tt_murray: 0.822
-  ngv_exit_mach: 1.03
-  choked: stator
-  exit_swirl_deg: 47.6
-n_residuals: 23
-residual_rms_weighted: 0.0473
-optimizer_status: 2
-per_speed_line:
-  '20':
-    set: held_out
+  appD_calibration:
+  - D.1
+  - D.11
+  - D.13
+  - D.15
+  - D.3
+  - D.5
+  - D.7
+  - D.9
+  appD_held_out:
+  - D.10
+  - D.12
+  - D.14
+  - D.2
+  - D.4
+  - D.6
+  - D.8
+adopted:
+  fit: 'F: flow (Fig 5.16) + exit velocity (App D V5); efficiency held out'
+  calibrated:
+    hub_tip:
+      value: 0.7433
+      sigma_1: 0.014
+      at_bound: false
+    ngv_gauging_deg:
+      value: 64.79
+      sigma_1: 1.15
+      at_bound: false
+    rotor_gauging_deg:
+      value: 43.62
+      sigma_1: 0.82
+      at_bound: false
+  correlation:
+    hub_tip~ngv_gauging_deg: -0.708
+    hub_tip~rotor_gauging_deg: -1.0
+    ngv_gauging_deg~rotor_gauging_deg: 0.709
+  jtj_condition_number: 109000000.0
+  n_residuals: 17
+  residual_rms_weighted: 0.0654
+  optimizer_status: 3
+  rotor_le_deg_zero_incidence_at_D10: 27.33
+  derived_geometry:
+    r_hub_m: 0.02453
+    blade_height_m: 0.00847
+    tip_clearance_m: 8.5e-05
+    ngv_chord_m: 0.01146
+    rotor_chord_m: 0.01465
+    ngv_throat_area_m2: 0.0006522
+    rotor_throat_area_m2: 0.001109
+  at_D10_120krpm:
+    m4_model_kg_s: 0.1829
+    m4_meas_kg_s: 0.2065
+    eta_tt_model: 0.8853
+    eta_tt_murray: 0.822
+    ngv_exit_mach: 1.001
+    choked: stator
+    exit_swirl_deg: 28.2
+  per_speed_line:
+    '20':
+      set: held_out
+      Mcorr_err_pct:
+        mean: 10.9
+        rms: 10.9
+        max_abs: 10.9
+        n: 1
+      eta_err_pts:
+        n: 0
+      Mcorr_within_published_uncertainty: 1/1
+      eta_within_published_uncertainty: 0/0
+    '26':
+      set: calibration
+      Mcorr_err_pct:
+        mean: 9.56
+        rms: 9.56
+        max_abs: 9.56
+        n: 1
+      eta_err_pts:
+        mean: -1.27
+        rms: 1.27
+        max_abs: 1.27
+        n: 1
+      Mcorr_within_published_uncertainty: 1/1
+      eta_within_published_uncertainty: 1/1
+    '32':
+      set: held_out
+      Mcorr_err_pct:
+        mean: 3.0
+        rms: 3.0
+        max_abs: 3.0
+        n: 1
+      eta_err_pts:
+        mean: 11.93
+        rms: 12.36
+        max_abs: 16.24
+        n: 5
+      Mcorr_within_published_uncertainty: 1/1
+      eta_within_published_uncertainty: 5/5
+    '38':
+      set: calibration
+      Mcorr_err_pct:
+        mean: 0.67
+        rms: 0.67
+        max_abs: 0.67
+        n: 1
+      eta_err_pts:
+        mean: 12.38
+        rms: 12.71
+        max_abs: 16.26
+        n: 4
+      Mcorr_within_published_uncertainty: 1/1
+      eta_within_published_uncertainty: 4/4
+    '44':
+      set: held_out
+      Mcorr_err_pct:
+        mean: -0.67
+        rms: 0.67
+        max_abs: 0.67
+        n: 1
+      eta_err_pts:
+        mean: 11.61
+        rms: 11.8
+        max_abs: 13.71
+        n: 2
+      Mcorr_within_published_uncertainty: 1/1
+      eta_within_published_uncertainty: 2/2
+    '50':
+      set: calibration
+      Mcorr_err_pct:
+        mean: -4.07
+        rms: 4.08
+        max_abs: 4.31
+        n: 2
+      eta_err_pts:
+        mean: 14.35
+        rms: 14.53
+        max_abs: 16.63
+        n: 2
+      Mcorr_within_published_uncertainty: 2/2
+      eta_within_published_uncertainty: 1/2
+    '56':
+      set: held_out
+      Mcorr_err_pct:
+        mean: -7.05
+        rms: 7.18
+        max_abs: 8.94
+        n: 3
+      eta_err_pts:
+        mean: 12.73
+        rms: 12.86
+        max_abs: 15.34
+        n: 4
+      Mcorr_within_published_uncertainty: 2/3
+      eta_within_published_uncertainty: 0/4
+    '62':
+      set: calibration
+      Mcorr_err_pct:
+        mean: -9.01
+        rms: 9.13
+        max_abs: 10.65
+        n: 5
+      eta_err_pts:
+        mean: 11.17
+        rms: 11.23
+        max_abs: 13.58
+        n: 7
+      Mcorr_within_published_uncertainty: 0/5
+      eta_within_published_uncertainty: 0/7
+    '68':
+      set: held_out
+      Mcorr_err_pct:
+        mean: -10.44
+        rms: 10.49
+        max_abs: 11.41
+        n: 2
+      eta_err_pts:
+        mean: 6.81
+        rms: 6.86
+        max_abs: 7.62
+        n: 2
+      Mcorr_within_published_uncertainty: 0/2
+      eta_within_published_uncertainty: 2/2
+  exit_velocity_V5:
+    calibration:
+      err_pct:
+        mean: -1.95
+        rms: 10.09
+        max_abs: 19.95
+        n: 8
+      within_published_uncertainty: 6/8
+    held_out:
+      err_pct:
+        mean: -3.46
+        rms: 7.65
+        max_abs: 11.17
+        n: 7
+      within_published_uncertainty: 5/7
+  held_out_all:
     Mcorr_err_pct:
-      mean: 9.39
-      rms: 9.39
-      max_abs: 9.39
-      n: 1
+      mean: -3.6
+      rms: 7.93
+      max_abs: 11.41
+      n: 8
     eta_err_pts:
-      n: 0
-    Mcorr_within_published_uncertainty: 1/1
-    eta_within_published_uncertainty: 0/0
-  '26':
-    set: calibration
+      mean: 11.34
+      rms: 11.76
+      max_abs: 16.24
+      n: 13
+  eta_all_lines_err_pts:
+    mean: 11.21
+    rms: 11.79
+    max_abs: 16.63
+    n: 27
+  low_speed_le_44krpm_all_points:
     Mcorr_err_pct:
-      mean: 8.47
-      rms: 8.47
-      max_abs: 8.47
-      n: 1
-    eta_err_pts:
-      mean: -11.47
-      rms: 11.47
-      max_abs: 11.47
-      n: 1
-    Mcorr_within_published_uncertainty: 1/1
-    eta_within_published_uncertainty: 1/1
-  '32':
-    set: held_out
-    Mcorr_err_pct:
-      mean: 2.16
-      rms: 2.16
-      max_abs: 2.16
-      n: 1
-    eta_err_pts:
-      mean: 2.3
-      rms: 3.92
-      max_abs: 6.54
+      mean: 4.69
+      rms: 6.63
+      max_abs: 10.9
       n: 5
-    Mcorr_within_published_uncertainty: 1/1
-    eta_within_published_uncertainty: 5/5
-  '38':
-    set: calibration
-    Mcorr_err_pct:
-      mean: 0.06
-      rms: 0.06
-      max_abs: 0.06
-      n: 1
     eta_err_pts:
-      mean: 3.24
-      rms: 4.27
-      max_abs: 6.95
-      n: 4
-    Mcorr_within_published_uncertainty: 1/1
-    eta_within_published_uncertainty: 4/4
-  '44':
-    set: held_out
+      mean: 10.93
+      rms: 11.87
+      max_abs: 16.26
+      n: 12
+alternative_flow_plus_efficiency:
+  fit: 'FE: flow (Fig 5.16) + efficiency (Fig 5.18)'
+  calibrated:
+    hub_tip:
+      value: 0.4
+      sigma_1: 0.1911
+      at_bound: true
+    ngv_gauging_deg:
+      value: 76.18
+      sigma_1: 1.88
+      at_bound: false
+    rotor_gauging_deg:
+      value: 51.59
+      sigma_1: 13.01
+      at_bound: false
+  correlation:
+    hub_tip~ngv_gauging_deg: -0.987
+    hub_tip~rotor_gauging_deg: -0.955
+    ngv_gauging_deg~rotor_gauging_deg: 0.932
+  jtj_condition_number: 296000.0
+  n_residuals: 23
+  residual_rms_weighted: 0.0473
+  optimizer_status: 2
+  rotor_le_deg_zero_incidence_at_D10: 61.01
+  derived_geometry:
+    r_hub_m: 0.0132
+    blade_height_m: 0.0198
+    tip_clearance_m: 0.000198
+    ngv_chord_m: 0.00594
+    rotor_chord_m: 0.01796
+    ngv_throat_area_m2: 0.0006867
+    rotor_throat_area_m2: 0.001785
+  at_D10_120krpm:
+    m4_model_kg_s: 0.1863
+    m4_meas_kg_s: 0.2065
+    eta_tt_model: 0.8022
+    eta_tt_murray: 0.822
+    ngv_exit_mach: 1.03
+    choked: stator
+    exit_swirl_deg: 47.6
+  per_speed_line:
+    '20':
+      set: held_out
+      Mcorr_err_pct:
+        mean: 9.39
+        rms: 9.39
+        max_abs: 9.39
+        n: 1
+      eta_err_pts:
+        n: 0
+      Mcorr_within_published_uncertainty: 1/1
+      eta_within_published_uncertainty: 0/0
+    '26':
+      set: calibration
+      Mcorr_err_pct:
+        mean: 8.47
+        rms: 8.47
+        max_abs: 8.47
+        n: 1
+      eta_err_pts:
+        mean: -11.47
+        rms: 11.47
+        max_abs: 11.47
+        n: 1
+      Mcorr_within_published_uncertainty: 1/1
+      eta_within_published_uncertainty: 1/1
+    '32':
+      set: held_out
+      Mcorr_err_pct:
+        mean: 2.16
+        rms: 2.16
+        max_abs: 2.16
+        n: 1
+      eta_err_pts:
+        mean: 2.3
+        rms: 3.92
+        max_abs: 6.54
+        n: 5
+      Mcorr_within_published_uncertainty: 1/1
+      eta_within_published_uncertainty: 5/5
+    '38':
+      set: calibration
+      Mcorr_err_pct:
+        mean: 0.06
+        rms: 0.06
+        max_abs: 0.06
+        n: 1
+      eta_err_pts:
+        mean: 3.24
+        rms: 4.27
+        max_abs: 6.95
+        n: 4
+      Mcorr_within_published_uncertainty: 1/1
+      eta_within_published_uncertainty: 4/4
+    '44':
+      set: held_out
+      Mcorr_err_pct:
+        mean: -0.74
+        rms: 0.74
+        max_abs: 0.74
+        n: 1
+      eta_err_pts:
+        mean: 2.85
+        rms: 3.49
+        max_abs: 4.87
+        n: 2
+      Mcorr_within_published_uncertainty: 1/1
+      eta_within_published_uncertainty: 2/2
+    '50':
+      set: calibration
+      Mcorr_err_pct:
+        mean: -3.29
+        rms: 3.32
+        max_abs: 3.67
+        n: 2
+      eta_err_pts:
+        mean: 5.67
+        rms: 6.03
+        max_abs: 7.74
+        n: 2
+      Mcorr_within_published_uncertainty: 2/2
+      eta_within_published_uncertainty: 2/2
+    '56':
+      set: held_out
+      Mcorr_err_pct:
+        mean: -5.63
+        rms: 5.82
+        max_abs: 7.67
+        n: 3
+      eta_err_pts:
+        mean: 4.35
+        rms: 4.64
+        max_abs: 6.64
+        n: 4
+      Mcorr_within_published_uncertainty: 2/3
+      eta_within_published_uncertainty: 4/4
+    '62':
+      set: calibration
+      Mcorr_err_pct:
+        mean: -7.33
+        rms: 7.48
+        max_abs: 8.98
+        n: 5
+      eta_err_pts:
+        mean: 3.01
+        rms: 3.17
+        max_abs: 5.03
+        n: 7
+      Mcorr_within_published_uncertainty: 1/5
+      eta_within_published_uncertainty: 7/7
+    '68':
+      set: held_out
+      Mcorr_err_pct:
+        mean: -8.78
+        rms: 8.84
+        max_abs: 9.79
+        n: 2
+      eta_err_pts:
+        mean: -0.73
+        rms: 0.91
+        max_abs: 1.27
+        n: 2
+      Mcorr_within_published_uncertainty: 0/2
+      eta_within_published_uncertainty: 2/2
+  exit_velocity_V5:
+    calibration:
+      err_pct:
+        mean: -37.3
+        rms: 37.7
+        max_abs: 42.61
+        n: 8
+      within_published_uncertainty: 1/8
+    held_out:
+      err_pct:
+        mean: -37.98
+        rms: 38.2
+        max_abs: 42.04
+        n: 7
+      within_published_uncertainty: 0/7
+  held_out_all:
     Mcorr_err_pct:
-      mean: -0.74
-      rms: 0.74
-      max_abs: 0.74
-      n: 1
-    eta_err_pts:
-      mean: 2.85
-      rms: 3.49
-      max_abs: 4.87
-      n: 2
-    Mcorr_within_published_uncertainty: 1/1
-    eta_within_published_uncertainty: 2/2
-  '50':
-    set: calibration
-    Mcorr_err_pct:
-      mean: -3.29
-      rms: 3.32
-      max_abs: 3.67
-      n: 2
-    eta_err_pts:
-      mean: 5.67
-      rms: 6.03
-      max_abs: 7.74
-      n: 2
-    Mcorr_within_published_uncertainty: 2/2
-    eta_within_published_uncertainty: 2/2
-  '56':
-    set: held_out
-    Mcorr_err_pct:
-      mean: -5.63
-      rms: 5.82
-      max_abs: 7.67
-      n: 3
-    eta_err_pts:
-      mean: 4.35
-      rms: 4.64
-      max_abs: 6.64
-      n: 4
-    Mcorr_within_published_uncertainty: 2/3
-    eta_within_published_uncertainty: 4/4
-  '62':
-    set: calibration
-    Mcorr_err_pct:
-      mean: -7.33
-      rms: 7.48
-      max_abs: 8.98
-      n: 5
-    eta_err_pts:
-      mean: 3.01
-      rms: 3.17
-      max_abs: 5.03
-      n: 7
-    Mcorr_within_published_uncertainty: 1/5
-    eta_within_published_uncertainty: 7/7
-  '68':
-    set: held_out
-    Mcorr_err_pct:
-      mean: -8.78
-      rms: 8.84
+      mean: -2.96
+      rms: 6.63
       max_abs: 9.79
-      n: 2
+      n: 8
     eta_err_pts:
-      mean: -0.73
-      rms: 0.91
-      max_abs: 1.27
-      n: 2
-    Mcorr_within_published_uncertainty: 0/2
-    eta_within_published_uncertainty: 2/2
-per_speed_line_initial_guess:
-  '20':
-    set: held_out
-    Mcorr_err_pct:
-      mean: 9.34
-      rms: 9.34
-      max_abs: 9.34
-      n: 1
-    eta_err_pts:
-      n: 0
-    Mcorr_within_published_uncertainty: 1/1
-    eta_within_published_uncertainty: 0/0
-  '26':
-    set: calibration
-    Mcorr_err_pct:
-      mean: 8.52
-      rms: 8.52
-      max_abs: 8.52
-      n: 1
-    eta_err_pts:
-      mean: 1.16
-      rms: 1.16
-      max_abs: 1.16
-      n: 1
-    Mcorr_within_published_uncertainty: 1/1
-    eta_within_published_uncertainty: 1/1
-  '32':
-    set: held_out
-    Mcorr_err_pct:
-      mean: 2.7
-      rms: 2.7
-      max_abs: 2.7
-      n: 1
-    eta_err_pts:
-      mean: 14.35
-      rms: 14.71
-      max_abs: 18.66
-      n: 5
-    Mcorr_within_published_uncertainty: 1/1
-    eta_within_published_uncertainty: 5/5
-  '38':
-    set: calibration
-    Mcorr_err_pct:
-      mean: 1.34
-      rms: 1.34
-      max_abs: 1.34
-      n: 1
-    eta_err_pts:
-      mean: 14.78
-      rms: 15.06
-      max_abs: 18.68
-      n: 4
-    Mcorr_within_published_uncertainty: 1/1
-    eta_within_published_uncertainty: 4/4
-  '44':
-    set: held_out
-    Mcorr_err_pct:
-      mean: 1.95
-      rms: 1.95
-      max_abs: 1.95
-      n: 1
-    eta_err_pts:
-      mean: 14.0
-      rms: 14.16
-      max_abs: 16.12
-      n: 2
-    Mcorr_within_published_uncertainty: 1/1
-    eta_within_published_uncertainty: 1/2
-  '50':
-    set: calibration
-    Mcorr_err_pct:
-      mean: 1.38
-      rms: 1.57
-      max_abs: 2.14
-      n: 2
-    eta_err_pts:
-      mean: 16.83
-      rms: 16.99
-      max_abs: 19.15
-      n: 2
-    Mcorr_within_published_uncertainty: 2/2
-    eta_within_published_uncertainty: 0/2
-  '56':
-    set: held_out
-    Mcorr_err_pct:
-      mean: 0.42
-      rms: 1.91
-      max_abs: 2.19
-      n: 3
-    eta_err_pts:
-      mean: 15.3
-      rms: 15.41
-      max_abs: 17.97
-      n: 4
-    Mcorr_within_published_uncertainty: 3/3
-    eta_within_published_uncertainty: 0/4
-  '62':
-    set: calibration
-    Mcorr_err_pct:
-      mean: 0.1
-      rms: 1.77
-      max_abs: 2.84
-      n: 5
-    eta_err_pts:
-      mean: 13.81
-      rms: 13.87
-      max_abs: 16.3
-      n: 7
-    Mcorr_within_published_uncertainty: 5/5
-    eta_within_published_uncertainty: 0/7
-  '68':
-    set: held_out
-    Mcorr_err_pct:
-      mean: -0.59
-      rms: 0.99
-      max_abs: 1.38
-      n: 2
-    eta_err_pts:
-      mean: 9.39
-      rms: 9.43
-      max_abs: 10.24
-      n: 2
-    Mcorr_within_published_uncertainty: 2/2
-    eta_within_published_uncertainty: 0/2
-held_out_all:
-  Mcorr_err_pct:
-    mean: -2.96
-    rms: 6.63
-    max_abs: 9.79
-    n: 8
-  eta_err_pts:
-    mean: 2.55
-    rms: 3.82
-    max_abs: 6.64
-    n: 13
-low_speed_le_44krpm_all_points:
-  Mcorr_err_pct:
-    mean: 3.87
-    rms: 5.75
-    max_abs: 9.39
-    n: 5
-  eta_err_pts:
-    mean: 1.56
-    rms: 5.05
+      mean: 2.55
+      rms: 3.82
+      max_abs: 6.64
+      n: 13
+  eta_all_lines_err_pts:
+    mean: 2.48
+    rms: 4.46
     max_abs: 11.47
-    n: 12
+    n: 27
+  low_speed_le_44krpm_all_points:
+    Mcorr_err_pct:
+      mean: 3.87
+      rms: 5.75
+      max_abs: 9.39
+      n: 5
+    eta_err_pts:
+      mean: 1.56
+      rms: 5.05
+      max_abs: 11.47
+      n: 12
+hub_tip_profile_fit_F:
+  '0.5':
+    rss: 0.10279
+    ngv_gauging_deg: 75.08
+    rotor_gauging_deg: 35.0
+    delta_rss_over_s2: 10.02
+  '0.55':
+    rss: 0.08139
+    ngv_gauging_deg: 74.09
+    rotor_gauging_deg: 35.0
+    delta_rss_over_s2: 5.02
+  '0.6':
+    rss: 0.06811
+    ngv_gauging_deg: 72.84
+    rotor_gauging_deg: 35.0
+    delta_rss_over_s2: 1.92
+  '0.65':
+    rss: 0.06463
+    ngv_gauging_deg: 71.1
+    rotor_gauging_deg: 36.14
+    delta_rss_over_s2: 1.1
+  '0.7':
+    rss: 0.06285
+    ngv_gauging_deg: 68.36
+    rotor_gauging_deg: 39.8
+    delta_rss_over_s2: 0.69
+  '0.75':
+    rss: 0.55794
+    ngv_gauging_deg: 64.79
+    rotor_gauging_deg: 43.62
+    delta_rss_over_s2: 116.38
+  '0.8':
+    rss: 0.69357
+    ngv_gauging_deg: 64.21
+    rotor_gauging_deg: 43.62
+    delta_rss_over_s2: 148.07
+initial_guess:
+  p:
+  - 0.6
+  - 70.0
+  - 60.0
+  per_speed_line:
+    '20':
+      set: held_out
+      Mcorr_err_pct:
+        mean: 9.34
+        rms: 9.34
+        max_abs: 9.34
+        n: 1
+      eta_err_pts:
+        n: 0
+      Mcorr_within_published_uncertainty: 1/1
+      eta_within_published_uncertainty: 0/0
+    '26':
+      set: calibration
+      Mcorr_err_pct:
+        mean: 8.52
+        rms: 8.52
+        max_abs: 8.52
+        n: 1
+      eta_err_pts:
+        mean: 1.16
+        rms: 1.16
+        max_abs: 1.16
+        n: 1
+      Mcorr_within_published_uncertainty: 1/1
+      eta_within_published_uncertainty: 1/1
+    '32':
+      set: held_out
+      Mcorr_err_pct:
+        mean: 2.7
+        rms: 2.7
+        max_abs: 2.7
+        n: 1
+      eta_err_pts:
+        mean: 14.35
+        rms: 14.71
+        max_abs: 18.66
+        n: 5
+      Mcorr_within_published_uncertainty: 1/1
+      eta_within_published_uncertainty: 5/5
+    '38':
+      set: calibration
+      Mcorr_err_pct:
+        mean: 1.34
+        rms: 1.34
+        max_abs: 1.34
+        n: 1
+      eta_err_pts:
+        mean: 14.78
+        rms: 15.06
+        max_abs: 18.68
+        n: 4
+      Mcorr_within_published_uncertainty: 1/1
+      eta_within_published_uncertainty: 4/4
+    '44':
+      set: held_out
+      Mcorr_err_pct:
+        mean: 1.95
+        rms: 1.95
+        max_abs: 1.95
+        n: 1
+      eta_err_pts:
+        mean: 14.0
+        rms: 14.16
+        max_abs: 16.12
+        n: 2
+      Mcorr_within_published_uncertainty: 1/1
+      eta_within_published_uncertainty: 1/2
+    '50':
+      set: calibration
+      Mcorr_err_pct:
+        mean: 1.38
+        rms: 1.57
+        max_abs: 2.14
+        n: 2
+      eta_err_pts:
+        mean: 16.83
+        rms: 16.99
+        max_abs: 19.15
+        n: 2
+      Mcorr_within_published_uncertainty: 2/2
+      eta_within_published_uncertainty: 0/2
+    '56':
+      set: held_out
+      Mcorr_err_pct:
+        mean: 0.42
+        rms: 1.91
+        max_abs: 2.19
+        n: 3
+      eta_err_pts:
+        mean: 15.3
+        rms: 15.41
+        max_abs: 17.97
+        n: 4
+      Mcorr_within_published_uncertainty: 3/3
+      eta_within_published_uncertainty: 0/4
+    '62':
+      set: calibration
+      Mcorr_err_pct:
+        mean: 0.1
+        rms: 1.77
+        max_abs: 2.84
+        n: 5
+      eta_err_pts:
+        mean: 13.81
+        rms: 13.87
+        max_abs: 16.3
+        n: 7
+      Mcorr_within_published_uncertainty: 5/5
+      eta_within_published_uncertainty: 0/7
+    '68':
+      set: held_out
+      Mcorr_err_pct:
+        mean: -0.59
+        rms: 0.99
+        max_abs: 1.38
+        n: 2
+      eta_err_pts:
+        mean: 9.39
+        rms: 9.43
+        max_abs: 10.24
+        n: 2
+      Mcorr_within_published_uncertainty: 2/2
+      eta_within_published_uncertainty: 0/2

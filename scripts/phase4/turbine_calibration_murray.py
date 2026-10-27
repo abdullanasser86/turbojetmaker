@@ -30,6 +30,7 @@ D-points: CALIBRATION D.1, D.3, ..., D.15 (odd), HELD-OUT D.2, ..., D.14 (even).
 Two fits (both reported):
   F  (adopted): flow (Fig 5.16) + exit velocity (V5). Efficiency is NOT fitted: it is held out entirely and reported.
   FE (as first specified): flow + efficiency (Fig 5.18). Reported to show what the efficiency data do to the geometry.
+  Q  flow only: shows that the flow map alone does not identify hub/tip (only the NGV throat area).
 Residuals: relative (model/meas - 1); equal weight per calibration speed line and per group within a line; the V5
 group gets the same total weight as the flow group. Identifiability: profile of fit F over a hub/tip grid.
 
@@ -326,6 +327,7 @@ def main() -> int:
     d0 = predict(X0)
     f_F = run_fit(("5.16", "V5"))
     f_FE = run_fit(("5.16", "5.18"))
+    f_Q = run_fit(("5.16",))
     profile = {}
     for lam in (0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80):
         fr = run_fit(("5.16", "V5"), x0=(lam, f_F["p"][1], f_F["p"][2]), fixed={0: lam})
@@ -344,6 +346,7 @@ def main() -> int:
         f_F, "F: flow (Fig 5.16) + exit velocity (App D V5); efficiency held out"
     )
     sFE, dFE, _ = summarize(f_FE, "FE: flow (Fig 5.16) + efficiency (Fig 5.18)")
+    sQ, _dQ, _ = summarize(f_Q, "Q: flow (Fig 5.16) only")
     res = {
         "status": "CALIBRATED, NOT MEASURED (hub/tip and blade angles); counts, tip diameter and clearance published (Xu et al. 2021, a KJ66 variant)",
         "data": "Murray 2009 Figs 5.16/5.18 digitized [MEAS] (efficiency DERIVED by Murray); App D V5 (CALC_MEAS)",
@@ -351,6 +354,7 @@ def main() -> int:
                   "appD_calibration": sorted(D_CAL), "appD_held_out": sorted(set(AD.figure) - D_CAL)},
         "adopted": sF,
         "alternative_flow_plus_efficiency": sFE,
+        "alternative_flow_only": sQ,
         "hub_tip_profile_fit_F": {float(k): v for k, v in profile.items()},
         "initial_guess": {"p": list(X0), "per_speed_line": per_line(d0)},
     }  # fmt: skip

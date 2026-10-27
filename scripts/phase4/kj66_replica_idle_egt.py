@@ -14,6 +14,7 @@ thermocouple-equivalent EGT (recovery factor 0.68) equals the measured T5 readin
 Engine loss settings, combustor and the off-design solver are the dataset's (configs/engine_baseline.yaml); the
 seed design that supplies the design-point loss-scaling reference is sized at the run's top point.
 
+Two turbine variants: F (adopted calibration) and Q (flow-only fit; matches Murray's flow map within +-4 %).
 DIAGNOSTIC (not a model change): the same replica with the turbine efficiency lowered by the mean gap between the
 calibrated turbine and Murray's (derived) turbine efficiency, A9 re-fitted -- shows how much of the EGT error the
 turbine-efficiency gap explains.
@@ -58,15 +59,31 @@ KJ = yaml.safe_load(
 TURB = yaml.safe_load((OUT / "turbine_calibration_murray.yaml").read_text(encoding="utf-8"))
 
 
-def turbine_geometry():
-    for k in ("hub_tip", "ngv_gauging_deg", "rotor_gauging_deg", "rotor_le_deg"):
-        if KJ[k]["value"] is None:
-            raise SystemExit(
-                f"configs/components/kj66_turbine.yaml: {k} not calibrated yet (run turbine_calibration_murray.py)"
-            )
-    return stage_from_counts(KJ["rotor_tip_radius_m"]["value"], KJ["hub_tip"]["value"], KJ["n_ngv"]["value"],
-                             KJ["n_rotor"]["value"], KJ["ngv_gauging_deg"]["value"], KJ["rotor_gauging_deg"]["value"],
-                             KJ["rotor_le_deg"]["value"], KJ["tip_clearance_height_ratio"]["value"])  # fmt: skip
+def turbine_params(variant: str) -> tuple[float, float, float, float]:
+    """(hub/tip, NGV gauging, rotor gauging, rotor LE) of a turbine variant:
+    F = adopted calibration (configs/components/kj66_turbine.yaml: flow + exit velocity),
+    Q = flow-only fit (turbine_calibration_murray.yaml `alternative_flow_only`; matches the flow map, not V5).
+    """
+    if variant == "F":
+        for k in ("hub_tip", "ngv_gauging_deg", "rotor_gauging_deg", "rotor_le_deg"):
+            if KJ[k]["value"] is None:
+                raise SystemExit(
+                    f"configs/components/kj66_turbine.yaml: {k} not calibrated yet (run turbine_calibration_murray.py)"
+                )
+        return tuple(
+            KJ[k]["value"]
+            for k in ("hub_tip", "ngv_gauging_deg", "rotor_gauging_deg", "rotor_le_deg")
+        )
+    q = TURB["alternative_flow_only"]
+    c = q["calibrated"]
+    return (c["hub_tip"]["value"], c["ngv_gauging_deg"]["value"], c["rotor_gauging_deg"]["value"],
+            q["rotor_le_deg_zero_incidence_at_D10"])  # fmt: skip
+
+
+def turbine_geometry(variant: str = "F"):
+    ht, g_ngv, g_rot, le = turbine_params(variant)
+    return stage_from_counts(KJ["rotor_tip_radius_m"]["value"], ht, KJ["n_ngv"]["value"], KJ["n_rotor"]["value"],
+                             g_ngv, g_rot, le, KJ["tip_clearance_height_ratio"]["value"])  # fmt: skip
 
 
 def nozzle_runs() -> tuple[pd.DataFrame, float, float]:
@@ -82,12 +99,24 @@ def nozzle_runs() -> tuple[pd.DataFrame, float, float]:
     return noz, alt, MV.T_AMB_K - isa(alt, 0.0).T_K
 
 
-def replica(top, alt, dT, cfg, diag=None):
+def seed_design(top, alt, dT, cfg):
+    """Design-mode engine at the run's top point; only supplies the loss-scaling reference and a starting A9
+    (its own compressor and turbine are replaced). A few seed TITs are tried if the sizing fails."""
     base = {"W_air_kg_s": float(top.m_kg_s), "pr_c": float(top.PR_meas), "n_rpm": float(top.speed_krpm) * 1e3,
-            "turb_phi": 0.7, "turb_psi": 1.5, "turb_reaction": 0.5, "alt_m": alt, "mach": 0.0, "dT_isa_K": dT, "tit_K": 1000.0}  # fmt: skip
-    d = copy_design(design_engine(base, cfg))
+            "turb_phi": 0.7, "turb_psi": 1.5, "turb_reaction": 0.5, "alt_m": alt, "mach": 0.0, "dT_isa_K": dT}  # fmt: skip
+    err = None
+    for tit in (1000.0, 950.0, 1050.0, 900.0, 1100.0):
+        try:
+            return copy_design(design_engine({**base, "tit_K": tit}, cfg))
+        except EngineFailure as e:
+            err = e
+    raise err
+
+
+def replica(top, alt, dT, cfg, diag=None, variant="F"):
+    d = seed_design(top, alt, dT, cfg)
     d.compressor_geometry = CentrifugalCompressorGeometry.from_yaml()
-    d.turbine_geometry = turbine_geometry()
+    d.turbine_geometry = turbine_geometry(variant)
     a9_seed = d.A9_m2
     target = float(top.T5_probe_C) + 273.15
 
@@ -116,14 +145,14 @@ def replica(top, alt, dT, cfg, diag=None):
     )
 
 
-def run_all(diag=None, label="model") -> tuple[pd.DataFrame, dict]:
+def run_all(diag=None, label="model", variant="F") -> tuple[pd.DataFrame, dict]:
     cfg = load_engine_config()
     noz, alt, dT = nozzle_runs()
     rows, summ = [], {}
     for run, g in noz.groupby("run"):
         top = g.loc[g.set_speed_krpm.idxmax()]
         try:
-            eng, a9, a9_seed, scan = replica(top, alt, dT, cfg, diag)
+            eng, a9, a9_seed, scan = replica(top, alt, dT, cfg, diag, variant)
         except EngineFailure as e:
             summ[run] = f"replica failed: {e}"
             continue
@@ -176,11 +205,11 @@ def plot(d: pd.DataFrame) -> None:
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.4))
     for (case, run), g in d[d.model_converged].groupby(["case", "run"]):
         g = g.sort_values("speed_krpm")
-        ls = "-" if case == "model" else ":"
+        ls = "-" if case.endswith("model") else ":"
         axes[0].plot(g.speed_krpm, g.model_T5_tc_K - 273.15, ls, label=f"{case}: {run}")
         axes[1].plot(g.speed_krpm, g.model_P03_gauge_kPa, ls, label=f"{case}: {run}")
         axes[2].plot(g.speed_krpm, g.model_m_kg_s, ls, label=f"{case}: {run}")
-    meas = d[d.case == "model"]
+    meas = d[d.case == d.case.iloc[0]]
     for run, g in meas.groupby("run"):
         axes[0].errorbar(
             g.speed_krpm,
@@ -212,13 +241,30 @@ def plot(d: pd.DataFrame) -> None:
 
 
 def main() -> int:
-    d, s = run_all()
-    gap = TURB["adopted"]["eta_all_lines_err_pts"]["mean"] / 100.0
-    d2, s2 = run_all(diag={"turbine": -gap}, label=f"diagnostic: turbine eta - {100 * gap:.1f} pts")
-    res = {"turbine_geometry": {k: KJ[k] for k in ("hub_tip", "ngv_gauging_deg", "rotor_gauging_deg", "rotor_le_deg")},
-           "compressor_calibration": "R1 refit (configs/components/kj66_compressor_calibration.yaml)",
-           "model": s, "diagnostic_turbine_efficiency_gap_removed": {"eta_shift_pts": round(-100 * gap, 2), **s2}}  # fmt: skip
-    allr = pd.concat([d, d2], ignore_index=True)
+    res = {
+        "compressor_calibration": "R1 refit (configs/components/kj66_compressor_calibration.yaml)"
+    }
+    frames = []
+    for variant, what in (
+        ("F", "adopted turbine calibration (flow + exit velocity)"),
+        ("Q", "flow-only turbine fit"),
+    ):
+        gap = (
+            TURB["adopted" if variant == "F" else "alternative_flow_only"]["eta_all_lines_err_pts"][
+                "mean"
+            ]
+            / 100.0
+        )
+        d, s = run_all(label=f"{variant}: model", variant=variant)
+        d2, s2 = run_all(
+            diag={"turbine": -gap},
+            label=f"{variant}: diagnostic eta_t - {100 * gap:.1f} pts",
+            variant=variant,
+        )
+        res[f"turbine_{variant}"] = {"what": what, "params_hub_tip_ngv_rotor_le": [float(v) for v in turbine_params(variant)],
+                                     "model": s, "diagnostic_turbine_efficiency_gap_removed": {"eta_shift_pts": round(-100 * gap, 2), **s2}}  # fmt: skip
+        frames += [d, d2]
+    allr = pd.concat(frames, ignore_index=True)
     allr.to_csv(OUT / "kj66_replica_idle_egt.csv", index=False)
     if not allr.empty:
         plot(allr)

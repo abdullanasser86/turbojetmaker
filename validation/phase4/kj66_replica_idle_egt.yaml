@@ -1,0 +1,112 @@
+turbine_geometry:
+  hub_tip:
+    value: 0.743
+    kind: calibrated, not measured
+    range_profile:
+    - 0.65
+    - 0.745
+  ngv_gauging_deg:
+    value: 64.8
+    kind: calibrated, not measured
+    range_profile:
+    - 64.8
+    - 71.1
+  rotor_gauging_deg:
+    value: 43.6
+    kind: calibrated, not measured
+    range_profile:
+    - 36.1
+    - 43.6
+  rotor_le_deg:
+    value: 27.33
+    kind: derived from the calibrated values (rotor_le_rule)
+compressor_calibration: R1 refit (configs/components/kj66_compressor_calibration.yaml)
+model:
+  Nozzle Run 1, June 25 2009: 'replica failed: design_turbine: turbine design point
+    failed: no_convergence (T(h) did not converge)'
+  Nozzle Run 2, June 30 2009:
+    A9_fit_m2: 0.001255
+    A9_seed_m2: 0.001477
+    top_speed_krpm: 120.0
+  Nozzle Run 3, June 30 2009:
+    A9_fit_m2: 0.001225
+    A9_seed_m2: 0.001487
+    top_speed_krpm: 119.3
+  validation:
+    EGT_err_K:
+      mean: 53.0973
+      rms: 60.7081
+      max_abs: 101.0115
+      n: 29
+    P03_err_kPa:
+      mean: -1.8094
+      rms: 2.3517
+      max_abs: 3.6005
+      n: 29
+    m_err_pct:
+      mean: -13.7092
+      rms: 13.8994
+      max_abs: 19.1937
+      n: 29
+    EGT_within_digitizing_unc: 3/29
+    converged: 29/30
+    EGT_err_K_below_50krpm:
+      mean: 79.3416
+      rms: 80.4823
+      max_abs: 101.0115
+      n: 5
+    EGT_err_K_28_32krpm:
+      mean: 68.4403
+      rms: 68.4403
+      max_abs: 68.4403
+      n: 1
+    TIT_model_K_below_50krpm:
+      mean: 874.4632
+      rms: 874.4739
+      max_abs: 881.2221
+      n: 5
+diagnostic_turbine_efficiency_gap_removed:
+  eta_shift_pts: -11.21
+  Nozzle Run 1, June 25 2009: 'replica failed: design_turbine: turbine design point
+    failed: no_convergence (T(h) did not converge)'
+  Nozzle Run 2, June 30 2009:
+    A9_fit_m2: 0.001927
+    A9_seed_m2: 0.001477
+    top_speed_krpm: 120.0
+  Nozzle Run 3, June 30 2009:
+    A9_fit_m2: 0.001817
+    A9_seed_m2: 0.001487
+    top_speed_krpm: 119.3
+  validation:
+    EGT_err_K:
+      mean: 83.0655
+      rms: 93.1008
+      max_abs: 150.7284
+      n: 29
+    P03_err_kPa:
+      mean: -1.8698
+      rms: 2.4141
+      max_abs: 3.7052
+      n: 29
+    m_err_pct:
+      mean: -12.5586
+      rms: 12.6832
+      max_abs: 17.5583
+      n: 29
+    EGT_within_digitizing_unc: 1/29
+    converged: 29/30
+    EGT_err_K_below_50krpm:
+      mean: 129.909
+      rms: 130.5181
+      max_abs: 150.7284
+      n: 5
+    EGT_err_K_28_32krpm:
+      mean: 125.741
+      rms: 125.741
+      max_abs: 125.741
+      n: 1
+    TIT_model_K_below_50krpm:
+      mean: 924.8833
+      rms: 924.9144
+      max_abs: 938.4341
+      n: 5

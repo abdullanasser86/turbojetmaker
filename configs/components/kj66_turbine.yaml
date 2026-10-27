@@ -21,8 +21,16 @@ engine_mass_kg: {value: 0.93, kind: published, source: "[XU21]"}
 annulus: {value: cylindrical, kind: assumption, source: "same hub and tip radius for NGV and rotor (no flare published)"}
 rotor_le_rule: {value: zero_incidence_at_murray_D10, kind: assumption, source: "rotor metal inlet angle = relative inflow angle at Murray App D point D.10 (120 krpm)"}
 
-# Calibrated, not measured (filled by scripts/phase4/turbine_calibration_murray.py; null until calibrated)
-hub_tip: {value: null, kind: "calibrated, not measured", sigma_1: null}
-ngv_gauging_deg: {value: null, kind: "calibrated, not measured", sigma_1: null}
-rotor_gauging_deg: {value: null, kind: "calibrated, not measured", sigma_1: null}
-rotor_le_deg: {value: null, kind: "derived from the calibrated values (rotor_le_rule)"}
+# CALIBRATED, NOT MEASURED (scripts/phase4/turbine_calibration_murray.py, fit F: Murray Fig 5.16 corrected flow on
+# lines 26/38/50/62 krpm + App D exit velocity V5 on D.1, D.3, ..., D.15; validation/phase4/turbine_calibration_murray.yaml).
+# Identifiability (D-062): the flow map alone fixes only the NGV throat area (flow-only fit: hub/tip 0.52 +- 0.60);
+# hub/tip comes from V5 under the ASSUMPTION that station 5 is the rotor exit plane. The Jacobian sigmas are not
+# meaningful (condition number 1e8, hub/tip~rotor angle correlation -1.0): the ranges below are the hub/tip profile
+# (delta RSS <= s^2) with the angles re-fitted along it; above hub/tip ~0.745 the model cannot reach the measured
+# operating points (upper edge = model limit, not data).
+hub_tip: {value: 0.743, kind: "calibrated, not measured", range_profile: [0.65, 0.745]}
+ngv_gauging_deg: {value: 64.8, kind: "calibrated, not measured", range_profile: [64.8, 71.1]}
+rotor_gauging_deg: {value: 43.6, kind: "calibrated, not measured", range_profile: [36.1, 43.6]}
+rotor_le_deg: {value: 27.33, kind: "derived from the calibrated values (rotor_le_rule)"}
+# Consequences (fit F): blade height 8.5 mm, hub diameter 49 mm, tip clearance 0.085 mm; NGV choked at 120 krpm.
+# Efficiency is NOT matched: model - Murray = +11.2 pts mean over all lines (+10.9 at <= 44 krpm corrected).
